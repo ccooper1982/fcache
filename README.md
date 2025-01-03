@@ -1,40 +1,22 @@
 # fcache
 
-# Externals
+fcache is a data cache, using Google's FlatBuffers over WebSockets.
 
-## uWebSockets
-`cd externals`
+There is support for:
 
-`git submodule add git@github.com:uNetworking/uWebSockets.git`
+- Key Values
+- Arrays
+- Lists
 
-`git submodule update --init --recursive`
+More will be added in future releases.
 
-`cd uWebSockets`
+<br/>
 
-`make default`
+# Python Client
+TODO
 
-`make install prefix= DESTDIR=./`
+<br/>
 
-`cd ../..`
+# Why FlatBuffers
+Flat Buffers offer zero-copy deserialising: when the server receives data, it can be deserialised without an intermediate step which requires allocating memory (such as ProtoBuf), and is considerably more compact than JSON.
 
-## plog
-`git submodule add git@github.com:SergiusTheBest/plog.git`
-
-
-## flatbuffers
-`git submodule add git@github.com:google/flatbuffers.git`
-
-`cd flatbuffers`
-
-`cmake -G "Unix Makefiles" -D FLATBUFFERS_STATIC_FLATC=ON -D FLATBUFFERS_BUILD_TESTS=OFF`
-`make -j`
-
-
-## ankerl
-`git submodule add git@github.com:martinus/unordered_dense.git`
-
-## Generate Flat Buffers Code
-
-`cd ../../fbs`
-
-`./gen.sh`
