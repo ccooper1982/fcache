@@ -40,8 +40,8 @@ namespace fc
     bool connected;
   };
 
-
-  using WebSocket = uWS::WebSocket<false, true, WsSession>;
+  
+  using WebSocket = uWS::WebSocket<false, true, WsSession>; // disable SSL, IsServer
 
 
   template<class Formatter>

@@ -23,11 +23,28 @@ table KVRmv
 {
 }
 
+table KVAdd
+{
+}
+
+table KVCount
+{
+  count:uint64;
+}
+
+table KVContains
+{
+  keys:[string];
+}
+
 union ResponseBody
 {
   KVSet,
   KVGet,
-  KVRmv
+  KVRmv,
+  KVAdd,
+  KVCount,
+  KVContains
 }
 
 table Response

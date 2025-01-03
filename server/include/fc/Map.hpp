@@ -25,8 +25,8 @@ namespace fc
     }
 
 
-    template<flexbuffers::Type FlexT, typename ValueT>
-    void set (const std::string& key, const ValueT& v)
+    template<bool IsSet, flexbuffers::Type FlexT, typename ValueT>
+    void setOrAdd (const CachedKey& key, const ValueT& v)
     {
       ValueExtractF extract{nullptr};
 
@@ -43,8 +43,10 @@ namespace fc
       else
         static_assert("Unsupported FlexBuffer::Type");
 
-      CachedValue cv {.value = v, .extract = extract};
-      m_map.insert_or_assign(key, cv);
+      if constexpr (IsSet)
+        m_map.insert_or_assign(key, CachedValue{v, extract});
+      else
+        m_map.try_emplace(key, v, extract);
     }
 
 
@@ -63,12 +65,6 @@ namespace fc
           }
         }      
       });
-    }
-
-    
-    void add (CachedKey key, CachedValue value)
-    {
-      //m_map.try_emplace(std::move(key), std::move(value));
     }
 
 
@@ -108,11 +104,24 @@ namespace fc
     }
 
     
-    bool contains (const CachedKey& key) const
+    flatbuffers::Offset<KeyVector> contains (FlatBuilder& fb, const KeyVector& keys) const
     {
-      return m_map.contains(key);
-    };
+      // Building a flatbuffer vector, we need to know the length of the vector at construction.
+      // We don't know that until we've checked which keys exist.
+      // There may be a better way of doing this.
+      std::vector<CachedKey> keysExist;
+      keysExist.reserve(keys.size());
 
+      for (const auto& key : keys)
+      {
+        const auto& sKey = key->str();
+
+        if (m_map.contains(sKey))
+          keysExist.emplace_back(sKey);
+      }
+      
+      return fb.CreateVectorOfStrings(keysExist.cbegin(), keysExist.cend());
+    };
 
 
     const Map& map () const

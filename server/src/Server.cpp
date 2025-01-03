@@ -200,6 +200,21 @@ namespace fc
       const auto& kvRequest = *(request.body_as_KVRmv());
       m_kvHandler->handle(fbb, kvRequest);
     }
+    else if (request.body_type() == fc::request::RequestBody_KVAdd)
+    {
+      const auto& kvRequest = *(request.body_as_KVAdd());
+      m_kvHandler->handle(fbb, kvRequest);
+    }
+    else if (request.body_type() == fc::request::RequestBody_KVCount)
+    {
+      const auto& kvRequest = *(request.body_as_KVCount());
+      m_kvHandler->handle(fbb, kvRequest);
+    }
+    else if (request.body_type() == fc::request::RequestBody_KVContains)
+    {
+      const auto& kvRequest = *(request.body_as_KVContains());
+      m_kvHandler->handle(fbb, kvRequest);
+    }
 
     send(ws, fbb);
   }

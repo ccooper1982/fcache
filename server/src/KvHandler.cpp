@@ -10,42 +10,10 @@ namespace fc
   { 
     try
     {
-      const auto& vec = set.kv_flexbuffer_root().AsMap().Values();
+      const auto& values = set.kv_flexbuffer_root().AsMap().Values();
       const auto& keys = set.kv_flexbuffer_root().AsMap().Keys();
 
-      for (std::size_t i = 0 ; i < vec.size(); ++i)
-      {
-        const auto& key = keys[i].AsString().str();
-
-        switch (vec[i].GetType())
-        {
-          using enum flexbuffers::Type;
-
-          case FBT_INT:
-            m_map.set<FBT_INT>(key, vec[i].AsInt64());
-          break;
-          
-          case FBT_UINT:
-            m_map.set<FBT_UINT>(key, vec[i].AsUInt64());
-          break;
-
-          case FBT_BOOL:
-            m_map.set<FBT_BOOL>(key, vec[i].AsBool());
-          break;
-
-          case FBT_STRING:
-            m_map.set<FBT_STRING>(key, vec[i].AsString().str());
-          break;
-
-          case FBT_FLOAT:
-            m_map.set<FBT_FLOAT>(key, vec[i].AsFloat());
-          break;
-
-          default:
-            PLOGE << __FUNCTION__ << " - unknown type";
-          break;
-        }
-      }
+      setOrAdd<true>(keys, values);
 
       createEmptyBodyResponse(fbb, Status_Ok, ResponseBody_KVSet);
     }
@@ -56,6 +24,25 @@ namespace fc
     }
   }
   
+
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVAdd& add) noexcept
+  { 
+    try
+    {
+      const auto& values = add.kv_flexbuffer_root().AsMap().Values();
+      const auto& keys = add.kv_flexbuffer_root().AsMap().Keys();
+
+      setOrAdd<false>(keys, values);
+
+      createEmptyBodyResponse(fbb, Status_Ok, ResponseBody_KVSet);
+    }
+    catch(const std::exception& e)
+    {
+      PLOGE << e.what();
+      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVSet);
+    }
+  }
+
 
   void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVGet& get) noexcept
   {
@@ -101,6 +88,28 @@ namespace fc
     {
       PLOGE << e.what();
       createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVRmv);
+    }
+  }
+
+
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVCount& count) noexcept
+  {
+    const auto body = fc::response::CreateKVCount(fbb, m_map.count());
+    const auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_KVCount, body.Union());
+    fbb.Finish(rsp);
+  }
+
+  
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVContains& contains) noexcept
+  {
+    if (!contains.keys())
+      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVContains);
+    else
+    {
+      const auto keysOffsets = m_map.contains(fbb, *contains.keys());
+      const auto body = fc::response::CreateKVContains(fbb, keysOffsets);
+      const auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_KVContains, body.Union());
+      fbb.Finish(rsp);
     }
   }
 

@@ -18,12 +18,29 @@ table KVRmv
   keys:[string];
 }
 
+table KVAdd
+{
+  kv:[ubyte] (flexbuffer);
+}
+
+table KVCount
+{
+}
+
+table KVContains
+{
+  keys:[string];
+}
+
 
 union RequestBody
 {
   KVSet,
   KVGet,
-  KVRmv
+  KVRmv,
+  KVAdd,
+  KVCount,
+  KVContains
 }
 
 

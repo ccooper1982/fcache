@@ -69,6 +69,8 @@
     "streambuf": "cpp",
     "typeinfo": "cpp",
     "variant": "cpp",
-    "format": "cpp"
+    "format": "cpp",
+    "regex": "cpp",
+    "cinttypes": "cpp"
   }
 }

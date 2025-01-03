@@ -22,6 +22,10 @@ namespace fc
     static const std::size_t GET_DBL = 3;
     static const std::size_t GET_BOOL = 4;
 
+    CachedValue(const ValueVariant vv, const ValueExtractF f) : value(vv), extract(f)
+    {
+    }
+
     ValueVariant value;
     ValueExtractF extract;
   };

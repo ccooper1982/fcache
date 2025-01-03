@@ -1,50 +1,8 @@
-
-
 import asyncio as asio
 import sys
-import flatbuffers
-import flatbuffers.flexbuffers
-import builtins
 sys.path.append('../')
 from fc.client import NdbClient
-from fc.kv import KV2
-from fc.fbs.fc.request import Request, RequestBody, KVSet, KVGet
-from fc.fbs.fc.response import Response, ResponseBody, Status, KVGet as KVGetRsp
-
-
-def createKvArray(kv: dict) -> bytearray:
-  
-  # NOTE MapFromElements() does not differentiate between Int and UInt
-  # so do serialising manually here
-  b = flatbuffers.flexbuffers.Builder()
-
-  def getValueTypeAndAdd(v):
-    match type(v):
-      case builtins.int:
-        return b.Int if v < 0 else b.UInt
-      
-      case builtins.str:
-        return b.String
-
-      case builtins.float:
-        return b.Float
-
-      case builtins.bool:
-        return b.Bool
-    
-      case _:
-        return None
-
-
-  with b.Map():
-    for k,v in kv.items():
-      f = getValueTypeAndAdd(v)
-      if f:
-        b.Key(k)
-        f(v)
-
-  return b.Finish()
-
+from fc.kv import KV
 
 async def test():
   client = NdbClient()
@@ -52,17 +10,28 @@ async def test():
   
   data = {'k1':123, 'k2':'hello', 'k3':123.456, 'k4':-123, 'k5':False,'k6':True}
     
-  kv = KV2(client)
+  kv = KV(client)
 
   try:
     await kv.set(data)
-    
-    print(await kv.get(keys=['k1', 'k2','k3','k4','k5''k6']))
+    print(await kv.get(keys=['k1','k2','k3','k4','k5', 'k6']))
+
+    # overwrite
+    await kv.set({'k1':321})
+    print(await kv.get(keys=['k1','k2','k3','k4','k5', 'k6']))
 
     await kv.remove(keys=['k1'])
+    print(await kv.get(keys=['k1','k2','k3','k4','k5', 'k6']))
 
-    print(await kv.get(keys=['k1', 'k2','k3','k4','k5''k6']))
+    # does not overwrite, so should just add k1 since we removed it
+    data['k2'] = 'world' # 'k2' should not change
+    await kv.add(data)
+    print(await kv.get(keys=['k1','k2','k3','k4','k5', 'k6']))
     
+    print(await kv.count())
+
+    print(await kv.contains(['k1', 'k2', '__' ]))
+
   except:
     print('Query failed')
         

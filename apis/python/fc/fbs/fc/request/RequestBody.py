@@ -7,3 +7,6 @@ class RequestBody(object):
     KVSet = 1
     KVGet = 2
     KVRmv = 3
+    KVAdd = 4
+    KVCount = 5
+    KVContains = 6

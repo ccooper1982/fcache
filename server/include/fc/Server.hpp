@@ -51,7 +51,8 @@ namespace fc
     std::atomic_bool m_run;
     //us_timer_t * m_monitorTimer{};
 
-    // TODO profile runtime cost of shared_ptr vs raw ptr
+    // could be a unique_ptr but when the Timer is used for key expiry,
+    // this needs to be in the TimerData struct for the timer callback.
     std::shared_ptr<KvHandler> m_kvHandler;
   };
 }

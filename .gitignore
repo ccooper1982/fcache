@@ -2,3 +2,7 @@ build/*
 CMakeFiles/*
 server/release/*
 server/debug/*
+apis/python/fc/__pycache__/*
+apis/python/fc/fbs/fc/request/__pycache__/*
+apis/python/fc/fbs/fc/response/__pycache__/*
+apis/python/fc/fbs/fc/__pycache__/*

@@ -29,6 +29,15 @@ struct KVGetBuilder;
 struct KVRmv;
 struct KVRmvBuilder;
 
+struct KVAdd;
+struct KVAddBuilder;
+
+struct KVCount;
+struct KVCountBuilder;
+
+struct KVContains;
+struct KVContainsBuilder;
+
 struct Request;
 struct RequestBuilder;
 
@@ -37,33 +46,42 @@ enum RequestBody : uint8_t {
   RequestBody_KVSet = 1,
   RequestBody_KVGet = 2,
   RequestBody_KVRmv = 3,
+  RequestBody_KVAdd = 4,
+  RequestBody_KVCount = 5,
+  RequestBody_KVContains = 6,
   RequestBody_MIN = RequestBody_NONE,
-  RequestBody_MAX = RequestBody_KVRmv
+  RequestBody_MAX = RequestBody_KVContains
 };
 
-inline const RequestBody (&EnumValuesRequestBody())[4] {
+inline const RequestBody (&EnumValuesRequestBody())[7] {
   static const RequestBody values[] = {
     RequestBody_NONE,
     RequestBody_KVSet,
     RequestBody_KVGet,
-    RequestBody_KVRmv
+    RequestBody_KVRmv,
+    RequestBody_KVAdd,
+    RequestBody_KVCount,
+    RequestBody_KVContains
   };
   return values;
 }
 
 inline const char * const *EnumNamesRequestBody() {
-  static const char * const names[5] = {
+  static const char * const names[8] = {
     "NONE",
     "KVSet",
     "KVGet",
     "KVRmv",
+    "KVAdd",
+    "KVCount",
+    "KVContains",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameRequestBody(RequestBody e) {
-  if (::flatbuffers::IsOutRange(e, RequestBody_NONE, RequestBody_KVRmv)) return "";
+  if (::flatbuffers::IsOutRange(e, RequestBody_NONE, RequestBody_KVContains)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesRequestBody()[index];
 }
@@ -82,6 +100,18 @@ template<> struct RequestBodyTraits<fc::request::KVGet> {
 
 template<> struct RequestBodyTraits<fc::request::KVRmv> {
   static const RequestBody enum_value = RequestBody_KVRmv;
+};
+
+template<> struct RequestBodyTraits<fc::request::KVAdd> {
+  static const RequestBody enum_value = RequestBody_KVAdd;
+};
+
+template<> struct RequestBodyTraits<fc::request::KVCount> {
+  static const RequestBody enum_value = RequestBody_KVCount;
+};
+
+template<> struct RequestBodyTraits<fc::request::KVContains> {
+  static const RequestBody enum_value = RequestBody_KVContains;
 };
 
 bool VerifyRequestBody(::flatbuffers::Verifier &verifier, const void *obj, RequestBody type);
@@ -248,6 +278,144 @@ inline ::flatbuffers::Offset<KVRmv> CreateKVRmvDirect(
       keys__);
 }
 
+struct KVAdd FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef KVAddBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_KV = 4
+  };
+  const ::flatbuffers::Vector<uint8_t> *kv() const {
+    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_KV);
+  }
+  flexbuffers::Reference kv_flexbuffer_root() const {
+    const auto _f = kv();
+    return _f ? flexbuffers::GetRoot(_f->Data(), _f->size())
+              : flexbuffers::Reference();
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_KV) &&
+           verifier.VerifyVector(kv()) &&
+           flexbuffers::VerifyNestedFlexBuffer(kv(), verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct KVAddBuilder {
+  typedef KVAdd Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_kv(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> kv) {
+    fbb_.AddOffset(KVAdd::VT_KV, kv);
+  }
+  explicit KVAddBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<KVAdd> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<KVAdd>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<KVAdd> CreateKVAdd(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> kv = 0) {
+  KVAddBuilder builder_(_fbb);
+  builder_.add_kv(kv);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<KVAdd> CreateKVAddDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<uint8_t> *kv = nullptr) {
+  auto kv__ = kv ? _fbb.CreateVector<uint8_t>(*kv) : 0;
+  return fc::request::CreateKVAdd(
+      _fbb,
+      kv__);
+}
+
+struct KVCount FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef KVCountBuilder Builder;
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct KVCountBuilder {
+  typedef KVCount Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  explicit KVCountBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<KVCount> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<KVCount>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<KVCount> CreateKVCount(
+    ::flatbuffers::FlatBufferBuilder &_fbb) {
+  KVCountBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
+struct KVContains FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef KVContainsBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_KEYS = 4
+  };
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *keys() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_KEYS);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_KEYS) &&
+           verifier.VerifyVector(keys()) &&
+           verifier.VerifyVectorOfStrings(keys()) &&
+           verifier.EndTable();
+  }
+};
+
+struct KVContainsBuilder {
+  typedef KVContains Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_keys(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> keys) {
+    fbb_.AddOffset(KVContains::VT_KEYS, keys);
+  }
+  explicit KVContainsBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<KVContains> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<KVContains>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<KVContains> CreateKVContains(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> keys = 0) {
+  KVContainsBuilder builder_(_fbb);
+  builder_.add_keys(keys);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<KVContains> CreateKVContainsDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *keys = nullptr) {
+  auto keys__ = keys ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*keys) : 0;
+  return fc::request::CreateKVContains(
+      _fbb,
+      keys__);
+}
+
 struct Request FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef RequestBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -274,6 +442,15 @@ struct Request FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const fc::request::KVRmv *body_as_KVRmv() const {
     return body_type() == fc::request::RequestBody_KVRmv ? static_cast<const fc::request::KVRmv *>(body()) : nullptr;
   }
+  const fc::request::KVAdd *body_as_KVAdd() const {
+    return body_type() == fc::request::RequestBody_KVAdd ? static_cast<const fc::request::KVAdd *>(body()) : nullptr;
+  }
+  const fc::request::KVCount *body_as_KVCount() const {
+    return body_type() == fc::request::RequestBody_KVCount ? static_cast<const fc::request::KVCount *>(body()) : nullptr;
+  }
+  const fc::request::KVContains *body_as_KVContains() const {
+    return body_type() == fc::request::RequestBody_KVContains ? static_cast<const fc::request::KVContains *>(body()) : nullptr;
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_IDENT, 1) &&
@@ -294,6 +471,18 @@ template<> inline const fc::request::KVGet *Request::body_as<fc::request::KVGet>
 
 template<> inline const fc::request::KVRmv *Request::body_as<fc::request::KVRmv>() const {
   return body_as_KVRmv();
+}
+
+template<> inline const fc::request::KVAdd *Request::body_as<fc::request::KVAdd>() const {
+  return body_as_KVAdd();
+}
+
+template<> inline const fc::request::KVCount *Request::body_as<fc::request::KVCount>() const {
+  return body_as_KVCount();
+}
+
+template<> inline const fc::request::KVContains *Request::body_as<fc::request::KVContains>() const {
+  return body_as_KVContains();
 }
 
 struct RequestBuilder {
@@ -347,6 +536,18 @@ inline bool VerifyRequestBody(::flatbuffers::Verifier &verifier, const void *obj
     }
     case RequestBody_KVRmv: {
       auto ptr = reinterpret_cast<const fc::request::KVRmv *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case RequestBody_KVAdd: {
+      auto ptr = reinterpret_cast<const fc::request::KVAdd *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case RequestBody_KVCount: {
+      auto ptr = reinterpret_cast<const fc::request::KVCount *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case RequestBody_KVContains: {
+      auto ptr = reinterpret_cast<const fc::request::KVContains *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;
