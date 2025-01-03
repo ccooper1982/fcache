@@ -1,0 +1,37 @@
+include "common.fbs";
+
+namespace fc.response;
+
+enum Status : byte
+{
+  Fail = 0, // fail/error condition intentional the zero value
+  Ok = 1,
+  CommandUnknown,
+  ParseError
+}
+
+table KVSet
+{
+}
+
+table KVGet
+{
+  kv:[ubyte] (flexbuffer);
+}
+
+table KVRmv
+{
+}
+
+union ResponseBody
+{
+  KVSet,
+  KVGet,
+  KVRmv
+}
+
+table Response
+{
+  status:Status;
+  body:ResponseBody;
+}

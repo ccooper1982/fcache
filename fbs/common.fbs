@@ -1,0 +1,7 @@
+namespace fc.common;
+
+
+enum Ident : byte
+{
+  KV
+}

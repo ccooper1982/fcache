@@ -1,4 +1,4 @@
 build/*
 CMakeFiles/*
-fcache/release/*
-fcache/debug/*
+server/release/*
+server/debug/*

@@ -1,0 +1,38 @@
+include "common.fbs";
+
+namespace fc.request;
+
+
+table KVSet
+{  
+  kv:[ubyte] (flexbuffer);
+}
+
+table KVGet
+{
+  keys:[string];
+}
+
+table KVRmv
+{
+  keys:[string];
+}
+
+
+union RequestBody
+{
+  KVSet,
+  KVGet,
+  KVRmv
+}
+
+
+table Request
+{
+  ident:common.Ident = KV;
+  body:RequestBody;
+}
+
+
+
+root_type Request;
