@@ -52,7 +52,7 @@ int main (int argc, char ** argv)
 
   if (!server.init())
   {
-    PLOGF << "fcache failed to initialise";
+    PLOGF << "Failed to initialise websocket server";
   }
   else
   {
@@ -62,7 +62,10 @@ int main (int argc, char ** argv)
       run.wait();
     }
     else
+    {
+      PLOGF << "Failed to start websocket server";
       run.count_down();
+    }
   }
 
   return 0;

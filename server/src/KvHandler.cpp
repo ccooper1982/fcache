@@ -6,7 +6,7 @@
 namespace fc
 {
 
-  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVSet& set)
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVSet& set) noexcept
   { 
     try
     {
@@ -51,47 +51,70 @@ namespace fc
     }
     catch(const std::exception& e)
     {
+      PLOGE << e.what();
       createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVSet);
     }
   }
   
 
-  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVGet& get)
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVGet& get) noexcept
   {
-    if (!get.keys())
+    try
     {
+      if (!get.keys())
+      {
+        createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVGet);
+      }
+      else
+      {
+        FlexBuilder flxb;
+        m_map.get(*get.keys(), flxb);
+        flxb.Finish();
+
+        const auto buff = flxb.GetBuffer();
+
+        const auto vec = fbb.CreateVector(buff);  // place the flex buffer vector in the flat buffer
+        const auto body = fc::response::CreateKVGet(fbb, vec);
+        
+        auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_KVGet, body.Union());
+        fbb.Finish(rsp);
+      }
+    }
+    catch(const std::exception& e)
+    {
+      PLOGE << e.what();
       createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVGet);
     }
-    else
+  }
+
+
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVRmv& rmv) noexcept
+  {
+    try
     {
-      FlexBuilder flxb;
-      m_map.get(*get.keys(), flxb);
-      flxb.Finish();
+      if (rmv.keys())
+        m_map.remove(*rmv.keys());
 
-      const auto buff = flxb.GetBuffer();
-
-      const auto vec = fbb.CreateVector(buff);  // place the flex buffer vector in the flat buffer
-      const auto body = fc::response::CreateKVGet(fbb, vec);
-      
-      auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_KVGet, body.Union());
-      fbb.Finish(rsp);
+      createEmptyBodyResponse(fbb, Status_Ok, ResponseBody_KVRmv);
+    }
+    catch(const std::exception& e)
+    {
+      PLOGE << e.what();
+      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVRmv);
     }
   }
 
 
-  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVRmv& rmv)
+  void KvHandler::createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept
   {
-    if (rmv.keys())
-      m_map.remove(*rmv.keys());
-
-    createEmptyBodyResponse(fbb, Status_Ok, ResponseBody_KVRmv);
+    try
+    {
+      const auto rsp = fc::response::CreateResponse (fbb, status, bodyType);
+      fbb.Finish(rsp);
+    }
+    catch(const std::exception& e)
+    {
+      PLOGE << e.what();
+    }
   }
-
-
-  void KvHandler::createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType)
-  {
-    const auto rsp = fc::response::CreateResponse (fbb, status, bodyType);
-    fbb.Finish(rsp);
-  }
-
 }

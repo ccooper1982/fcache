@@ -189,20 +189,19 @@ namespace fc
     {
       const auto& kvRequest = *(request.body_as_KVSet());
       m_kvHandler->handle(fbb, kvRequest);
-      send(ws, fbb);
     }
     else if (request.body_type() == fc::request::RequestBody_KVGet)
     {
       const auto& kvRequest = *(request.body_as_KVGet());
       m_kvHandler->handle(fbb, kvRequest);
-      send(ws, fbb);
     }
     else if (request.body_type() == fc::request::RequestBody_KVRmv)
     {
       const auto& kvRequest = *(request.body_as_KVRmv());
       m_kvHandler->handle(fbb, kvRequest);
-      send(ws, fbb);
     }
+
+    send(ws, fbb);
   }
   
 

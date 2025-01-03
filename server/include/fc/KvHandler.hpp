@@ -16,13 +16,13 @@ namespace fc
 
 
   public:
-    void handle(FlatBuilder& fbb, const fc::request::KVSet& set);
-    void handle(FlatBuilder& fbb, const fc::request::KVGet& get);
-    void handle(FlatBuilder& fbb, const fc::request::KVRmv& rmv);
+    void handle(FlatBuilder& fbb, const fc::request::KVSet& set) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::KVGet& get) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::KVRmv& rmv) noexcept;
 
 
   private:
-    void createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType);
+    void createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept;
 
 
   private:
