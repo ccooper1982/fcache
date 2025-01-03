@@ -2,9 +2,9 @@
 
 #include <flatbuffers/flatbuffers.h>
 #include <flatbuffers/flexbuffers.h>
-#include "fbs/kv_response_generated.h"
-#include "fbs/kv_request_generated.h"
-#include "fbs/common_generated.h"
+#include <fc/fbs/kv_response_generated.h>
+#include <fc/fbs/kv_request_generated.h>
+#include <fc/fbs/common_generated.h>
 
 
 namespace fc
