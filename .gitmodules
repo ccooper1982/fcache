@@ -1,0 +1,15 @@
+[submodule "externals/uWebSockets"]
+	path = externals/uWebSockets
+	url = git@github.com:uNetworking/uWebSockets.git
+	ignore = all
+[submodule "externals/plog"]
+	path = externals/plog
+	url = git@github.com:SergiusTheBest/plog.git
+	ignore = all
+[submodule "externals/flatbuffers"]
+	path = externals/flatbuffers
+	url = git@github.com:google/flatbuffers.git
+	ignore = all
+[submodule "externals/unordered_dense"]
+	path = externals/unordered_dense
+	url = git@github.com:martinus/unordered_dense.git
