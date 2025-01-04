@@ -4,15 +4,26 @@ sys.path.append('../')
 from fc.client import NdbClient
 from fc.kv import KV
 
-async def test():
-  client = NdbClient()
-  await client.open('ws://127.0.0.1:1987')
+async def connect() -> NdbClient:
+  try:
+    client = NdbClient()
+    await client.open('ws://127.0.0.1:1987')
+    return client
+  except:
+    print ('Failed to connect')
   
-  data = {'k1':123, 'k2':'hello', 'k3':123.456, 'k4':-123, 'k5':False,'k6':True}
-    
-  kv = KV(client)
+  return None
+
+
+async def test():
+
+  if (client := await connect()) is None:
+    return
 
   try:
+    data = {'k1':123, 'k2':'hello', 'k3':123.5, 'k4':-123, 'k5':False,'k6':True}
+    kv = KV(client)
+
     await kv.set(data)
     print(await kv.get(keys=['k1','k2','k3','k4','k5', 'k6']))
 
@@ -34,7 +45,7 @@ async def test():
 
     await kv.clear_set({'k10':123})
     print(await kv.get(keys=['k10']))
-    
+
     await kv.clear()
     print(await kv.get(keys=['k10']))
 
