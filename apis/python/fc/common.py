@@ -1,15 +1,14 @@
 from fc.fbs.fc.response import Response, Status
 import flatbuffers
 import flatbuffers.flexbuffers
-import builtins
 
 
-class NdbException(Exception):
+class FcException(Exception):
   def __init__(self, msg):
     super().__init__(msg)
 
 
-class ResponseError(NdbException):
+class ResponseError(FcException):
   def __init__(self, status: Status):
     super().__init__(f'Response Error: {status}')
     self.status = status
