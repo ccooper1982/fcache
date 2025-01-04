@@ -1,4 +1,4 @@
-from fc.fbs.fc.response import Response, Status
+from fc.fbs.fc.response import Response, ResponseBody, Status
 import flatbuffers
 import flatbuffers.flexbuffers
 
@@ -9,10 +9,24 @@ class FcException(Exception):
 
 
 class ResponseError(FcException):
-  def __init__(self, status: Status):
-    super().__init__(f'Response Error: {status}')
-    self.status = status
+  def __init__(self, bodyType: ResponseBody.ResponseBody, status = None):
+    if status == None:
+      super().__init__(f'Response Error: Status {status}')
+    else:
+      super().__init__(f'Response Error: Unexpected Body Type {bodyType}')
 
+    self.status = status
+    self.bodyType = bodyType
+
+  @classmethod
+  def statusError(self, bodyType: ResponseBody.ResponseBody, status: Status.Status):
+    return self(bodyType, status)
+  
+  @classmethod
+  def bodyTypeError(self, bodyType: ResponseBody.ResponseBody):
+    "If body type is incorrect, status is irrelevant"
+    return self(bodyType)
+  
 
 def createKvMap(kv: dict) -> bytearray:
   """Creates a flexbuffer map, populating with `kv`. """
@@ -20,43 +34,13 @@ def createKvMap(kv: dict) -> bytearray:
   b.MapFromElements(kv)
   return b.Finish()
 
-# def createKvMap(kv: dict) -> bytearray:
-#   """Creates a flexbuffer map, populating with `kv`. 
-#  
-#   flexbuffers.Builder.MapFromElements() does not differentiate between Int and UInt
-#   so do serialising manually.
-#   """
-#   def getValueTypeAndAdd(v):
-#     match type(v):
-#       case builtins.int:
-#         return b.Int if v < 0 else b.UInt
-#      
-#       case builtins.str:
-#         return b.String
-#
-#       case builtins.float:
-#         return b.Float
-#
-#       case builtins.bool:
-#         return b.Bool
-# 
-#       case _:
-#         return None
-#
-#   with b.Map():
-#     for k,v in kv.items():
-#       f = getValueTypeAndAdd(v)
-#       if f:
-#         b.Key(k)
-#         f(v)
-#
-#   return b.Finish()
 
-
-def raise_if_fail(rsp: bytes):
+def raise_if_fail(rsp: bytes, expectedRspBody: ResponseBody):
   response = Response.Response.GetRootAs(rsp)
   if response.Status() is not Status.Status.Ok:
-    raise ResponseError(response.Status())
+    raise ResponseError.statusError(response.BodyType(), response.Status())
+  elif response.BodyType() is not expectedRspBody:
+    raise ResponseError.bodyTypeError(response.BodyType())
   
 
 def raise_if_empty (value: str):

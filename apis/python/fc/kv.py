@@ -43,7 +43,7 @@ class KV:
     
     @param: key To get a single key. Only the value is returned.
     @param: keys To get multiple keys. All keys/vals returned in a dict.
-    
+
     """
     raise_if(key is None and len(keys) == 0, 'key or keys must be set')
 
@@ -61,7 +61,7 @@ class KV:
 
       self._completeRequest(fb, body, RequestBody.RequestBody.KVGet)
       
-      rspBuffer = await self.client.sendCmd(fb.Output())
+      rspBuffer = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVGet)
 
       rsp = Response.Response.GetRootAs(rspBuffer)
       if rsp.BodyType() == ResponseBody.ResponseBody.KVGet:
@@ -94,8 +94,7 @@ class KV:
 
       self._completeRequest(fb, body, RequestBody.RequestBody.KVRmv)
 
-      await self.client.sendCmd(fb.Output())
-
+      await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVRmv)
     except Exception as e:
       logger.error(e)
 
@@ -106,7 +105,7 @@ class KV:
     body = KVCount.End(fb)
     self._completeRequest(fb, body, RequestBody.RequestBody.KVCount)
 
-    rspBuffer = await self.client.sendCmd(fb.Output())
+    rspBuffer = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVCount)
 
     rsp = Response.Response.GetRootAs(rspBuffer)
     if rsp.BodyType() == ResponseBody.ResponseBody.KVCount:
@@ -128,7 +127,7 @@ class KV:
 
       self._completeRequest(fb, body, RequestBody.RequestBody.KVContains)
       
-      rspBuffer = await self.client.sendCmd(fb.Output())
+      rspBuffer = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVContains)
 
       rsp = Response.Response.GetRootAs(rspBuffer)
       if rsp.BodyType() == ResponseBody.ResponseBody.KVContains:
@@ -151,7 +150,7 @@ class KV:
     body = KVClear.End(fb)
     self._completeRequest(fb, body, RequestBody.RequestBody.KVClear)
 
-    await self.client.sendCmd(fb.Output())
+    await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVClear)
 
   
   async def clear_set(self, kv:dict):
@@ -210,7 +209,7 @@ class KV:
 
       self._completeRequest(fb, body, requestType)
 
-      await self.client.sendCmd(fb.Output())
+      await self.client.sendCmd(fb.Output(), requestType)
     except Exception as e:
       logger.error(e)
 

@@ -1,6 +1,7 @@
 from fc.common import ResponseError, raise_if_fail
 from fc.connection import Connection
 from fc.logging import logger
+from fc.fbs.fc.response import ResponseBody
 from typing import Tuple, List
 
 
@@ -31,8 +32,8 @@ class FcClient:
     await self.ws.close()
  
 
-  async def sendCmd(self, data:bytearray) -> bytes:
+  async def sendCmd(self, data:bytearray, expectedRspBody: ResponseBody) -> bytes:
     rsp = await self.ws.query(data)
-    raise_if_fail(rsp)
+    raise_if_fail(rsp, expectedRspBody)
     return rsp
   
