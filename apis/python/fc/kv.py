@@ -1,9 +1,9 @@
 import flatbuffers
 import flatbuffers.flexbuffers
-from fc.client import NdbClient
+from fc.client import FcClient
 from fc.common import raise_if, createKvMap
 from fc.logging import logger
-from typing import List
+from typing import List, Any
 from fc.fbs.fc.request import (Request, RequestBody,
                                KVSet,
                                KVGet,
@@ -26,7 +26,7 @@ class KV:
   "Key Value API. If a response returns a fail, a ResponseError is raised."
 
 
-  def __init__(self, client: NdbClient):
+  def __init__(self, client: FcClient):
     self.client = client
 
 
@@ -38,10 +38,17 @@ class KV:
     await self._doSetAdd(kv, RequestBody.RequestBody.KVAdd)
   
 
-  async def get(self, key=None, keys=[]) -> dict:
+  async def get(self, key=None, keys=[]) -> dict | Any:
+    """Get a single key or multiple keys.
+    
+    @param: key To get a single key. Only the value is returned.
+    @param: keys To get multiple keys. All keys/vals returned in a dict.
+    
+    """
     raise_if(key is None and len(keys) == 0, 'key or keys must be set')
 
-    if len(keys) == 0:
+    isSingleKey = len(keys) == 0
+    if isSingleKey:
       keys = [key]
 
     try:
@@ -60,9 +67,13 @@ class KV:
       if rsp.BodyType() == ResponseBody.ResponseBody.KVGet:
         union_body = KVGetRsp.KVGet()
         union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
-        # this is how we get a flexbuffer from a flatbuffer
-        return flatbuffers.flexbuffers.Loads(union_body.KvAsNumpy().tobytes())
 
+        # this is how we get a flexbuffer from a flatbuffer
+        result = flatbuffers.flexbuffers.Loads(union_body.KvAsNumpy().tobytes())
+        if isSingleKey and len(result):
+          return result[key]  # single key, so return value
+        else:
+          return result # multiple keys, return dict
     except Exception as e:
       logger.error(e)
 

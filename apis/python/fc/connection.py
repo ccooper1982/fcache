@@ -5,8 +5,6 @@ from websockets.asyncio.client import connect
 from websockets import ConnectionClosed
 
 
-# TODO could allow enable of websockets logger here
-
 class Connection:
   """
   The Api class runs the websockets library, handling asyncio coroutines.
@@ -57,9 +55,9 @@ class Connection:
         self.rcvTask.cancel()
 
 
-  async def query2(self, buffer: bytearray) -> bytes:
+  async def query(self, buffer: bytearray) -> bytes:
     try:
-      queryTask = asio.create_task(self._query2(buffer))
+      queryTask = asio.create_task(self._query(buffer))
       await queryTask
       msg = queryTask.result()
     except asio.CancelledError:
@@ -70,34 +68,13 @@ class Connection:
     return msg
 
 
-  async def _query2(self, buffer: bytearray) -> bytes:
+  async def _query(self, buffer: bytearray) -> bytes:
     await self.ws.send(buffer, text=False)    
     await self.rspEvt.wait()
     msg = self.message    
     self.rspEvt.clear()
     return msg
   
-
-  async def query(self, s: dict) -> dict:
-    try:
-      queryTask = asio.create_task(self._query(json.dumps(s)))
-      await queryTask
-      msg = queryTask.result()
-    except asio.CancelledError:
-      # if there is an active query when we are disconnected, the query
-      # task is cancelled, raising an exception
-      pass
-
-    return msg
-  
-
-  async def _query(self, query: str):
-    await self.ws.send(query, text=True)    
-    await self.rspEvt.wait()
-    msg = json.loads(self.message)
-    self.rspEvt.clear()
-    return msg
-
 
   async def close(self):
     self.userClosed = True

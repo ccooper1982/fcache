@@ -1,3 +1,3 @@
-from .client import NdbClient
+from .client import FcClient
 
-__all__ = ['NdbClient']
+__all__ = ['FcClient']

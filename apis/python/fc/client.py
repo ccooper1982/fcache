@@ -5,7 +5,7 @@ from typing import Tuple, List
 
 
 
-class NdbClient:
+class FcClient:
   def __init__(self):
     self.uri = ''
     self.ws = Connection()
@@ -32,7 +32,7 @@ class NdbClient:
  
 
   async def sendCmd(self, data:bytearray) -> bytes:
-    rsp = await self.ws.query2(data)
+    rsp = await self.ws.query(data)
     raise_if_fail(rsp)
     return rsp
   

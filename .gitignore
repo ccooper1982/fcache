@@ -6,3 +6,4 @@ apis/python/fc/__pycache__/*
 apis/python/fc/fbs/fc/request/__pycache__/*
 apis/python/fc/fbs/fc/response/__pycache__/*
 apis/python/fc/fbs/fc/__pycache__/*
+apis/python/tests/__pycache__/*

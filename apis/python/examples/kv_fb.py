@@ -1,12 +1,12 @@
 import asyncio as asio
 import sys
 sys.path.append('../')
-from fc.client import NdbClient
+from fc.client import FcClient
 from fc.kv import KV
 
-async def connect() -> NdbClient:
+async def connect() -> FcClient:
   try:
-    client = NdbClient()
+    client = FcClient()
     await client.open('ws://127.0.0.1:1987')
     return client
   except:
@@ -55,6 +55,9 @@ async def test():
 
 
 if __name__ == "__main__":
-  for f in [test()]:
-    print(f'---- {f.__name__} ----')
-    asio.run(f)
+  async def run():
+    for f in [test]:
+      print(f'---- {f.__name__} ----')
+      await f()
+  
+  asio.run(run())
