@@ -185,6 +185,18 @@ namespace fc
 
   void Server::handleKv(WebSocket * ws, FlatBuilder& fbb, const fc::request::Request& request)
   {
+    // TODO tidy this. Each body inherits from flatbuffers::Table but it is private inheritance.
+    //      maybe array of lambdas, indexed by fc::request::RequestBody which calls appropriate body_as_() func.
+    //      or a templated lambda and use request.body_as<T>():
+    //
+    // auto call = [&request, &fbb, this]<typename T>()
+    // {
+    //   const auto * p = static_cast<const T *>(request.body_as<T>());
+    //   m_kvHandler->handle(fbb, *p);
+    // };
+    // call.operator()<fc::request::KVSet>();
+
+
     if (request.body_type() == fc::request::RequestBody_KVSet)
     {
       const auto& kvRequest = *(request.body_as_KVSet());
@@ -213,6 +225,16 @@ namespace fc
     else if (request.body_type() == fc::request::RequestBody_KVContains)
     {
       const auto& kvRequest = *(request.body_as_KVContains());
+      m_kvHandler->handle(fbb, kvRequest);
+    }
+    else if (request.body_type() == fc::request::RequestBody_KVClear)
+    {
+      const auto& kvRequest = *(request.body_as_KVClear());
+      m_kvHandler->handle(fbb, kvRequest);
+    }
+    else if (request.body_type() == fc::request::RequestBody_KVClearSet)
+    {
+      const auto& kvRequest = *(request.body_as_KVClearSet());
       m_kvHandler->handle(fbb, kvRequest);
     }
 

@@ -1,4 +1,3 @@
-from fc.commands import StValues, Fields
 from fc.fbs.fc.response import Response, Status
 import flatbuffers
 import flatbuffers.flexbuffers
@@ -54,11 +53,6 @@ def raise_if_fail(rsp: bytes):
   if response.Status() is not Status.Status.Ok:
     raise ResponseError(response.Status())
   
-
-def raise_if_invalid(rsp: dict, cmdRsp: str, expected = StValues.ST_SUCCESS):
-  if rsp[cmdRsp][Fields.STATUS] != expected:
-    raise ResponseError(rsp[cmdRsp])
-
 
 def raise_if_empty (value: str):
   if value == '':

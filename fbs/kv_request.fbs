@@ -32,6 +32,16 @@ table KVContains
   keys:[string];
 }
 
+table KVClear
+{
+
+}
+
+table KVClearSet
+{
+  kv:[ubyte] (flexbuffer);
+}
+
 
 union RequestBody
 {
@@ -40,7 +50,9 @@ union RequestBody
   KVRmv,
   KVAdd,
   KVCount,
-  KVContains
+  KVContains,
+  KVClear,
+  KVClearSet
 }
 
 

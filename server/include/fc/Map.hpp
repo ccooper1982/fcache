@@ -2,6 +2,8 @@
 
 #include <ankerl/unordered_dense.h>
 #include <fc/KvCommon.hpp>
+#include <plog/Log.h>
+
 
 namespace fc
 {
@@ -77,31 +79,17 @@ namespace fc
     };
 
     
-    std::tuple<bool, std::size_t> clear()
+    void clear()
     {
-      // auto size = m_map.size();
-      // bool valid = true;
-
-      // try
-      // {
-      //   m_map.replace(Map::value_container_type{});
-      // }
-      // catch (...)
-      // {
-      //   valid = false;
-      //   size = 0U;
-      // }
-      
-      // return std::make_pair(valid, size);
-
-      return {false, 0};
+      try
+      {
+        m_map.replace(Map::value_container_type{});
+      }
+      catch (const std::exception& ex)
+      {
+        PLOGE << ex.what();
+      }
     };
-
-
-    std::size_t count() const
-    {
-      return m_map.size();
-    }
 
     
     flatbuffers::Offset<KeyVector> contains (FlatBuilder& fb, const KeyVector& keys) const
@@ -124,7 +112,13 @@ namespace fc
     };
 
 
-    const Map& map () const
+    std::size_t count() const noexcept
+    {
+      return m_map.size();
+    }
+
+
+    const Map& map () const noexcept
     {
       return m_map;
     }

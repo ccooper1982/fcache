@@ -22,7 +22,9 @@ namespace fc
     void handle(FlatBuilder& fbb, const fc::request::KVGet& get) noexcept;
     void handle(FlatBuilder& fbb, const fc::request::KVRmv& rmv) noexcept;
     void handle(FlatBuilder& fbb, const fc::request::KVCount& count) noexcept;
-    void handle(FlatBuilder& fbb, const fc::request::KVContains& count) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::KVContains& contains) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::KVClear& clear) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::KVClearSet& clearSet) noexcept;
 
 
   private:

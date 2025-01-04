@@ -38,6 +38,12 @@ struct KVCountBuilder;
 struct KVContains;
 struct KVContainsBuilder;
 
+struct KVClear;
+struct KVClearBuilder;
+
+struct KVClearSet;
+struct KVClearSetBuilder;
+
 struct Response;
 struct ResponseBuilder;
 
@@ -85,11 +91,13 @@ enum ResponseBody : uint8_t {
   ResponseBody_KVAdd = 4,
   ResponseBody_KVCount = 5,
   ResponseBody_KVContains = 6,
+  ResponseBody_KVClear = 7,
+  ResponseBody_KVClearSet = 8,
   ResponseBody_MIN = ResponseBody_NONE,
-  ResponseBody_MAX = ResponseBody_KVContains
+  ResponseBody_MAX = ResponseBody_KVClearSet
 };
 
-inline const ResponseBody (&EnumValuesResponseBody())[7] {
+inline const ResponseBody (&EnumValuesResponseBody())[9] {
   static const ResponseBody values[] = {
     ResponseBody_NONE,
     ResponseBody_KVSet,
@@ -97,13 +105,15 @@ inline const ResponseBody (&EnumValuesResponseBody())[7] {
     ResponseBody_KVRmv,
     ResponseBody_KVAdd,
     ResponseBody_KVCount,
-    ResponseBody_KVContains
+    ResponseBody_KVContains,
+    ResponseBody_KVClear,
+    ResponseBody_KVClearSet
   };
   return values;
 }
 
 inline const char * const *EnumNamesResponseBody() {
-  static const char * const names[8] = {
+  static const char * const names[10] = {
     "NONE",
     "KVSet",
     "KVGet",
@@ -111,13 +121,15 @@ inline const char * const *EnumNamesResponseBody() {
     "KVAdd",
     "KVCount",
     "KVContains",
+    "KVClear",
+    "KVClearSet",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameResponseBody(ResponseBody e) {
-  if (::flatbuffers::IsOutRange(e, ResponseBody_NONE, ResponseBody_KVContains)) return "";
+  if (::flatbuffers::IsOutRange(e, ResponseBody_NONE, ResponseBody_KVClearSet)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesResponseBody()[index];
 }
@@ -148,6 +160,14 @@ template<> struct ResponseBodyTraits<fc::response::KVCount> {
 
 template<> struct ResponseBodyTraits<fc::response::KVContains> {
   static const ResponseBody enum_value = ResponseBody_KVContains;
+};
+
+template<> struct ResponseBodyTraits<fc::response::KVClear> {
+  static const ResponseBody enum_value = ResponseBody_KVClear;
+};
+
+template<> struct ResponseBodyTraits<fc::response::KVClearSet> {
+  static const ResponseBody enum_value = ResponseBody_KVClearSet;
 };
 
 bool VerifyResponseBody(::flatbuffers::Verifier &verifier, const void *obj, ResponseBody type);
@@ -390,6 +410,64 @@ inline ::flatbuffers::Offset<KVContains> CreateKVContainsDirect(
       keys__);
 }
 
+struct KVClear FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef KVClearBuilder Builder;
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct KVClearBuilder {
+  typedef KVClear Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  explicit KVClearBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<KVClear> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<KVClear>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<KVClear> CreateKVClear(
+    ::flatbuffers::FlatBufferBuilder &_fbb) {
+  KVClearBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
+struct KVClearSet FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef KVClearSetBuilder Builder;
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct KVClearSetBuilder {
+  typedef KVClearSet Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  explicit KVClearSetBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<KVClearSet> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<KVClearSet>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<KVClearSet> CreateKVClearSet(
+    ::flatbuffers::FlatBufferBuilder &_fbb) {
+  KVClearSetBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
 struct Response FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ResponseBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -425,6 +503,12 @@ struct Response FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const fc::response::KVContains *body_as_KVContains() const {
     return body_type() == fc::response::ResponseBody_KVContains ? static_cast<const fc::response::KVContains *>(body()) : nullptr;
   }
+  const fc::response::KVClear *body_as_KVClear() const {
+    return body_type() == fc::response::ResponseBody_KVClear ? static_cast<const fc::response::KVClear *>(body()) : nullptr;
+  }
+  const fc::response::KVClearSet *body_as_KVClearSet() const {
+    return body_type() == fc::response::ResponseBody_KVClearSet ? static_cast<const fc::response::KVClearSet *>(body()) : nullptr;
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_STATUS, 1) &&
@@ -457,6 +541,14 @@ template<> inline const fc::response::KVCount *Response::body_as<fc::response::K
 
 template<> inline const fc::response::KVContains *Response::body_as<fc::response::KVContains>() const {
   return body_as_KVContains();
+}
+
+template<> inline const fc::response::KVClear *Response::body_as<fc::response::KVClear>() const {
+  return body_as_KVClear();
+}
+
+template<> inline const fc::response::KVClearSet *Response::body_as<fc::response::KVClearSet>() const {
+  return body_as_KVClearSet();
 }
 
 struct ResponseBuilder {
@@ -522,6 +614,14 @@ inline bool VerifyResponseBody(::flatbuffers::Verifier &verifier, const void *ob
     }
     case ResponseBody_KVContains: {
       auto ptr = reinterpret_cast<const fc::response::KVContains *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case ResponseBody_KVClear: {
+      auto ptr = reinterpret_cast<const fc::response::KVClear *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case ResponseBody_KVClearSet: {
+      auto ptr = reinterpret_cast<const fc::response::KVClearSet *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;

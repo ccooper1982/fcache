@@ -10,3 +10,5 @@ class RequestBody(object):
     KVAdd = 4
     KVCount = 5
     KVContains = 6
+    KVClear = 7
+    KVClearSet = 8

@@ -10,16 +10,21 @@ from fc.fbs.fc.request import (Request, RequestBody,
                                KVRmv,                               
                                KVAdd,
                                KVCount,
-                               KVContains)
+                               KVContains,
+                               KVClear,
+                               KVClearSet)
 
 from fc.fbs.fc.response import (Response, ResponseBody, Status,
                                 KVGet as KVGetRsp,
                                 KVRmv as KVRmvRsp,
                                 KVCount as KVCountRsp,
-                                KVContains as KVContainsRsp)
+                                KVContains as KVContainsRsp,
+                                KVClear as KVClearRsp,
+                                KVClearSet as KVClearSetRsp)
+
 
 class KV:
-  "Key Value"
+  "Key Value API. If a response returns a fail, a ResponseError is raised."
 
 
   def __init__(self, client: NdbClient):
@@ -50,7 +55,7 @@ class KV:
 
       self._completeRequest(fb, body, RequestBody.RequestBody.KVGet)
       
-      rspBuffer = await self.client.sendCmd2(fb.Output())
+      rspBuffer = await self.client.sendCmd(fb.Output())
 
       rsp = Response.Response.GetRootAs(rspBuffer)
       if rsp.BodyType() == ResponseBody.ResponseBody.KVGet:
@@ -79,7 +84,7 @@ class KV:
 
       self._completeRequest(fb, body, RequestBody.RequestBody.KVRmv)
 
-      await self.client.sendCmd2(fb.Output())
+      await self.client.sendCmd(fb.Output())
 
     except Exception as e:
       logger.error(e)
@@ -91,7 +96,7 @@ class KV:
     body = KVCount.End(fb)
     self._completeRequest(fb, body, RequestBody.RequestBody.KVCount)
 
-    rspBuffer = await self.client.sendCmd2(fb.Output())
+    rspBuffer = await self.client.sendCmd(fb.Output())
 
     rsp = Response.Response.GetRootAs(rspBuffer)
     if rsp.BodyType() == ResponseBody.ResponseBody.KVCount:
@@ -100,7 +105,7 @@ class KV:
       return union_body.Count()
 
 
-  async def contains(self, keys=[]) -> list:
+  async def contains(self, keys=[]) -> set:
     raise_if(len(keys) == 0, 'keys is empty')
 
     try:
@@ -113,7 +118,7 @@ class KV:
 
       self._completeRequest(fb, body, RequestBody.RequestBody.KVContains)
       
-      rspBuffer = await self.client.sendCmd2(fb.Output())
+      rspBuffer = await self.client.sendCmd(fb.Output())
 
       rsp = Response.Response.GetRootAs(rspBuffer)
       if rsp.BodyType() == ResponseBody.ResponseBody.KVContains:
@@ -122,14 +127,26 @@ class KV:
         
         # The API does not return all strings in an iterable, you have to request
         # each item by index. And each is returned as bytes rather than str
-        exist = []
+        exist = set()
         for i in range(union_body.KeysLength()):
-          exist.append(union_body.Keys(i).decode('utf-8'))
+          exist.add(union_body.Keys(i).decode('utf-8'))
         return exist
     except Exception as e:
       logger.error(e)
 
 
+  async def clear(self) -> None:
+    fb = flatbuffers.Builder()
+    KVClear.Start(fb)    
+    body = KVClear.End(fb)
+    self._completeRequest(fb, body, RequestBody.RequestBody.KVClear)
+
+    await self.client.sendCmd(fb.Output())
+
+  
+  async def clear_set(self, kv:dict):
+    await self._doSetAdd(kv, RequestBody.RequestBody.KVClearSet)
+    
 
   ## Helpers ##
   def _createStrings (self, fb: flatbuffers.Builder, strings: list) -> int:
@@ -157,6 +174,9 @@ class KV:
 
 
   async def _doSetAdd(self, kv: dict, requestType: RequestBody.RequestBody) -> None:
+    """KVSet, KVAdd and KVClearSet all use a flexbuffer map, so they all 
+    use this function to populate the from `kv`"""
+    
     raise_if(len(kv) == 0, 'keys empty')
 
     try:
@@ -167,43 +187,21 @@ class KV:
         KVSet.Start(fb)
         KVSet.AddKv(fb, kvVec)
         body = KVSet.End(fb)
-      else:
+      elif requestType is RequestBody.RequestBody.KVAdd:
         KVAdd.Start(fb)
         KVAdd.AddKv(fb, kvVec)
-        body = KVSet.End(fb)
+        body = KVAdd.End(fb)
+      elif requestType is RequestBody.RequestBody.KVClearSet:
+        KVClearSet.Start(fb)
+        KVClearSet.AddKv(fb, kvVec)
+        body = KVClearSet.End(fb)
+      else:
+        raise ValueError("RequestBody not permitted")
 
       self._completeRequest(fb, body, requestType)
 
-      await self.client.sendCmd2(fb.Output())
+      await self.client.sendCmd(fb.Output())
     except Exception as e:
       logger.error(e)
 
-
-
-class KV_Old:
-  "Key Value"
-
-  async def count(self) -> int:
-    rsp = await self.client.sendCmd(self.cmds.COUNT_REQ, self.cmds.COUNT_RSP, {})
-    return rsp[self.cmds.COUNT_RSP]['cnt']
-
-
-  async def contains(self, keys: tuple) -> List[str]:
-    rsp = await self.client.sendCmd(self.cmds.CONTAINS_REQ, self.cmds.CONTAINS_RSP, {'keys':keys})
-    return rsp[self.cmds.CONTAINS_RSP]['contains']
-
-  
-  async def keys(self) -> List[str]:
-    rsp = await self.client.sendCmd(self.cmds.KEYS_REQ, self.cmds.KEYS_RSP, {})
-    return rsp[self.cmds.KEYS_RSP]['keys']
-  
-
-  async def clear(self) -> int:
-    rsp = await self.client.sendCmd(self.cmds.CLEAR_REQ, self.cmds.CLEAR_RSP, {})
-    return rsp[self.cmds.CLEAR_RSP]['cnt']
-        
-
-  async def clear_set(self, keys: dict) -> int:
-    rsp = await self.client.sendCmd(self.cmds.CLEAR_SET_REQ, self.cmds.CLEAR_SET_RSP, {'keys':keys})
-    return rsp[self.cmds.CLEAR_SET_RSP]['cnt'] 
 

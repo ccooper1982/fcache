@@ -38,6 +38,12 @@ struct KVCountBuilder;
 struct KVContains;
 struct KVContainsBuilder;
 
+struct KVClear;
+struct KVClearBuilder;
+
+struct KVClearSet;
+struct KVClearSetBuilder;
+
 struct Request;
 struct RequestBuilder;
 
@@ -49,11 +55,13 @@ enum RequestBody : uint8_t {
   RequestBody_KVAdd = 4,
   RequestBody_KVCount = 5,
   RequestBody_KVContains = 6,
+  RequestBody_KVClear = 7,
+  RequestBody_KVClearSet = 8,
   RequestBody_MIN = RequestBody_NONE,
-  RequestBody_MAX = RequestBody_KVContains
+  RequestBody_MAX = RequestBody_KVClearSet
 };
 
-inline const RequestBody (&EnumValuesRequestBody())[7] {
+inline const RequestBody (&EnumValuesRequestBody())[9] {
   static const RequestBody values[] = {
     RequestBody_NONE,
     RequestBody_KVSet,
@@ -61,13 +69,15 @@ inline const RequestBody (&EnumValuesRequestBody())[7] {
     RequestBody_KVRmv,
     RequestBody_KVAdd,
     RequestBody_KVCount,
-    RequestBody_KVContains
+    RequestBody_KVContains,
+    RequestBody_KVClear,
+    RequestBody_KVClearSet
   };
   return values;
 }
 
 inline const char * const *EnumNamesRequestBody() {
-  static const char * const names[8] = {
+  static const char * const names[10] = {
     "NONE",
     "KVSet",
     "KVGet",
@@ -75,13 +85,15 @@ inline const char * const *EnumNamesRequestBody() {
     "KVAdd",
     "KVCount",
     "KVContains",
+    "KVClear",
+    "KVClearSet",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameRequestBody(RequestBody e) {
-  if (::flatbuffers::IsOutRange(e, RequestBody_NONE, RequestBody_KVContains)) return "";
+  if (::flatbuffers::IsOutRange(e, RequestBody_NONE, RequestBody_KVClearSet)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesRequestBody()[index];
 }
@@ -112,6 +124,14 @@ template<> struct RequestBodyTraits<fc::request::KVCount> {
 
 template<> struct RequestBodyTraits<fc::request::KVContains> {
   static const RequestBody enum_value = RequestBody_KVContains;
+};
+
+template<> struct RequestBodyTraits<fc::request::KVClear> {
+  static const RequestBody enum_value = RequestBody_KVClear;
+};
+
+template<> struct RequestBodyTraits<fc::request::KVClearSet> {
+  static const RequestBody enum_value = RequestBody_KVClearSet;
 };
 
 bool VerifyRequestBody(::flatbuffers::Verifier &verifier, const void *obj, RequestBody type);
@@ -416,6 +436,92 @@ inline ::flatbuffers::Offset<KVContains> CreateKVContainsDirect(
       keys__);
 }
 
+struct KVClear FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef KVClearBuilder Builder;
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct KVClearBuilder {
+  typedef KVClear Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  explicit KVClearBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<KVClear> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<KVClear>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<KVClear> CreateKVClear(
+    ::flatbuffers::FlatBufferBuilder &_fbb) {
+  KVClearBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
+struct KVClearSet FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef KVClearSetBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_KV = 4
+  };
+  const ::flatbuffers::Vector<uint8_t> *kv() const {
+    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_KV);
+  }
+  flexbuffers::Reference kv_flexbuffer_root() const {
+    const auto _f = kv();
+    return _f ? flexbuffers::GetRoot(_f->Data(), _f->size())
+              : flexbuffers::Reference();
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_KV) &&
+           verifier.VerifyVector(kv()) &&
+           flexbuffers::VerifyNestedFlexBuffer(kv(), verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct KVClearSetBuilder {
+  typedef KVClearSet Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_kv(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> kv) {
+    fbb_.AddOffset(KVClearSet::VT_KV, kv);
+  }
+  explicit KVClearSetBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<KVClearSet> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<KVClearSet>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<KVClearSet> CreateKVClearSet(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> kv = 0) {
+  KVClearSetBuilder builder_(_fbb);
+  builder_.add_kv(kv);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<KVClearSet> CreateKVClearSetDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<uint8_t> *kv = nullptr) {
+  auto kv__ = kv ? _fbb.CreateVector<uint8_t>(*kv) : 0;
+  return fc::request::CreateKVClearSet(
+      _fbb,
+      kv__);
+}
+
 struct Request FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef RequestBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -451,6 +557,12 @@ struct Request FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const fc::request::KVContains *body_as_KVContains() const {
     return body_type() == fc::request::RequestBody_KVContains ? static_cast<const fc::request::KVContains *>(body()) : nullptr;
   }
+  const fc::request::KVClear *body_as_KVClear() const {
+    return body_type() == fc::request::RequestBody_KVClear ? static_cast<const fc::request::KVClear *>(body()) : nullptr;
+  }
+  const fc::request::KVClearSet *body_as_KVClearSet() const {
+    return body_type() == fc::request::RequestBody_KVClearSet ? static_cast<const fc::request::KVClearSet *>(body()) : nullptr;
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_IDENT, 1) &&
@@ -483,6 +595,14 @@ template<> inline const fc::request::KVCount *Request::body_as<fc::request::KVCo
 
 template<> inline const fc::request::KVContains *Request::body_as<fc::request::KVContains>() const {
   return body_as_KVContains();
+}
+
+template<> inline const fc::request::KVClear *Request::body_as<fc::request::KVClear>() const {
+  return body_as_KVClear();
+}
+
+template<> inline const fc::request::KVClearSet *Request::body_as<fc::request::KVClearSet>() const {
+  return body_as_KVClearSet();
 }
 
 struct RequestBuilder {
@@ -548,6 +668,14 @@ inline bool VerifyRequestBody(::flatbuffers::Verifier &verifier, const void *obj
     }
     case RequestBody_KVContains: {
       auto ptr = reinterpret_cast<const fc::request::KVContains *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case RequestBody_KVClear: {
+      auto ptr = reinterpret_cast<const fc::request::KVClear *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case RequestBody_KVClearSet: {
+      auto ptr = reinterpret_cast<const fc::request::KVClearSet *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;

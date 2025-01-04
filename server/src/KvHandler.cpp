@@ -114,6 +114,43 @@ namespace fc
   }
 
 
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVClear& clear) noexcept
+  {
+    try
+    {
+      m_map.clear();
+      createEmptyBodyResponse(fbb, Status_Ok, ResponseBody_KVClear);
+    }
+    catch(const std::exception& e)
+    {
+      PLOGE << e.what();
+      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVClear);
+    }
+  }
+  
+  
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVClearSet& clearSet) noexcept
+  {
+    try
+    {
+      m_map.clear();
+
+      const auto& values = clearSet.kv_flexbuffer_root().AsMap().Values();
+      const auto& keys = clearSet.kv_flexbuffer_root().AsMap().Keys();
+
+      // use as an add here because it lets map use try_emplace, rather than insert_or_assign
+      setOrAdd<false>(keys, values);
+
+      createEmptyBodyResponse(fbb, Status_Ok, ResponseBody_KVClearSet);
+    }
+    catch(const std::exception& e)
+    {
+      PLOGE << e.what();
+      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVClearSet);
+    }
+  }
+
+
   void KvHandler::createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept
   {
     try

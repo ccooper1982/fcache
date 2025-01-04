@@ -32,6 +32,12 @@ async def test():
 
     print(await kv.contains(['k1', 'k2', '__' ]))
 
+    await kv.clear_set({'k10':123})
+    print(await kv.get(keys=['k10']))
+    
+    await kv.clear()
+    print(await kv.get(keys=['k10']))
+
   except:
     print('Query failed')
         
