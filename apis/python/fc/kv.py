@@ -61,19 +61,17 @@ class KV:
 
       self._completeRequest(fb, body, RequestBody.RequestBody.KVGet)
       
-      rspBuffer = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVGet)
+      rsp = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVGet)
 
-      rsp = Response.Response.GetRootAs(rspBuffer)
-      if rsp.BodyType() == ResponseBody.ResponseBody.KVGet:
-        union_body = KVGetRsp.KVGet()
-        union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
+      union_body = KVGetRsp.KVGet()
+      union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
 
-        # this is how we get a flexbuffer from a flatbuffer
-        result = flatbuffers.flexbuffers.Loads(union_body.KvAsNumpy().tobytes())
-        if isSingleKey and len(result):
-          return result[key]  # single key, so return value
-        else:
-          return result # multiple keys, return dict
+      # this is how we get a flexbuffer from a flatbuffer
+      result = flatbuffers.flexbuffers.Loads(union_body.KvAsNumpy().tobytes())
+      if isSingleKey and len(result):
+        return result[key]  # single key, so return value
+      else:
+        return result # multiple keys, return dict
     except Exception as e:
       logger.error(e)
 
@@ -105,13 +103,10 @@ class KV:
     body = KVCount.End(fb)
     self._completeRequest(fb, body, RequestBody.RequestBody.KVCount)
 
-    rspBuffer = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVCount)
-
-    rsp = Response.Response.GetRootAs(rspBuffer)
-    if rsp.BodyType() == ResponseBody.ResponseBody.KVCount:
-      union_body = KVCountRsp.KVCount()
-      union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
-      return union_body.Count()
+    rsp = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVCount)
+    union_body = KVCountRsp.KVCount()
+    union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
+    return union_body.Count()
 
 
   async def contains(self, keys=[]) -> set:
@@ -127,19 +122,16 @@ class KV:
 
       self._completeRequest(fb, body, RequestBody.RequestBody.KVContains)
       
-      rspBuffer = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVContains)
-
-      rsp = Response.Response.GetRootAs(rspBuffer)
-      if rsp.BodyType() == ResponseBody.ResponseBody.KVContains:
-        union_body = KVContainsRsp.KVContains()
-        union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
-        
-        # The API does not return all strings in an iterable, you have to request
-        # each item by index. And each is returned as bytes rather than str
-        exist = set()
-        for i in range(union_body.KeysLength()):
-          exist.add(union_body.Keys(i).decode('utf-8'))
-        return exist
+      rsp = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVContains)
+      union_body = KVContainsRsp.KVContains()
+      union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
+      
+      # The API does not return all strings in an iterable, you have to request
+      # each item by index. And each is returned as bytes rather than str
+      exist = set()
+      for i in range(union_body.KeysLength()):
+        exist.add(union_body.Keys(i).decode('utf-8'))
+      return exist
     except Exception as e:
       logger.error(e)
 

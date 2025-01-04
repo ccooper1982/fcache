@@ -35,12 +35,19 @@ def createKvMap(kv: dict) -> bytearray:
   return b.Finish()
 
 
-def raise_if_fail(rsp: bytes, expectedRspBody: ResponseBody):
+def raise_if_fail(rsp: bytes, expectedRspBody: ResponseBody) -> Response.Response:
+  """Confirm the response status is successful and the body type is expected.
+  
+  If status or body type checks fail, raise a ResponseError. Otherwise,
+  return the deserialised Response object.
+  """
   response = Response.Response.GetRootAs(rsp)
   if response.Status() is not Status.Status.Ok:
     raise ResponseError.statusError(response.BodyType(), response.Status())
   elif response.BodyType() is not expectedRspBody:
     raise ResponseError.bodyTypeError(response.BodyType())
+  else:
+    return response
   
 
 def raise_if_empty (value: str):
