@@ -15,37 +15,43 @@ class ResponseError(NdbException):
     self.status = status
 
 
-
-def CreateKvArray(kv: dict) -> bytearray:
-  # NOTE MapFromElements() does not differentiate between Int and UInt
-  # so do serialising manually here
+def createKvMap(kv: dict) -> bytearray:
+  """Creates a flexbuffer map, populating with `kv`. """
   b = flatbuffers.flexbuffers.Builder()
-
-  def getValueTypeAndAdd(v):
-    match type(v):
-      case builtins.int:
-        return b.Int if v < 0 else b.UInt
-      
-      case builtins.str:
-        return b.String
-
-      case builtins.float:
-        return b.Float
-
-      case builtins.bool:
-        return b.Bool
-    
-      case _:
-        return None
-
-  with b.Map():
-    for k,v in kv.items():
-      f = getValueTypeAndAdd(v)
-      if f:
-        b.Key(k)
-        f(v)
-
+  b.MapFromElements(kv)
   return b.Finish()
+
+# def createKvMap(kv: dict) -> bytearray:
+#   """Creates a flexbuffer map, populating with `kv`. 
+#  
+#   flexbuffers.Builder.MapFromElements() does not differentiate between Int and UInt
+#   so do serialising manually.
+#   """
+#   def getValueTypeAndAdd(v):
+#     match type(v):
+#       case builtins.int:
+#         return b.Int if v < 0 else b.UInt
+#      
+#       case builtins.str:
+#         return b.String
+#
+#       case builtins.float:
+#         return b.Float
+#
+#       case builtins.bool:
+#         return b.Bool
+# 
+#       case _:
+#         return None
+#
+#   with b.Map():
+#     for k,v in kv.items():
+#       f = getValueTypeAndAdd(v)
+#       if f:
+#         b.Key(k)
+#         f(v)
+#
+#   return b.Finish()
 
 
 def raise_if_fail(rsp: bytes):

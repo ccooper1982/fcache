@@ -1,9 +1,9 @@
-from fc.client import NdbClient
-from fc.common import raise_if, CreateKvArray
-from fc.logging import logger
-from typing import List
 import flatbuffers
 import flatbuffers.flexbuffers
+from fc.client import NdbClient
+from fc.common import raise_if, createKvMap
+from fc.logging import logger
+from typing import List
 from fc.fbs.fc.request import (Request, RequestBody,
                                KVSet,
                                KVGet,
@@ -13,7 +13,6 @@ from fc.fbs.fc.request import (Request, RequestBody,
                                KVContains,
                                KVClear,
                                KVClearSet)
-
 from fc.fbs.fc.response import (Response, ResponseBody, Status,
                                 KVGet as KVGetRsp,
                                 KVRmv as KVRmvRsp,
@@ -175,13 +174,13 @@ class KV:
 
   async def _doSetAdd(self, kv: dict, requestType: RequestBody.RequestBody) -> None:
     """KVSet, KVAdd and KVClearSet all use a flexbuffer map, so they all 
-    use this function to populate the from `kv`"""
-    
+    use this function to populate the map from `kv`"""
+
     raise_if(len(kv) == 0, 'keys empty')
 
     try:
       fb = flatbuffers.Builder()
-      kvVec = fb.CreateByteVector(CreateKvArray(kv))
+      kvVec = fb.CreateByteVector(createKvMap(kv))
 
       if requestType is RequestBody.RequestBody.KVSet:
         KVSet.Start(fb)
