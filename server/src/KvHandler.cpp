@@ -8,39 +8,42 @@ namespace fc
 
   void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVSet& set) noexcept
   { 
+    bool valid = true;
+
     try
     {
       const auto& values = set.kv_flexbuffer_root().AsMap().Values();
       const auto& keys = set.kv_flexbuffer_root().AsMap().Keys();
 
-      setOrAdd<true>(keys, values);
-
-      createEmptyBodyResponse(fbb, Status_Ok, ResponseBody_KVSet);
+      valid = setOrAdd<true>(keys, values);
     }
     catch(const std::exception& e)
     {
       PLOGE << e.what();
-      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVSet);
+      valid = false;
     }
+
+    createEmptyBodyResponse(fbb, valid ? Status_Ok : Status_Fail, ResponseBody_KVSet);
   }
   
 
   void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVAdd& add) noexcept
   { 
+    bool valid = true;
     try
     {
       const auto& values = add.kv_flexbuffer_root().AsMap().Values();
       const auto& keys = add.kv_flexbuffer_root().AsMap().Keys();
 
-      setOrAdd<false>(keys, values);
-
-      createEmptyBodyResponse(fbb, Status_Ok, ResponseBody_KVSet);
+      valid = setOrAdd<false>(keys, values);
     }
     catch(const std::exception& e)
     {
       PLOGE << e.what();
-      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVSet);
+      valid = false;
     }
+
+    createEmptyBodyResponse(fbb, valid ? Status_Ok : Status_Fail, ResponseBody_KVAdd);
   }
 
 
@@ -139,9 +142,9 @@ namespace fc
       const auto& keys = clearSet.kv_flexbuffer_root().AsMap().Keys();
 
       // use as an add here because it lets map use try_emplace, rather than insert_or_assign
-      setOrAdd<false>(keys, values);
+      const auto valid = setOrAdd<false>(keys, values);
 
-      createEmptyBodyResponse(fbb, Status_Ok, ResponseBody_KVClearSet);
+      createEmptyBodyResponse(fbb, valid ? Status_Ok : Status_Fail, ResponseBody_KVClearSet);
     }
     catch(const std::exception& e)
     {

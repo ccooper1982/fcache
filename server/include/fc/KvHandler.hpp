@@ -32,8 +32,9 @@ namespace fc
 
 
     template<bool IsSet>
-    void setOrAdd (const flexbuffers::TypedVector& keys, const flexbuffers::Vector& values)
+    bool setOrAdd (const flexbuffers::TypedVector& keys, const flexbuffers::Vector& values)
     {
+      bool valid = true;
       for (std::size_t i = 0 ; i < values.size(); ++i)
       {
         const auto& key = keys[i].AsString().str();
@@ -63,11 +64,14 @@ namespace fc
           break;
 
           default:
-            PLOGE << __FUNCTION__ << " - unknown type";
+            PLOGE << __FUNCTION__ << " - unsupported type";
+            valid = false;
           break;
         }
-      }      
+      }
+      return valid;
     }
+
 
   private:
     CacheMap m_map;
