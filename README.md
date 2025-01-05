@@ -9,15 +9,14 @@ FlatBuffers offer zero-copy deserialising: when the server receives data, it can
 <br/>
 
 # Python Client
-The Python client hides the FlatBuffer details.
+The client API hides the FlatBuffer details:
 
-
-Connect:
 
 ```py
 import asyncio as asio
 from fc.client import FcClient
 from fc.kv import KV
+
 
 async def connect() -> FcClient:
   try:
