@@ -119,6 +119,22 @@ class KV(KvTest):
     self.assertDictEqual(input2, out)
 
 
+  async def test_remove(self):
+    data = {'k1':123, 'k2':True, 'k3':123.5, 'k4':'stringaling'}
+    
+    await self.kv.set(data)
+    out = await self.kv.get(keys=list(data.keys()))
+    self.assertDictEqual(data, out)
+
+    await self.kv.remove(key='k1')
+    out = await self.kv.get(keys=list(data.keys()))
+    self.assertDictEqual({'k2':True, 'k3':123.5, 'k4':'stringaling'}, out)
+
+    await self.kv.remove(keys=['k2', 'k3'])
+    out = await self.kv.get(keys=list(data.keys()))
+    self.assertDictEqual({'k4':'stringaling'}, out)
+    
+
   async def test_set_errors(self):
     with self.assertRaises(ResponseError):
       await self.kv.set({'iterable':[]})
