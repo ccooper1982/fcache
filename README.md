@@ -6,12 +6,15 @@ There is support for key-values, with containers (Arrays, Lists) coming soon.
 
 FlatBuffers offer zero-copy deserialising: when the server receives data, it can deserialise without an intermediate step which requires allocating memory (as with ProtoBuf), and is considerably more compact than JSON.
 
+fcache docs available [here](https://ccooper1982.github.io/fcache/).
+
 <br/>
 
 >[!NOTE]
 > A value can only be scalar, so not an array/vector etc. This will be added in a future release.
 
 <br/>
+
 
 # Python Client
 The client API hides the FlatBuffer details:
@@ -53,3 +56,4 @@ async def kv():
 if __name__ == "__main__":
   asio.run(kv())
 ```
+
