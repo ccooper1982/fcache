@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source "./build_externals.sh"
+source ./build_externals.sh
 
 build_externals
 
