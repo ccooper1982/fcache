@@ -1,23 +1,9 @@
-# fcache
-
-fcache is a data cache, using Google's FlatBuffers over WebSockets.
-
-There is support for key-values, with containers (Arrays, Lists) coming soon.
-
-FlatBuffers offer zero-copy deserialising: when the server receives data, it can deserialise without an intermediate step which requires allocating memory (as with ProtoBuf), and is considerably more compact than JSON.
-
-<br/>
-
-# Python Client
-The Python client hides the FlatBuffer details.
-
-
-Connect:
-
-```py
 import asyncio as asio
+import sys
+sys.path.append('../')
 from fc.client import FcClient
 from fc.kv import KV
+
 
 async def connect() -> FcClient:
   try:
@@ -28,11 +14,8 @@ async def connect() -> FcClient:
     print ('Failed to connect')
   
   return None
-```
 
-Set and get:
 
-```py
 async def kv():
   if (client := await connect()) is None:
     return
@@ -50,4 +33,7 @@ async def kv():
   # get multiple keys, returns dict
   rsp = await kv.get(keys=['user', 'active'])
   print(f"User: {rsp['user']}, Active: {rsp['active']}")
-```
+
+
+if __name__ == "__main__":
+  asio.run(kv())
