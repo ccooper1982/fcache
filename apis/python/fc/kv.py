@@ -72,8 +72,8 @@ class KV:
       logger.error(e)
 
 
-  async def remove(self, key=None, keys=[]) -> None:
-    raise_if(key is None and len(keys) == 0, 'key or keys must be set')
+  async def remove(self, key='', keys=[]) -> None:
+    raise_if(len(key) == 0 and len(keys) == 0, 'key or keys must be set')
 
     if len(keys) == 0:
       keys = [key]
@@ -105,7 +105,7 @@ class KV:
     return union_body.Count()
 
 
-  async def contains(self, keys=[]) -> set:
+  async def contains(self, keys: list) -> set:
     raise_if(len(keys) == 0, 'keys is empty')
 
     try:
