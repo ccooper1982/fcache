@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 source ./build_externals.sh
 
