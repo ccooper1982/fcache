@@ -3,6 +3,7 @@ repo_url: https://github.com/ccooper1982/fcache
 repo_name: 'GitHub'
 remote_branch: gh-pages
 edit_uri: ''
+docs_dir: src
 markdown_extensions:
   - admonition
   - pymdownx.highlight:
