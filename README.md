@@ -57,3 +57,19 @@ if __name__ == "__main__":
   asio.run(kv())
 ```
 
+<br/>
+
+## Build
+
+```
+git clone git@github.com:ccooper1982/fcache.git
+cd fcache
+./build.sh
+```
+
+Binary is in `server/release`.
+
+<br/>
+
+## Run
+`./fcache`
