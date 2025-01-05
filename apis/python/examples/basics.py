@@ -9,11 +9,10 @@ async def connect() -> FcClient:
   try:
     client = FcClient()
     await client.open('ws://127.0.0.1:1987')
-    return client
   except:
     print ('Failed to connect')
-  
-  return None
+    client = None
+  return client
 
 
 async def kv():

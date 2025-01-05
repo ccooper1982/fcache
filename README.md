@@ -23,16 +23,12 @@ async def connect() -> FcClient:
   try:
     client = FcClient()
     await client.open('ws://127.0.0.1:1987')
-    return client
   except:
     print ('Failed to connect')
-  
-  return None
-```
+    client = None
+  return client
 
-Set and get:
 
-```py
 async def kv():
   if (client := await connect()) is None:
     return
@@ -50,4 +46,8 @@ async def kv():
   # get multiple keys, returns dict
   rsp = await kv.get(keys=['user', 'active'])
   print(f"User: {rsp['user']}, Active: {rsp['active']}")
+
+
+if __name__ == "__main__":
+  asio.run(kv())
 ```
