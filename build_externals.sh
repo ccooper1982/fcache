@@ -1,6 +1,6 @@
 #!/bin/sh
 
-get()
+function get()
 {
   git submodule add git@github.com:uNetworking/uWebSockets.git
   git submodule update --init --recursive
@@ -13,7 +13,8 @@ get()
   cd ..
 }
 
-build()
+
+function build()
 {
   echo -- Building uWebSockets --
   cd uWebSockets
@@ -31,7 +32,7 @@ build()
 }
 
 
-build_externals()
+function build_externals()
 {
   cd externals
   get
