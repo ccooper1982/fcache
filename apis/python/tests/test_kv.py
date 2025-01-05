@@ -1,5 +1,6 @@
 import unittest
 from base import KvTest
+from fc.common import ResponseError
 
 
 class KV(KvTest):
@@ -116,6 +117,11 @@ class KV(KvTest):
     # should only receive input2 keys (since input1 cleared)
     out = await self.kv.get(keys=allKeys)
     self.assertDictEqual(input2, out)
+
+
+  async def test_set_errors(self):
+    with self.assertRaises(ResponseError):
+      await self.kv.set({'iterable':[]})
 
 
 if __name__ == "__main__":

@@ -20,7 +20,7 @@ class ResponseError(FcException):
 
   @classmethod
   def statusError(self, bodyType: ResponseBody.ResponseBody, status: Status.Status):
-    return self(bodyType, status)
+    return self(bodyType, status=status)
   
   @classmethod
   def bodyTypeError(self, bodyType: ResponseBody.ResponseBody):
@@ -42,9 +42,9 @@ def raise_if_fail(rsp: bytes, expectedRspBody: ResponseBody) -> Response.Respons
   return the deserialised Response object.
   """
   response = Response.Response.GetRootAs(rsp)
-  if response.Status() is not Status.Status.Ok:
+  if response.Status() != Status.Status.Ok:
     raise ResponseError.statusError(response.BodyType(), response.Status())
-  elif response.BodyType() is not expectedRspBody:
+  elif response.BodyType() != expectedRspBody:
     raise ResponseError.bodyTypeError(response.BodyType())
   else:
     return response

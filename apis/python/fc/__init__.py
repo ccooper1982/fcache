@@ -1,3 +1,4 @@
-from .client import FcClient
+from .client import Client, fcache
+from .kv import KV
 
-__all__ = ['FcClient']
+__all__ = ['Client', 'fcache', 'KV']

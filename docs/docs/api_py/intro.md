@@ -1,24 +1,12 @@
-# fcache
+# Overview
 
-fcache is a data cache, using Google's FlatBuffers over WebSockets.
+The client uses the connection to send/receive requests and responses, with a separate class for KV specific commands (and in the future, arrays, lists, etc).
 
-There is support for key-values, with containers (Arrays, Lists) coming soon.
+The command classes require a `Client` object.
 
-FlatBuffers offer zero-copy deserialising: when the server receives data, it can deserialise without an intermediate step which requires allocating memory (as with ProtoBuf), and is considerably more compact than JSON.
-
-<br/>
-
-# Python Client
-The client API hides the FlatBuffer details:
-
->[!NOTE]
-> A value can only be scalar, so not an array/vector etc. This will be added in a future release.
-
-
+## Connect
 ```py
 import fc
-from fc.kv import KV
-
 
 async def connect() -> fc.Client:
   try:
@@ -28,7 +16,11 @@ async def connect() -> fc.Client:
     print ('Failed to connect')
     client = None
   return client
+```
 
+## KV
+```py
+from fc.kv import KV
 
 async def kv():
   if (client := await connect()) is None:
@@ -47,8 +39,11 @@ async def kv():
   # get multiple keys, returns dict
   rsp = await kv.get(keys=['user', 'active'])
   print(f"User: {rsp['user']}, Active: {rsp['active']}")
-
-
-if __name__ == "__main__":
-  asio.run(kv())
 ```
+
+
+## Exceptions
+
+- `ResponseError` : raised when a failed response is received
+- `ValueError` : raised by the API before a request is sent
+- `OSError` : if opening the connection fails

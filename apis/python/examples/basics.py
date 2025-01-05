@@ -1,14 +1,14 @@
 import asyncio as asio
 import sys
 sys.path.append('../')
-from fc.client import FcClient
+import fc
 from fc.kv import KV
 
 
-async def connect() -> FcClient:
+async def connect() -> fc.Client:
   try:
-    client = FcClient()
-    await client.open('ws://127.0.0.1:1987')
+    client = await fc.fcache(uri='ws://127.0.0.1:1987')
+    # or: client = await fc.fcache(ip='127.0.0.1', port=1987)
   except:
     print ('Failed to connect')
     client = None
@@ -22,8 +22,7 @@ async def kv():
   # create API object for KV commands
   kv = KV(client)
 
-  data = {'user':'user1', 'age':25, 'active':True}
-  await kv.set(data)
+  await kv.set({'user':'user1', 'age':25, 'active':True})
 
   # get single key, returns the value
   age = await kv.get(key='age')

@@ -1,9 +1,9 @@
 import flatbuffers
 import flatbuffers.flexbuffers
-from fc.client import FcClient
-from fc.common import raise_if, createKvMap
+from fc.client import Client
+from fc.common import raise_if, createKvMap, ResponseError
 from fc.logging import logger
-from typing import List, Any
+from typing import Any
 from fc.fbs.fc.request import (Request, RequestBody,
                                KVSet,
                                KVGet,
@@ -13,20 +13,16 @@ from fc.fbs.fc.request import (Request, RequestBody,
                                KVContains,
                                KVClear,
                                KVClearSet)
-from fc.fbs.fc.response import (Response, ResponseBody, Status,
-                                KVGet as KVGetRsp,
-                                KVRmv as KVRmvRsp,
+from fc.fbs.fc.response import (KVGet as KVGetRsp,
                                 KVCount as KVCountRsp,
-                                KVContains as KVContainsRsp,
-                                KVClear as KVClearRsp,
-                                KVClearSet as KVClearSetRsp)
+                                KVContains as KVContainsRsp)
 
 
 class KV:
   "Key Value API. If a response returns a fail, a ResponseError is raised."
 
 
-  def __init__(self, client: FcClient):
+  def __init__(self, client: Client):
     self.client = client
 
 
@@ -202,7 +198,10 @@ class KV:
       self._completeRequest(fb, body, requestType)
 
       await self.client.sendCmd(fb.Output(), requestType)
+    except ResponseError as re:
+      raise
     except Exception as e:
       logger.error(e)
+      raise
 
 
