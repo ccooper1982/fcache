@@ -2,8 +2,8 @@
 
 get()
 {
-  git submodule add git@github.com:uNetworking/uWebSockets.git`
-  git submodule update --init --recursive`
+  git submodule add git@github.com:uNetworking/uWebSockets.git
+  git submodule update --init --recursive
 
   git submodule add git@github.com:SergiusTheBest/plog.git
   git submodule add git@github.com:google/flatbuffers.git
