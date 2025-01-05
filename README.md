@@ -8,12 +8,13 @@ FlatBuffers offer zero-copy deserialising: when the server receives data, it can
 
 <br/>
 
-# Python Client
-The client API hides the FlatBuffer details:
-
 >[!NOTE]
 > A value can only be scalar, so not an array/vector etc. This will be added in a future release.
 
+<br/>
+
+# Python Client
+The client API hides the FlatBuffer details:
 
 ```py
 import fc
