@@ -30,14 +30,21 @@ build()
   cd ../..
 }
 
-##
 
-cd externals
-get
+build_externals()
+{
+  cd externals
+  get
 
-cd externals
-build
+  if [ $? -eq 0 ]; then
+    cd externals
+    build
 
-## fbs gen
-cd fbs
-./gen.sh
+    if [ $? -eq 0 ]; then
+      ## fbs gen
+      cd fbs
+      ./gen.sh
+    fi
+  fi
+}
+
