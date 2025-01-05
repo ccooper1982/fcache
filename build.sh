@@ -6,6 +6,7 @@ build_externals
 
 if [ $? -eq 0 ]; then
   mkdir -p build
-  cmake --build build --config Release --target fcache
+  cmake . -G "Unix Makefiles"
+  make
 fi
 
