@@ -45,6 +45,7 @@ function build_externals()
       ## fbs gen
       cd fbs
       ./gen.sh
+      cd -
     fi
   fi
 }
