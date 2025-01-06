@@ -19,6 +19,11 @@ async def connect() -> fc.Client:
 ```
 
 ## KV
+
+!!! warning "Value Type"
+    In the current version, a value can only be a scalar, so not an array or dict.
+    This will be added in the future.
+
 ```py
 from fc.kv import KV
 

@@ -72,4 +72,11 @@ Binary is in `server/release`.
 <br/>
 
 ## Run
+
+Start without arguments to use defaults (127.0.0.1 and 1987):
+
 `./fcache`
+
+Override IP and/or port with:
+
+`./fcache --ip=192.168.0.10 -p 4321`
