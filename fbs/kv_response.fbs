@@ -71,3 +71,5 @@ table Response
   status:Status;
   body:ResponseBody;
 }
+
+root_type Response;
