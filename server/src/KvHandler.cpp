@@ -8,7 +8,7 @@ namespace fc
 
   void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVSet& set) noexcept
   { 
-    bool valid = true;
+    bool valid = false;
 
     try
     {
@@ -20,7 +20,6 @@ namespace fc
     catch(const std::exception& e)
     {
       PLOGE << e.what();
-      valid = false;
     }
 
     createEmptyBodyResponse(fbb, valid ? Status_Ok : Status_Fail, ResponseBody_KVSet);
@@ -29,7 +28,7 @@ namespace fc
 
   void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVAdd& add) noexcept
   { 
-    bool valid = true;
+    bool valid = false;
     try
     {
       const auto& values = add.kv_flexbuffer_root().AsMap().Values();
@@ -40,7 +39,6 @@ namespace fc
     catch(const std::exception& e)
     {
       PLOGE << e.what();
-      valid = false;
     }
 
     createEmptyBodyResponse(fbb, valid ? Status_Ok : Status_Fail, ResponseBody_KVAdd);
@@ -119,16 +117,17 @@ namespace fc
 
   void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVClear& clear) noexcept
   {
+    bool valid = false;
     try
     {
-      m_map.clear();
-      createEmptyBodyResponse(fbb, Status_Ok, ResponseBody_KVClear);
+      valid = m_map.clear();
     }
     catch(const std::exception& e)
     {
       PLOGE << e.what();
-      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVClear);
     }
+
+    createEmptyBodyResponse(fbb, valid ? Status_Ok : Status_Fail, ResponseBody_KVClear);
   }
   
   

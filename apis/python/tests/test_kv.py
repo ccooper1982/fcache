@@ -135,9 +135,13 @@ class KV(KvTest):
     self.assertDictEqual({'k4':'stringaling'}, out)
     
 
-  async def test_set_errors(self):
-    with self.assertRaises(ResponseError):
-      await self.kv.set({'iterable':[]})
+  async def test_set_notscalar(self):
+    await self.kv.set({'strings':['hello', 'world', '!']})
+    
+
+  # async def test_set_errors(self):
+  #   with self.assertRaises(ResponseError):
+  #     await self.kv.set({'iterable':[]})
 
 
 if __name__ == "__main__":

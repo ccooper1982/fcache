@@ -640,6 +640,36 @@ inline bool VerifyResponseBodyVector(::flatbuffers::Verifier &verifier, const ::
   return true;
 }
 
+inline const fc::response::Response *GetResponse(const void *buf) {
+  return ::flatbuffers::GetRoot<fc::response::Response>(buf);
+}
+
+inline const fc::response::Response *GetSizePrefixedResponse(const void *buf) {
+  return ::flatbuffers::GetSizePrefixedRoot<fc::response::Response>(buf);
+}
+
+inline bool VerifyResponseBuffer(
+    ::flatbuffers::Verifier &verifier) {
+  return verifier.VerifyBuffer<fc::response::Response>(nullptr);
+}
+
+inline bool VerifySizePrefixedResponseBuffer(
+    ::flatbuffers::Verifier &verifier) {
+  return verifier.VerifySizePrefixedBuffer<fc::response::Response>(nullptr);
+}
+
+inline void FinishResponseBuffer(
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<fc::response::Response> root) {
+  fbb.Finish(root);
+}
+
+inline void FinishSizePrefixedResponseBuffer(
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<fc::response::Response> root) {
+  fbb.FinishSizePrefixed(root);
+}
+
 }  // namespace response
 }  // namespace fc
 
