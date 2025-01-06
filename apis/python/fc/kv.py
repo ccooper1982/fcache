@@ -34,7 +34,7 @@ class KV:
     await self._doSetAdd(kv, RequestBody.RequestBody.KVAdd)
   
 
-  async def get(self, key=None, keys=[]) -> dict | Any:
+  async def get(self, *, key=None, keys=[]) -> dict | Any:
     """Get a single key or multiple keys.
     
     @param: key To get a single key. Only the value is returned.
@@ -72,7 +72,7 @@ class KV:
       logger.error(e)
 
 
-  async def remove(self, key='', keys=[]) -> None:
+  async def remove(self, *, key='', keys=[]) -> None:
     raise_if(len(key) == 0 and len(keys) == 0, 'key or keys must be set')
 
     if len(keys) == 0:
