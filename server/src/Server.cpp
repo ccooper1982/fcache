@@ -135,7 +135,7 @@ namespace fc
       }
       else
       {
-        PLOGI << "CPU Core: " << core;
+        //PLOGI << "CPU Core: " << core;
         started = true;
       }
     }
