@@ -1,14 +1,12 @@
 import asyncio as asio
 import sys
 sys.path.append('../')
-from fc.client import FcClient
+import fc
 from fc.kv import KV
 
-async def connect() -> FcClient:
+async def connect() -> fc.Client:
   try:
-    client = FcClient()
-    await client.open('ws://127.0.0.1:1987')
-    return client
+    return await fc.fcache('ws://127.0.0.1:1987')
   except:
     print ('Failed to connect')
   
@@ -16,7 +14,6 @@ async def connect() -> FcClient:
 
 
 async def test():
-
   if (client := await connect()) is None:
     return
 
@@ -53,10 +50,29 @@ async def test():
     print('Query failed')
         
 
+async def test2():
+  if (client := await connect()) is None:
+    return
+  
+  kv = KV(client)
+  
+  await kv.set({'k1':123, 'k2':234})
+  print(await kv.get(keys=['k1','k2']))
+
+  await kv.set({'k1':True, 'k2':False})
+  print(await kv.get(keys=['k1','k2']))
+
+  # await kv.set({'k1':123, 'k2':234})
+  # print(await kv.get(keys=['k1','k2']))
+
+  # await kv.set({'k1':True, 'k2':False})
+  # print(await kv.get(keys=['k1','k2']))
+  
+  
 
 if __name__ == "__main__":
   async def run():
-    for f in [test]:
+    for f in [test2]:
       print(f'---- {f.__name__} ----')
       await f()
   

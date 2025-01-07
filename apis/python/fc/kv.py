@@ -69,6 +69,7 @@ class KV:
       else:
         return result # multiple keys, return dict
     except Exception as e:
+      print(e)
       logger.error(e)
 
 

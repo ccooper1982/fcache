@@ -39,6 +39,7 @@ namespace fc
     try
     {
       m_kvHandler = std::make_shared<KvHandler>();
+      init = m_kvHandler->init();
     }
     catch(const std::exception& e)
     {

@@ -5,6 +5,11 @@
 
 namespace fc
 {
+  bool KvHandler::init()
+  {
+    return m_map.init();
+  }
+  
 
   void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVSet& set) noexcept
   { 

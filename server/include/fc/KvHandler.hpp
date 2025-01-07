@@ -15,6 +15,8 @@ namespace fc
   public:
     KvHandler() = default;
 
+    bool init();
+
 
   public:
     void handle(FlatBuilder& fbb, const fc::request::KVSet& set) noexcept;
@@ -44,23 +46,27 @@ namespace fc
           using enum flexbuffers::Type;
 
           case FBT_INT:
-            m_map.setOrAdd<IsSet, FBT_INT>(key, values[i].AsInt64());
+            valid = m_map.setOrAdd<IsSet, FBT_INT>(key, values[i].AsInt64());
           break;
           
           case FBT_UINT:
-            m_map.setOrAdd<IsSet, FBT_UINT>(key, values[i].AsUInt64());
+            valid = m_map.setOrAdd<IsSet, FBT_UINT>(key, values[i].AsUInt64());
           break;
 
           case FBT_BOOL:
-            m_map.setOrAdd<IsSet, FBT_BOOL>(key, values[i].AsBool());
-          break;
-
-          case FBT_STRING:
-            m_map.setOrAdd<IsSet, FBT_STRING>(key, values[i].AsString().str());
+            valid = m_map.setOrAdd<IsSet, FBT_BOOL>(key, values[i].AsBool());
           break;
 
           case FBT_FLOAT:
-            m_map.setOrAdd<IsSet, FBT_FLOAT>(key, values[i].AsFloat());
+            valid = m_map.setOrAdd<IsSet, FBT_FLOAT>(key, values[i].AsFloat());
+          break;
+
+          case FBT_STRING:
+            valid = m_map.setOrAdd<IsSet, FBT_STRING>(key, values[i].AsString().str());
+          break;
+
+          case FBT_VECTOR:
+            valid = m_map.setOrAdd<IsSet, FBT_VECTOR>(key, values[i].AsVector());
           break;
 
           default:
