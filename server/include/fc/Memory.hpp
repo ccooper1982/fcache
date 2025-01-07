@@ -11,10 +11,6 @@ namespace fc
 {
   struct Block
   {
-    std::unique_ptr<char[]> buffer;
-    std::size_t capacity;    
-    std::size_t used;
-
     Block(const std::size_t capacity) : capacity(capacity), used(0)
     {
       buffer = std::make_unique<char[]>(capacity);
@@ -39,12 +35,18 @@ namespace fc
     {
       std::memcpy(pos, &v, sizeof(T));
     }
+
+
+    private:
+      std::unique_ptr<char[]> buffer;
+      std::size_t capacity;    
+      std::size_t used;
   };
 
 
   class FixedMemory
   {
-    inline const static std::size_t InitialBlocks = 10;
+    inline const static std::size_t InitialBlocks = 32;
     inline const static std::size_t BlockCapacity = 1024;
 
 
@@ -52,7 +54,7 @@ namespace fc
 
     ~FixedMemory ()
     {
-      for (auto& block : m_blocks)
+      for (auto block : m_blocks)
         delete block;
     }
 
@@ -61,8 +63,10 @@ namespace fc
     {
       try
       {
+        PLOGD << "FixedMemory: initialising with " << InitialBlocks << " blocks @ " << BlockCapacity << " bytes";
+
         for (std::size_t i = 0 ; i < InitialBlocks ; ++i)
-          m_blocks.push_back(new Block{BlockCapacity});
+          m_blocks.emplace_back(new Block{BlockCapacity});
       }
       catch(const std::exception& e)
       {
@@ -105,10 +109,10 @@ namespace fc
 
 
     template<typename T>
-    const T get(char * buff) requires (std::is_integral_v<T> || std::is_same_v<T, float>)
+    const T get(char * buff) const noexcept requires (std::is_integral_v<T> || std::is_same_v<T, float>)
     {
       T v{};
-      std::memcpy(&v, buff, sizeof(T));
+      std::memcpy(&v, buff, sizeof(T)); // memcpy() is noexcept
       return v;
     }
 
