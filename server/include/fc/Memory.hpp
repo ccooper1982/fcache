@@ -45,7 +45,7 @@ namespace fc
   class FixedMemory
   {
     inline const static std::size_t InitialBlocks = 10;
-    inline const static std::size_t BlockCapacity = 8;
+    inline const static std::size_t BlockCapacity = 1024;
 
 
   public:
@@ -79,8 +79,8 @@ namespace fc
     template<typename T>
     char * write(const T v) noexcept requires (std::is_integral_v<T> || std::is_same_v<T, float>) 
     {
-      constexpr const auto Size = sizeof(T);
-
+      constexpr const std::size_t Size = sizeof(T);
+      
       Block * block = nextBlock(Size);
       return block->write(v);
     }
@@ -105,10 +105,22 @@ namespace fc
 
 
     template<typename T>
-    const T get(char * buff) requires(std::is_default_constructible_v<T>)
+    const T get(char * buff) requires (std::is_integral_v<T> || std::is_same_v<T, float>)
     {
-      T v;
-      std::memcpy(&v, buff, sizeof(T));
+      T v{};
+
+      if constexpr (std::is_same_v<double, T>)
+      {
+        char x[sizeof(double)+1] = {(char)0};
+        std::memcpy(x, buff, 4);
+        v = std::atof(x);
+        PLOGE << v;
+        PLOGE << (float)v;
+      }
+      else
+      {
+        std::memcpy(&v, buff, sizeof(T));
+      }
       return v;
     }
 

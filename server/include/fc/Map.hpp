@@ -71,22 +71,6 @@ namespace fc
             const auto& cachedValue = it->second;
 
             cachedValue.extract(m_fixed, fb, pKey, cachedValue.buffer);
-            
-            // switch (it->second.type)
-            // {
-            //   using enum flexbuffers::Type;
-
-            //   case FBT_INT:
-            //   {
-            //     const auto v = m_fixed.get<int>(cachedValue.buffer);
-            //     fb.Add(pKey, v);
-            //   }
-            //   break;
-
-            //   default:
-            //     PLOGE << "Unsupported type";
-            //   break;
-            // }
           }
         }      
       });
@@ -152,6 +136,10 @@ namespace fc
 
       if constexpr (FlexT == flexbuffers::Type::FBT_INT)
         extract = extractInt;
+      else if constexpr (FlexT == flexbuffers::Type::FBT_UINT)
+        extract = extractUInt;
+      else if constexpr (FlexT == flexbuffers::Type::FBT_FLOAT)
+        extract = extractFloat;
       else if constexpr (FlexT == flexbuffers::Type::FBT_BOOL)
         extract = extractBool;
       else
@@ -224,18 +212,21 @@ namespace fc
       fb.Add(key, v);
     }
 
-    // static void extractUInt(const char * key, const CachedValue& cv, FlexBuilder& fb)
-    // {
-    //   const auto& fixedVariant = std::get<CachedValue::FIXED>(cv.value);
-    //   fb.UInt(key, std::get<CachedValue::GET_UINT>(fixedVariant));
-    // }
+    
+    static void extractUInt(FixedMemory& fm, FlexBuilder& fb, const char * key, char * buffer)
+    {
+      const auto v = fm.get<unsigned int>(buffer);
+      fb.UInt(key, v);
+    }
 
-    // static void extractFloat(const char * key, const CachedValue& cv, FlexBuilder& fb)
-    // {
-    //   const auto& fixedVariant = std::get<CachedValue::FIXED>(cv.value);
-    //   fb.Float(key, std::get<CachedValue::GET_DBL>(fixedVariant));
-    // }
+    
+    static void extractFloat(FixedMemory& fm, FlexBuilder& fb, const char * key, char * buffer)
+    {
+      const auto v = fm.get<float>(buffer);
+      fb.Float(key, v);
+    }
 
+    
     static void extractBool(FixedMemory& fm, FlexBuilder& fb, const char * key, char * buffer)
     {
       const auto v = fm.get<bool>(buffer);

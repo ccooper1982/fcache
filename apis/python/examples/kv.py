@@ -56,17 +56,17 @@ async def test2():
   
   kv = KV(client)
   
+  # flip flop
   await kv.set({'k1':123, 'k2':234})
   print(await kv.get(keys=['k1','k2']))
 
   await kv.set({'k1':True, 'k2':False})
   print(await kv.get(keys=['k1','k2']))
 
-  # await kv.set({'k1':123, 'k2':234})
-  # print(await kv.get(keys=['k1','k2']))
-
-  # await kv.set({'k1':True, 'k2':False})
-  # print(await kv.get(keys=['k1','k2']))
+  
+  # dec
+  await kv.set({'f':123.5})
+  print(await kv.get(keys=['f']))
   
   
 
