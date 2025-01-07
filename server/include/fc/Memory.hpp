@@ -108,19 +108,7 @@ namespace fc
     const T get(char * buff) requires (std::is_integral_v<T> || std::is_same_v<T, float>)
     {
       T v{};
-
-      if constexpr (std::is_same_v<double, T>)
-      {
-        char x[sizeof(double)+1] = {(char)0};
-        std::memcpy(x, buff, 4);
-        v = std::atof(x);
-        PLOGE << v;
-        PLOGE << (float)v;
-      }
-      else
-      {
-        std::memcpy(&v, buff, sizeof(T));
-      }
+      std::memcpy(&v, buff, sizeof(T));
       return v;
     }
 
@@ -128,10 +116,13 @@ namespace fc
   private:
     Block * addBlock()
     {
+      PLOGD << "Creating new block: " << BlockCapacity << " bytes";
+
       Block * const b = new Block{BlockCapacity};
       m_blocks.emplace_back(b);
       return b;
     }
+
 
     Block * nextBlock(const std::size_t size)
     {
