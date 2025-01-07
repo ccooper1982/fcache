@@ -70,7 +70,7 @@ namespace fc
             const auto pKey = key->c_str();
             const auto& cachedValue = it->second;
 
-            cachedValue.extract(m_fixed, fb, pKey, cachedValue.buffer);
+            cachedValue.extract(m_fixed, fb, pKey, cachedValue);
           }
         }      
       });
@@ -81,7 +81,10 @@ namespace fc
     {
       for (const auto& key : keys)
       {
-        m_map.erase(key->str());
+        if (auto it = m_map.find(key->str()); it != m_map.end())
+        {
+          //it->second.
+        }
       }
     };
 
@@ -130,7 +133,7 @@ namespace fc
   private:
 
     template<bool IsSet, flexbuffers::Type FlexT, typename ValueT>
-    void doFixedSetAdd(const CachedKey& key, const ValueT v)
+    void doFixedSetAdd(const CachedKey& key, const ValueT value)
     {
       ExtractF extract{nullptr};
 
@@ -148,15 +151,23 @@ namespace fc
 
       if (const auto it = m_map.find(key) ; it == m_map.end())
       {
-        const auto buffer = m_fixed.write<ValueT>(v);
-        m_map.try_emplace(key, buffer, extract, sizeof(ValueT));
+        const auto [block, pos] = m_fixed.write<ValueT>(value);
+        m_map.try_emplace(key, block, extract, pos, sizeof(ValueT));
       }
       else
       {
-        // buffer may change if new value occupies more space than previous
-        // i.e. bool value overwritten to an int
-        it->second.buffer = m_fixed.overwrite<ValueT>(it->second.buffer, v, it->second.size);
-        it->second.extract = extract;
+        // set overwrites existing, but add does not
+        if constexpr (IsSet)
+        {
+          auto& cv = it->second;
+
+          // buffer may change if new value occupies more space than existing value
+          // i.e. bool value overwritten to an int
+          const auto [block, pos] = m_fixed.overwrite<ValueT>(cv.block, cv.blockPos, cv.size, value);
+          cv.block = block;
+          cv.blockPos = pos;
+          cv.extract = extract; // possibly different extract function if value type different
+        }        
       }
     }
 
@@ -206,30 +217,30 @@ namespace fc
     }
     
     
-    static void extractInt(FixedMemory& fm, FlexBuilder& fb, const char * key, char * buffer)
+    static void extractInt(FixedMemory& fm, FlexBuilder& fb, const char * key, const CachedValue& cv)
     {
-      const auto v = fm.get<int>(buffer);
+      const auto v = fm.get<int>(cv.block, cv.blockPos);
       fb.Add(key, v);
     }
 
     
-    static void extractUInt(FixedMemory& fm, FlexBuilder& fb, const char * key, char * buffer)
+    static void extractUInt(FixedMemory& fm, FlexBuilder& fb, const char * key, const CachedValue& cv)
     {
-      const auto v = fm.get<unsigned int>(buffer);
+      const auto v = fm.get<unsigned int>(cv.block, cv.blockPos);
       fb.UInt(key, v);
     }
 
     
-    static void extractFloat(FixedMemory& fm, FlexBuilder& fb, const char * key, char * buffer)
+    static void extractFloat(FixedMemory& fm, FlexBuilder& fb, const char * key, const CachedValue& cv)
     {
-      const auto v = fm.get<float>(buffer);
+      const auto v = fm.get<float>(cv.block, cv.blockPos);
       fb.Float(key, v);
     }
 
     
-    static void extractBool(FixedMemory& fm, FlexBuilder& fb, const char * key, char * buffer)
+    static void extractBool(FixedMemory& fm, FlexBuilder& fb, const char * key, const CachedValue& cv)
     {
-      const auto v = fm.get<bool>(buffer);
+      const auto v = fm.get<bool>(cv.block, cv.blockPos);
       fb.Bool(key, v);
     }
 

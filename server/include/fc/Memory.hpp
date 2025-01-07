@@ -22,18 +22,25 @@ namespace fc
     }
 
     template<typename T>
-    char * write (const T& v)
+    std::size_t write (const T& v)
     {
-      const auto pos = std::next(buffer.get(), used);
-      overwrite(pos, v);
+      const auto start = used;
+      overwrite(used, v);
       used += sizeof(T);
-      return pos;
+      return start;
     }
 
+
     template<typename T>
-    void overwrite (char * pos, const T& v)
+    void overwrite (const std::size_t pos, const T& v)
     {
-      std::memcpy(pos, &v, sizeof(T));
+      std::memcpy(std::next(buffer.get(), used), &v, sizeof(T));
+    }
+
+
+    const char * getRead(const std::size_t pos) const 
+    {
+      return std::next(buffer.get(), pos);
     }
 
 
@@ -81,38 +88,40 @@ namespace fc
 
 
     template<typename T>
-    char * write(const T v) noexcept requires (std::is_integral_v<T> || std::is_same_v<T, float>) 
+    std::tuple<Block *, std::size_t> write(const T v) noexcept requires (std::is_integral_v<T> || std::is_same_v<T, float>) 
     {
       constexpr const std::size_t Size = sizeof(T);
       
       Block * block = nextBlock(Size);
-      return block->write(v);
+      return {block, block->write(v)};
     }
 
 
     template<typename T>
-    char * overwrite(char * pos, const T v, const std::size_t existingSize) requires (std::is_integral_v<T> || std::is_same_v<T, float>)
+    std::tuple<Block *, std::size_t> overwrite( Block * currentBlock,
+                                                const std::size_t currentPos,
+                                                const std::size_t currentSize,
+                                                const T v)  requires (std::is_integral_v<T> || std::is_same_v<T, float>)
     {
-      if (sizeof(T) > existingSize)
+      if (sizeof(T) > currentSize)
       {
-        // take easy route: grab next available 
-        // may be something better possible
+        // grab next available or create new
         Block * block = nextBlock(sizeof(T));
-        return block->write(v);
+        return {block, block->write(v)};
       }
       else
       {
-        std::memcpy(pos, &v, sizeof(T));
-        return pos;
+        currentBlock->overwrite(currentPos, v);
+        return {currentBlock, currentPos};
       }
     }
 
 
     template<typename T>
-    const T get(char * buff) const noexcept requires (std::is_integral_v<T> || std::is_same_v<T, float>)
+    const T get(const Block * block, const std::size_t pos) const requires (std::is_integral_v<T> || std::is_same_v<T, float>)
     {
       T v{};
-      std::memcpy(&v, buff, sizeof(T)); // memcpy() is noexcept
+      std::memcpy(&v, block->getRead(pos), sizeof(T)); 
       return v;
     }
 
@@ -143,4 +152,13 @@ namespace fc
   private:
     std::vector<Block *> m_blocks;
   };
+
+
+  /*
+  class VariedMemory
+  {
+    inline const static std::size_t InitialBlocks = 32;
+    inline const static std::size_t BlockCapacity = 1024;
+  };
+  */
 }

@@ -56,6 +56,8 @@ async def test2():
   
   kv = KV(client)
   
+  ## set
+
   # flip flop keys' value types
   await kv.set({'k1':123, 'k2':234})
   print(await kv.get(keys=['k1','k2']))
@@ -72,6 +74,14 @@ async def test2():
   #decimal
   await kv.set({'f':123.5})
   print(await kv.get(keys=['f']))
+
+
+  ## add
+  await kv.add({'a1':456}) # new key
+  print(await kv.get(keys=['a1']))
+
+  await kv.add({'k1':456}) # attempt overwrite existing
+  print(await kv.get(keys=['k1']))
 
 
 if __name__ == "__main__":
