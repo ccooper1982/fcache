@@ -9,17 +9,20 @@ namespace fc
 {  
   struct CachedValue;
 
-
   using KeyVector = flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>;  
   using CachedKey = std::string;
-  using ExtractF = void (*)(FixedMemory&, FlexBuilder&, const char *, const CachedValue&);
+  using ExtractFixedF = void (*)(FlexBuilder&, const char * key, const CachedValue&);
 
-  
+  // This will do for now.
   struct CachedValue
-  {
-    Block * block;
-    ExtractF extract;
-    std::size_t blockPos; // position in the Block's position
-    std::uint16_t size; // only required for variable sizes
+  { 
+    inline static const std::uint8_t MEM_FIXED = 0;
+    inline static const std::uint8_t MEM_VAR   = 1;
+
+    std::variant<FixedMemory*, VariedMemory*> mem;
+    ExtractFixedF extractFixed;
+    BlockView bv;
+    std::uint8_t memType;    
   };
+
 }

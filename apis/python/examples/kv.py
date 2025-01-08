@@ -1,4 +1,5 @@
 import asyncio as asio
+import random
 import sys
 sys.path.append('../')
 import fc
@@ -58,7 +59,7 @@ async def test2():
   
   ## set
 
-  # flip flop keys' value types
+  # # flip flop keys' value types
   await kv.set({'k1':123, 'k2':234})
   print(await kv.get(keys=['k1','k2']))
 
@@ -84,9 +85,42 @@ async def test2():
   print(await kv.get(keys=['k1']))
 
 
+  # remove
+  await kv.set({'k1':123, 'k2':234})
+  print(await kv.get(keys=['k1','k2']))
+
+  await kv.remove(key='k2')
+  print(await kv.get(keys=['k1','k2']))
+
+  await kv.set({'k2':234})
+  print(await kv.get(keys=['k1','k2']))
+
+
+  # clear (release all blocks)
+
+
+async def more():
+  if (client := await connect()) is None:
+    return
+  
+  kv = KV(client)
+
+  data = {}
+  for i in range(500):
+    data[f'k{i}'] = i
+
+  await kv.set(data)
+  print(await kv.count())
+
+  keys = []
+  for _ in range(20):
+    keys.append(f'k{random.randrange(0, 20)}')
+  print(await kv.get(keys=keys))
+
+
 if __name__ == "__main__":
   async def run():
-    for f in [test2]:
+    for f in [test2, more]:
       print(f'---- {f.__name__} ----')
       await f()
   

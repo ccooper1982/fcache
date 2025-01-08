@@ -30,7 +30,9 @@ namespace fc
 
     bool init()
     {
-      return m_fixed.init();
+      m_fixed = new FixedMemory;
+
+      return m_fixed->init();
     }
 
 
@@ -70,7 +72,7 @@ namespace fc
             const auto pKey = key->c_str();
             const auto& cachedValue = it->second;
 
-            cachedValue.extract(m_fixed, fb, pKey, cachedValue);
+            cachedValue.extractFixed(fb, pKey, cachedValue);
           }
         }      
       });
@@ -83,7 +85,8 @@ namespace fc
       {
         if (auto it = m_map.find(key->str()); it != m_map.end())
         {
-          //it->second.
+          m_fixed->clear(it->second.bv);
+          m_map.erase(it);
         }
       }
     };
@@ -135,7 +138,7 @@ namespace fc
     template<bool IsSet, flexbuffers::Type FlexT, typename ValueT>
     void doFixedSetAdd(const CachedKey& key, const ValueT value)
     {
-      ExtractF extract{nullptr};
+      ExtractFixedF extract{nullptr};
 
       if constexpr (FlexT == flexbuffers::Type::FBT_INT)
         extract = extractInt;
@@ -151,8 +154,8 @@ namespace fc
 
       if (const auto it = m_map.find(key) ; it == m_map.end())
       {
-        const auto [block, pos] = m_fixed.write<ValueT>(value);
-        m_map.try_emplace(key, block, extract, pos, sizeof(ValueT));
+        const auto bv = m_fixed->write<ValueT>(value);
+        m_map.try_emplace(key, m_fixed, extract, bv, CachedValue::MEM_FIXED);
       }
       else
       {
@@ -163,10 +166,8 @@ namespace fc
 
           // buffer may change if new value occupies more space than existing value
           // i.e. bool value overwritten to an int
-          const auto [block, pos] = m_fixed.overwrite<ValueT>(cv.block, cv.blockPos, cv.size, value);
-          cv.block = block;
-          cv.blockPos = pos;
-          cv.extract = extract; // possibly different extract function if value type different
+          m_fixed->overwrite<ValueT>(cv.bv, value);
+          cv.extractFixed = extract; // possibly different extract function if value type different
         }        
       }
     }
@@ -217,30 +218,34 @@ namespace fc
     }
     
     
-    static void extractInt(FixedMemory& fm, FlexBuilder& fb, const char * key, const CachedValue& cv)
+    static void extractInt(FlexBuilder& fb, const char * key, const CachedValue& cv)
     {
-      const auto v = fm.get<int>(cv.block, cv.blockPos);
+      const auto mem = std::get<CachedValue::MEM_FIXED>(cv.mem);
+      const auto v = mem->get<int>(cv.bv);
       fb.Add(key, v);
     }
 
     
-    static void extractUInt(FixedMemory& fm, FlexBuilder& fb, const char * key, const CachedValue& cv)
+    static void extractUInt(FlexBuilder& fb, const char * key, const CachedValue& cv)
     {
-      const auto v = fm.get<unsigned int>(cv.block, cv.blockPos);
+      const auto mem = std::get<CachedValue::MEM_FIXED>(cv.mem);
+      const auto v = mem->get<unsigned int>(cv.bv);
       fb.UInt(key, v);
     }
 
     
-    static void extractFloat(FixedMemory& fm, FlexBuilder& fb, const char * key, const CachedValue& cv)
+    static void extractFloat(FlexBuilder& fb, const char * key, const CachedValue& cv)
     {
-      const auto v = fm.get<float>(cv.block, cv.blockPos);
+      const auto mem = std::get<CachedValue::MEM_FIXED>(cv.mem);
+      const auto v = mem->get<float>(cv.bv);
       fb.Float(key, v);
     }
 
     
-    static void extractBool(FixedMemory& fm, FlexBuilder& fb, const char * key, const CachedValue& cv)
+    static void extractBool(FlexBuilder& fb, const char * key, const CachedValue& cv)
     {
-      const auto v = fm.get<bool>(cv.block, cv.blockPos);
+      const auto mem = std::get<CachedValue::MEM_FIXED>(cv.mem);
+      const auto v = mem->get<bool>(cv.bv);
       fb.Bool(key, v);
     }
 
@@ -258,7 +263,7 @@ namespace fc
 
   private:
     Map m_map;
-    FixedMemory m_fixed;
+    FixedMemory * m_fixed;
   };
 
 }
