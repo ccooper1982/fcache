@@ -69,6 +69,14 @@ namespace fc
             valid = m_map.setOrAdd<IsSet, FBT_VECTOR_INT>(msg, key, values[i].AsTypedVector());
           break;
 
+          case FBT_VECTOR_UINT:
+            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_UINT>(msg, key, values[i].AsTypedVector());
+          break;
+
+          case FBT_VECTOR_FLOAT:
+            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_FLOAT>(msg, key, values[i].AsTypedVector());
+          break;
+
           default:
             PLOGE << __FUNCTION__ << " - unsupported type";
             valid = false;

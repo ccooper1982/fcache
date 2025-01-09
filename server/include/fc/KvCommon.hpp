@@ -8,10 +8,13 @@
 namespace fc
 { 
   struct FixedValue;
+  struct VectorValue;
+
 
   using CachedKey = std::string;
   using KeyVector = flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>;  
   using ExtractFixedF = void (*)(FlexBuilder&, const char * key, const FixedValue&);
+  using ExtractVectorF = void (*)(FlexBuilder&, const char * key, const VectorValue&);
 
 
   struct FixedValue
@@ -20,13 +23,15 @@ namespace fc
     ExtractFixedF extract;
   };
 
+
   struct VectorValue
   {
     using IntVector = std::vector<std::int64_t>;
     using UIntVector = std::vector<std::uint64_t>;
+    using FloatVector = std::vector<float>;
 
-    std::variant<IntVector, UIntVector> vec;
-    flexbuffers::Type vecType;  // TODO need a key for std::get<>(vec)
+    std::variant<IntVector, UIntVector, FloatVector> vec;
+    ExtractVectorF extract;
   };
 
 
@@ -36,6 +41,6 @@ namespace fc
     inline static const std::uint8_t VEC   = 1;
 
     std::variant<FixedValue, VectorValue> value;
-    std::uint8_t valueType;
+    std::uint8_t valueType;    
   };
 }

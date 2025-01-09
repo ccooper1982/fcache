@@ -1,6 +1,7 @@
 from fc.fbs.fc.response import Response, ResponseBody, Status
 import flatbuffers
 import flatbuffers.flexbuffers
+import array
 
 
 class FcException(Exception):
@@ -35,9 +36,19 @@ def createKvMap(kv: dict) -> bytearray:
   return b.Finish()
 
 
-def createTypedVector(items: list):
-  tv = flatbuffers.flexbuffers.TypedVector()
-  #tv.Bytes
+def createIntArray(items: list[int], unsigned=False):
+  # q: int8, Q: uint8
+  vec = array.array('Q' if unsigned else 'q')
+  vec.fromlist(items)
+  return vec
+
+
+def createFloatArray(items: list[float]):
+  vec = array.array('f')  # TODO allow double
+  vec.fromlist(items)
+  return vec
+
+
 
 
 def raise_if_fail(rsp: bytes, expectedRspBody: ResponseBody) -> Response.Response:

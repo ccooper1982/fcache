@@ -45,7 +45,7 @@ namespace fc
         {
           doFixedSetAdd<IsSet, FlexT>(key, v);
         } 
-        else if constexpr(std::is_same_v<ValueT, std::string>)
+        else if constexpr (std::is_same_v<ValueT, std::string>)
         {
           doStringSetAdd(key, v);          
         }  
@@ -78,15 +78,13 @@ namespace fc
 
             if (cachedValue.valueType == CachedValue::FIXED)
             {
-              const auto& fixedValue = std::get<CachedValue::FIXED>(cachedValue.value);
+              const auto& fixedValue = std::get<FixedValue>(cachedValue.value);
               fixedValue.extract(fb, pKey, fixedValue);
             }
             else if (cachedValue.valueType == CachedValue::VEC)
             {
-              const auto& vecValue = std::get<CachedValue::VEC>(cachedValue.value);
-              const auto& intVec = std::get<VectorValue::IntVector>(vecValue.vec);
-
-              fb.Add(pKey, intVec);
+              const auto& vecValue = std::get<VectorValue>(cachedValue.value);
+              vecValue.extract(fb, pKey, vecValue);
             }
           }
         }      
@@ -173,6 +171,7 @@ namespace fc
       {
         // but only set overwrites existing
         it->second.value = FixedValue {.value = value, .extract = extract};
+        it->second.valueType = CachedValue::FIXED;
       }
     }
 
@@ -193,13 +192,14 @@ namespace fc
         //      same type): 
         //      then don't need to make a new VectorValue, can just copy over, and possibly shrink
         it->second.value = vv ;
+        it->second.valueType = CachedValue::VEC;
       }
     }
 
 
     void doStringSetAdd(const CachedKey& key,  const std::string& v)
     {
-
+      // TODO
     }
    
 
@@ -207,9 +207,11 @@ namespace fc
     VectorValue makeVectorValue (const flexbuffers::TypedVector& vector)
     {
       if constexpr (FlexT == FBT_VECTOR_INT)
-        return VectorValue {.vec = copyVector<std::int64_t> (vector), .vecType = FlexT};
+        return VectorValue {.vec = copyVector<std::int64_t>(vector), .extract = extractIntV};
       else if constexpr (FlexT == FBT_VECTOR_UINT)
-        return VectorValue {.vec = copyVector<std::uint64_t> (vector), .vecType = FlexT};
+        return VectorValue {.vec = copyVector<std::uint64_t>(vector), .extract = extractUIntV};
+      else if constexpr (FlexT == FBT_VECTOR_FLOAT)
+        return VectorValue {.vec = copyVector<float>(vector), .extract = extractFloatV};
     }
 
 
@@ -225,9 +227,7 @@ namespace fc
       return dest;
     }
 
-
-    // TODO not convinced all these are required, or at least can be improved
-    //      becase we can use .Add<T>(key, T) at an earlier stage
+    
     static void extractInt(FlexBuilder& fb, const char * key, const FixedValue& fv)
     {
       fb.Add(key, std::get<std::int64_t>(fv.value));
@@ -249,6 +249,22 @@ namespace fc
     static void extractBool(FlexBuilder& fb, const char * key, const FixedValue& fv)
     {
       fb.Add(key, std::get<bool>(fv.value));
+    }
+
+
+    static void extractIntV(FlexBuilder& fb, const char * key, const VectorValue& vv)
+    {
+      fb.Add(key, std::get<VectorValue::IntVector>(vv.vec));
+    }
+
+    static void extractUIntV(FlexBuilder& fb, const char * key, const VectorValue& vv)
+    {
+      fb.Add(key, std::get<VectorValue::UIntVector>(vv.vec));
+    }
+
+    static void extractFloatV(FlexBuilder& fb, const char * key, const VectorValue& vv)
+    {
+      fb.Add(key, std::get<VectorValue::FloatVector>(vv.vec));
     }
 
 

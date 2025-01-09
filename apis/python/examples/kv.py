@@ -5,6 +5,8 @@ import sys
 sys.path.append('../')
 import fc
 from fc.kv import KV
+from fc.common import createIntArray,createFloatArray
+
 
 async def connect() -> fc.Client:
   try:
@@ -78,12 +80,21 @@ async def test2():
   # print(await kv.get(keys=['f']))
 
   #vector
-  # q: int8, Q: uint8
-  vec = array.array('q')
-  vec.fromlist([123,456])
-  await kv.set({'v':vec})
+  
+  # await kv.set({'i':createIntArray([123,456,34])})
+  # print(await kv.get(key='i'))
 
-  print(await kv.get(key='v'))
+
+  # await kv.set({'f':createFloatArray([12.34, 56.78])})
+  # print(await kv.get(key='f'))
+
+  # fixed to vector
+  await kv.set({'x':20})
+  print(await kv.get(key='x'))
+  await kv.set({'x':createIntArray([123,456,34])})
+  print(await kv.get(key='x'))
+  await kv.set({'x':30})
+  print(await kv.get(key='x'))
 
   # ## add
   # await kv.add({'a1':456}) # new key
