@@ -6,23 +6,36 @@
 
 
 namespace fc
-{  
-  struct CachedValue;
+{ 
+  struct FixedValue;
 
-  using KeyVector = flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>;  
   using CachedKey = std::string;
-  using ExtractFixedF = void (*)(FlexBuilder&, const char * key, const CachedValue&);
+  using KeyVector = flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>;  
+  using ExtractFixedF = void (*)(FlexBuilder&, const char * key, const FixedValue&);
 
-  // This will do for now.
-  struct CachedValue
-  { 
-    inline static const std::uint8_t MEM_FIXED = 0;
-    inline static const std::uint8_t MEM_VAR   = 1;
 
-    std::variant<FixedMemory*, VariedMemory*> mem;
-    ExtractFixedF extractFixed;
-    BlockView bv;
-    std::uint8_t memType;    
+  struct FixedValue
+  {
+    std::variant<std::int64_t, std::uint64_t, float, bool> value;
+    ExtractFixedF extract;
   };
 
+  struct VectorValue
+  {
+    using IntVector = std::vector<std::int64_t>;
+    using UIntVector = std::vector<std::uint64_t>;
+
+    std::variant<IntVector, UIntVector> vec;
+    flexbuffers::Type vecType;  // TODO need a key for std::get<>(vec)
+  };
+
+
+  struct CachedValue
+  {
+    inline static const std::uint8_t FIXED = 0;
+    inline static const std::uint8_t VEC   = 1;
+
+    std::variant<FixedValue, VectorValue> value;
+    std::uint8_t valueType;
+  };
 }

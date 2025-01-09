@@ -4,6 +4,7 @@
 #include <fc/KvCommon.hpp>
 #include <fc/Memory.hpp>
 #include <plog/Log.h>
+#include <ranges>
 
 
 namespace fc
@@ -13,6 +14,7 @@ namespace fc
     using Map = ankerl::unordered_dense::segmented_map<CachedKey, CachedValue>;
     using CacheMapIterator = Map::iterator;
     using CacheMapConstIterator = Map::const_iterator;
+    using enum flexbuffers::Type;
 
   public:
     
@@ -30,25 +32,27 @@ namespace fc
 
     bool init()
     {
-      m_fixed = new FixedMemory;
-
-      return m_fixed->init();
+      return true;
     }
 
 
     template<bool IsSet, flexbuffers::Type FlexT, typename ValueT>
-    bool setOrAdd (const CachedKey& key, const ValueT& v) noexcept
+    bool setOrAdd (const BufferVector& vecBuffer, const CachedKey& key, const ValueT& v) noexcept
     {
       try
       {
-        if constexpr (FlexT == flexbuffers::Type::FBT_STRING || FlexT == flexbuffers::Type::FBT_VECTOR)
-        {
-          //doVariableSetAdd<IsSet, FlexT, ValueT>(key, v);
-        }
-        else
+        if constexpr (std::is_integral_v<ValueT> || std::is_same_v<ValueT, float>)
         {
           doFixedSetAdd<IsSet, FlexT>(key, v);
+        } 
+        else if constexpr(std::is_same_v<ValueT, std::string>)
+        {
+          doStringSetAdd(key, v);          
         }  
+        else if constexpr (std::is_same_v<ValueT, flexbuffers::TypedVector>)
+        {
+          doVectorSetAdd<IsSet, FlexT>(vecBuffer, key, v);
+        }
 
         return true;
       }
@@ -72,7 +76,18 @@ namespace fc
             const auto pKey = key->c_str();
             const auto& cachedValue = it->second;
 
-            cachedValue.extractFixed(fb, pKey, cachedValue);
+            if (cachedValue.valueType == CachedValue::FIXED)
+            {
+              const auto& fixedValue = std::get<CachedValue::FIXED>(cachedValue.value);
+              fixedValue.extract(fb, pKey, fixedValue);
+            }
+            else if (cachedValue.valueType == CachedValue::VEC)
+            {
+              const auto& vecValue = std::get<CachedValue::VEC>(cachedValue.value);
+              const auto& intVec = std::get<VectorValue::IntVector>(vecValue.vec);
+
+              fb.Add(pKey, intVec);
+            }
           }
         }      
       });
@@ -81,13 +96,9 @@ namespace fc
 
     void remove (const KeyVector& keys)
     {
-      for (const auto& key : keys)
+      for (const auto key : keys)
       {
-        if (auto it = m_map.find(key->str()); it != m_map.end())
-        {
-          m_fixed->clear(it->second.bv);
-          m_map.erase(it);
-        }
+        m_map.erase(key->str());
       }
     };
 
@@ -136,7 +147,7 @@ namespace fc
   private:
 
     template<bool IsSet, flexbuffers::Type FlexT, typename ValueT>
-    void doFixedSetAdd(const CachedKey& key, const ValueT value)
+    void doFixedSetAdd(const CachedKey& key, const ValueT value)  requires(std::is_integral_v<ValueT> || std::is_same_v<ValueT, float>)
     {
       ExtractFixedF extract{nullptr};
 
@@ -149,105 +160,97 @@ namespace fc
       else if constexpr (FlexT == flexbuffers::Type::FBT_BOOL)
         extract = extractBool;
       else
-        static_assert("FlexBuffers::Type not supported for fixed type");
+        static_assert(false, "FlexBuffers::Type not supported for fixed type");
 
+
+      // set and add both insert if key not exist
+      if (const auto it = m_map.find(key) ; it == m_map.end())
+      {
+        FixedValue fv {.value = value, .extract = extract};
+        m_map.try_emplace(key, fv, CachedValue::FIXED);
+      }
+      else if constexpr (IsSet)
+      {
+        // but only set overwrites existing
+        it->second.value = FixedValue {.value = value, .extract = extract};
+      }
+    }
+
+
+    template<bool IsSet, flexbuffers::Type FlexT>
+    void doVectorSetAdd(const BufferVector& vecBuffer, const CachedKey& key, const flexbuffers::TypedVector& v)
+    { 
+      VectorValue vv = makeVectorValue<FlexT>(v);
 
       if (const auto it = m_map.find(key) ; it == m_map.end())
       {
-        const auto bv = m_fixed->write<ValueT>(value);
-        m_map.try_emplace(key, m_fixed, extract, bv, CachedValue::MEM_FIXED);
+        m_map.try_emplace(key, vv, CachedValue::VEC);
       }
-      else
+      else if constexpr (IsSet)
       {
-        // set overwrites existing, but add does not
-        if constexpr (IsSet)
-        {
-          auto& cv = it->second;
-
-          // buffer may change if new value occupies more space than existing value
-          // i.e. bool value overwritten to an int
-          m_fixed->overwrite<ValueT>(cv.bv, value);
-          cv.extractFixed = extract; // possibly different extract function if value type different
-        }        
+        // TODO (current value is VectorValue AND
+        //      v.size() <= existing size() AND
+        //      same type): 
+        //      then don't need to make a new VectorValue, can just copy over, and possibly shrink
+        it->second.value = vv ;
       }
     }
 
 
-    template<bool IsSet, flexbuffers::Type FlexT, typename ValueT>
-    void doVariableSetAdd(const CachedKey& key,  const ValueT& v)
+    void doStringSetAdd(const CachedKey& key,  const std::string& v)
     {
-      /*
-      ValueExtractF extract{nullptr};
-      Buffer buff {.size = v.size(), .buffer = std::make_shared<uint8_t[]>(v.size())};
 
-      if constexpr (FlexT == flexbuffers::Type::FBT_STRING)
-      {
-        extract = extractString;
-        std::memcpy(buff.buffer.get(), v.c_str(), buff.size);
-      }
-      else if constexpr (FlexT == flexbuffers::Type::FBT_VECTOR)
-      {
-        extract = extractVector;
-
-        const flexbuffers::Vector& vec = v;
-        for (std::size_t i = 0 ; i < vec.size() ; ++i)
-        {
-          switch (vec[i].GetType())
-          {
-            using enum flexbuffers::Type;
-
-            case FBT_INT:
-            
-              break;
-            
-            default:
-              break;
-          }
-        }
-      }
-      else
-        static_assert("Unsupported FlexBuffer::Type");
-
-      if constexpr (IsSet)
-      {
-        m_map.insert_or_assign(key, CachedValue{buff, extract});
-      }
-      else
-        m_map.try_emplace(key, buff, extract);
-      */
     }
-    
-    
-    static void extractInt(FlexBuilder& fb, const char * key, const CachedValue& cv)
+   
+
+    template<flexbuffers::Type FlexT>
+    VectorValue makeVectorValue (const flexbuffers::TypedVector& vector)
     {
-      const auto mem = std::get<CachedValue::MEM_FIXED>(cv.mem);
-      const auto v = mem->get<int>(cv.bv);
-      fb.Add(key, v);
+      if constexpr (FlexT == FBT_VECTOR_INT)
+        return VectorValue {.vec = copyVector<std::int64_t> (vector), .vecType = FlexT};
+      else if constexpr (FlexT == FBT_VECTOR_UINT)
+        return VectorValue {.vec = copyVector<std::uint64_t> (vector), .vecType = FlexT};
+    }
+
+
+    template<typename ElementT>
+    std::vector<ElementT> copyVector(const flexbuffers::TypedVector& source)
+    {
+      std::vector<ElementT> dest;
+      dest.resize(source.size());
+
+      for (std::size_t i = 0 ; i < source.size() ; ++i)
+          dest[i] = source[i].As<ElementT>();
+
+      return dest;
+    }
+
+
+    // TODO not convinced all these are required, or at least can be improved
+    //      becase we can use .Add<T>(key, T) at an earlier stage
+    static void extractInt(FlexBuilder& fb, const char * key, const FixedValue& fv)
+    {
+      fb.Add(key, std::get<std::int64_t>(fv.value));
     }
 
     
-    static void extractUInt(FlexBuilder& fb, const char * key, const CachedValue& cv)
+    static void extractUInt(FlexBuilder& fb, const char * key, const FixedValue& fv)
     {
-      const auto mem = std::get<CachedValue::MEM_FIXED>(cv.mem);
-      const auto v = mem->get<unsigned int>(cv.bv);
-      fb.UInt(key, v);
+      fb.Add(key, std::get<std::uint64_t>(fv.value));
     }
 
     
-    static void extractFloat(FlexBuilder& fb, const char * key, const CachedValue& cv)
+    static void extractFloat(FlexBuilder& fb, const char * key, const FixedValue& fv)
     {
-      const auto mem = std::get<CachedValue::MEM_FIXED>(cv.mem);
-      const auto v = mem->get<float>(cv.bv);
-      fb.Float(key, v);
+      fb.Add(key, std::get<float>(fv.value));
     }
 
     
-    static void extractBool(FlexBuilder& fb, const char * key, const CachedValue& cv)
+    static void extractBool(FlexBuilder& fb, const char * key, const FixedValue& fv)
     {
-      const auto mem = std::get<CachedValue::MEM_FIXED>(cv.mem);
-      const auto v = mem->get<bool>(cv.bv);
-      fb.Bool(key, v);
+      fb.Add(key, std::get<bool>(fv.value));
     }
+
 
     // static void extractString(const char * key, const CachedValue& cv, FlexBuilder& fb)
     // {
@@ -255,15 +258,10 @@ namespace fc
     //   fb.String(key, flexbuffers::String(varVariant.buffer.get(), sizeof(char), varVariant.size));
     // }
 
-    // static void extractVector(const char * key, const CachedValue& cv, FlexBuilder& fb)
-    // {
-    //   const auto& varVariant = std::get<CachedValue::VAR>(cv.value);
-    //   fb.Vector<uint8_t>(key, varVariant.buffer.get(), varVariant.size);
-    // }
 
   private:
     Map m_map;
-    FixedMemory * m_fixed;
+    //FixedMemory * m_fixed;
   };
 
 }

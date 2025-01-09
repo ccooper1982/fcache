@@ -29,10 +29,15 @@ class ResponseError(FcException):
   
 
 def createKvMap(kv: dict) -> bytearray:
-  """Creates a flexbuffer map, populating with `kv`. """
+  """Creates a flexbuffer map, populated with `kv`. """
   b = flatbuffers.flexbuffers.Builder()
   b.MapFromElements(kv)
   return b.Finish()
+
+
+def createTypedVector(items: list):
+  tv = flatbuffers.flexbuffers.TypedVector()
+  #tv.Bytes
 
 
 def raise_if_fail(rsp: bytes, expectedRspBody: ResponseBody) -> Response.Response:

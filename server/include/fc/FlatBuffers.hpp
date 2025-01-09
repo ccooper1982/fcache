@@ -11,4 +11,5 @@ namespace fc
 {
   using FlexBuilder = flexbuffers::Builder;
   using FlatBuilder = flatbuffers::FlatBufferBuilder;
+  using BufferVector = flatbuffers::Vector<uint8_t>;
 }

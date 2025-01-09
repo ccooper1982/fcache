@@ -1,5 +1,6 @@
 import asyncio as asio
 import random
+import array
 import sys
 sys.path.append('../')
 import fc
@@ -60,43 +61,50 @@ async def test2():
   ## set
 
   # # flip flop keys' value types
-  await kv.set({'k1':123, 'k2':234})
-  print(await kv.get(keys=['k1','k2']))
+  # await kv.set({'k1':123, 'k2':234})
+  # print(await kv.get(keys=['k1','k2']))
 
-  await kv.set({'k1':True, 'k2':False})
-  print(await kv.get(keys=['k1','k2']))
+  # await kv.set({'k1':True, 'k2':False})
+  # print(await kv.get(keys=['k1','k2']))
   
-  await kv.set({'k1':123, 'k2':234})
-  print(await kv.get(keys=['k1','k2']))
+  # await kv.set({'k1':123, 'k2':234})
+  # print(await kv.get(keys=['k1','k2']))
 
-  await kv.set({'k1':True, 'k2':False})
-  print(await kv.get(keys=['k1','k2']))
+  # await kv.set({'k1':True, 'k2':False})
+  # print(await kv.get(keys=['k1','k2']))
 
-  #decimal
-  await kv.set({'f':123.5})
-  print(await kv.get(keys=['f']))
+  # #decimal
+  # await kv.set({'f':123.5})
+  # print(await kv.get(keys=['f']))
 
+  #vector
+  # q: int8, Q: uint8
+  vec = array.array('q')
+  vec.fromlist([123,456])
+  await kv.set({'v':vec})
 
-  ## add
-  await kv.add({'a1':456}) # new key
-  print(await kv.get(keys=['a1']))
+  print(await kv.get(key='v'))
 
-  await kv.add({'k1':456}) # attempt overwrite existing
-  print(await kv.get(keys=['k1']))
+  # ## add
+  # await kv.add({'a1':456}) # new key
+  # print(await kv.get(keys=['a1']))
 
-
-  # remove
-  await kv.set({'k1':123, 'k2':234})
-  print(await kv.get(keys=['k1','k2']))
-
-  await kv.remove(key='k2')
-  print(await kv.get(keys=['k1','k2']))
-
-  await kv.set({'k2':234})
-  print(await kv.get(keys=['k1','k2']))
+  # await kv.add({'k1':456}) # attempt overwrite existing
+  # print(await kv.get(keys=['k1']))
 
 
-  # clear (release all blocks)
+  # # remove
+  # await kv.set({'k1':123, 'k2':234})
+  # print(await kv.get(keys=['k1','k2']))
+
+  # await kv.remove(key='k2')
+  # print(await kv.get(keys=['k1','k2']))
+
+  # await kv.set({'k2':234})
+  # print(await kv.get(keys=['k1','k2']))
+
+
+  # clear
 
 
 async def more():
@@ -120,7 +128,7 @@ async def more():
 
 if __name__ == "__main__":
   async def run():
-    for f in [test2, more]:
+    for f in [test2]:
       print(f'---- {f.__name__} ----')
       await f()
   
