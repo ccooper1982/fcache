@@ -121,7 +121,7 @@ namespace fc
     }
 
 
-    void get (const KeyVector& keys, FlexBuilder& fb)
+    inline void get (const KeyVector& keys, FlexBuilder& fb)
     {
       fb.Map([&]()
       {
@@ -144,7 +144,7 @@ namespace fc
             }
           }
         }      
-      });
+      });      
     }
 
 
@@ -161,7 +161,8 @@ namespace fc
     {
       try
       {
-        m_map.replace(Map::value_container_type{});
+        m_map.clear();//replace(Map::value_container_type{});
+        PLOGD << __FUNCTION__ << ":" << m_map.size();
         return true;
       }
       catch (const std::exception& ex)
@@ -174,6 +175,8 @@ namespace fc
     
     flatbuffers::Offset<KeyVector> contains (FlatBuilder& fb, const KeyVector& keys) const
     {
+      // TODO change this response to use a flexbuffer, responding with a TypedVector (FBT_VECTOR_KEY)
+
       // Building a flatbuffer vector, we need to know the length of the vector at construction.
       // We don't know that until we've checked which keys exist.
       // There may be a better way of doing this.
@@ -295,8 +298,9 @@ namespace fc
 
     static void extractCharV(FlexBuilder& fb, const char * key, const VectorValue& vv)
     {
-      // use overload: Add(const char * key, const char * value)
-      fb.Add(key, std::get<VectorValue::CharVector>(vv.vec).data());
+      const auto& charVector = std::get<VectorValue::CharVector>(vv.vec);
+      fb.Key(key);
+      fb.String(charVector.data(), charVector.size());
     }
 
 
