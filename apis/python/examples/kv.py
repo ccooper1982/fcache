@@ -62,26 +62,26 @@ async def test2():
   
   ## set
 
-  # # flip flop keys' value types
-  # await kv.set({'k1':123, 'k2':234})
-  # print(await kv.get(keys=['k1','k2']))
+  # flip flop keys' value types
+  await kv.set({'k1':123, 'k2':234})
+  print(await kv.get(keys=['k1','k2']))
 
-  # await kv.set({'k1':True, 'k2':False})
-  # print(await kv.get(keys=['k1','k2']))
+  await kv.set({'k1':True, 'k2':False})
+  print(await kv.get(keys=['k1','k2']))
   
-  # await kv.set({'k1':123, 'k2':234})
-  # print(await kv.get(keys=['k1','k2']))
+  await kv.set({'k1':123, 'k2':234})
+  print(await kv.get(keys=['k1','k2']))
 
-  # await kv.set({'k1':True, 'k2':False})
-  # print(await kv.get(keys=['k1','k2']))
+  await kv.set({'k1':True, 'k2':False})
+  print(await kv.get(keys=['k1','k2']))
 
-  # #decimal
-  # await kv.set({'f':123.5})
-  # print(await kv.get(keys=['f']))
+  #decimal
+  await kv.set({'f':123.5})
+  print(await kv.get(keys=['f']))
 
   ## str
-  #await kv.set({'s':'hello'})
-  #print(await kv.get(keys=['s']))
+  await kv.set({'s':'hello'})
+  print(await kv.get(keys=['s']))
 
   #vector
   
@@ -91,8 +91,8 @@ async def test2():
   # await kv.set({'f':createFloatArray([12.34, 56.78])})
   # print(await kv.get(key='f'))
 
-  await kv.set({'list':['asda','adsa']})
-  print(await kv.get(keys=['list']))
+  # await kv.set({'list':['asda','adsa']})
+  # print(await kv.get(keys=['list']))
 
   # fixed to vector
   # await kv.set({'x':20})
@@ -104,11 +104,11 @@ async def test2():
 
   
   # ## add
-  # await kv.add({'a1':456}) # new key
-  # print(await kv.get(keys=['a1']))
+  await kv.add({'a1':456}) # new key
+  print(await kv.get(keys=['a1']))
 
-  # await kv.add({'k1':456}) # attempt overwrite existing
-  # print(await kv.get(keys=['k1']))
+  await kv.add({'a2':456}) # attempt overwrite existing
+  print(await kv.get(keys=['a2']))
 
 
   # # remove
@@ -144,9 +144,38 @@ async def more():
   print(await kv.get(keys=keys))
 
 
+async def test_lists():
+  if (client := await connect()) is None:
+    return
+  
+  kv = KV(client)
+
+  # strings
+  await kv.set({'s':['hello', 'wurluld']})
+  print(await kv.get(key='s'))
+
+
+  # int
+  await kv.set({'i':[123,456]})
+  print(await kv.get(key='i'))
+
+  # float
+  await kv.set({'f':[12.5,45.5]})
+  print(await kv.get(key='f'))
+
+  # bool
+  await kv.set({'b':[True, False, True]})
+  print(await kv.get(key='b'))
+
+  # empty: cannot allow empty lists because at least one item is required
+  #        to know what the type of TypedVector. Should probably create a workaround for this.
+  await kv.set({'s_empty':['']})
+  print(await kv.get(key='s_empty'))
+
+
 if __name__ == "__main__":
   async def run():
-    for f in [test2]:
+    for f in [test_lists]:
       print(f'---- {f.__name__} ----')
       await f()
   

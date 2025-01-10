@@ -99,26 +99,6 @@ class KV(KvTest):
     self.assertEqual(await self.kv.count(), 0)
 
 
-  async def test_clear_set(self):
-    input1 = {'k1':123, 'k2':True, 'k3':123.5, 'k4':'stringaling'}
-    keys1 = ['k1','k2','k3','k4']
-    input2 = {'k10':'x', 'k11':False}
-
-    allKeys = keys1[:]
-    allKeys.extend(['k10', 'k11'])
-
-    await self.kv.set(input1)
-    out = await self.kv.get(keys=keys1)
-    self.assertDictEqual(input1, out)
-
-    # clear input1 then set input2
-    await self.kv.clear_set(input2)
-    # request all keys from input1 and input2.
-    # should only receive input2 keys (since input1 cleared)
-    out = await self.kv.get(keys=allKeys)
-    self.assertDictEqual(input2, out)
-
-
   async def test_remove(self):
     data = {'k1':123, 'k2':True, 'k3':123.5, 'k4':'stringaling'}
     
@@ -133,15 +113,33 @@ class KV(KvTest):
     await self.kv.remove(keys=['k2', 'k3'])
     out = await self.kv.get(keys=list(data.keys()))
     self.assertDictEqual({'k4':'stringaling'}, out)
-    
+  
 
+  async def test_clear_set(self):
+    input1 = {'k1':123, 'k2':True, 'k3':123.5, 'k4':'stringaling'}
+    keys1 = ['k1','k2','k3','k4']
+    input2 = {'k10':'x', 'k11':False}
+
+    allKeys = keys1[:]
+    allKeys.extend(['k10', 'k11'])
+
+    await self.kv.set(input1)
+    out = await self.kv.get(keys=keys1)
+    self.assertDictEqual(input1, out)
+
+    # clear input1 then set input2
+    await self.kv.clear_set(input2)
+    await self.kv.set(input2)
+    # request all keys from input1 and input2.
+    # should only receive input2 keys (since input1 cleared)
+    out = await self.kv.get(keys=allKeys)
+    self.assertDictEqual(input2, out)
+
+
+  ## Errors
   async def test_set_notscalar(self):
     await self.kv.set({'strings':['hello', 'world', '!']})
     
-
-  # async def test_set_errors(self):
-  #   with self.assertRaises(ResponseError):
-  #     await self.kv.set({'iterable':[]})
 
 
 if __name__ == "__main__":
