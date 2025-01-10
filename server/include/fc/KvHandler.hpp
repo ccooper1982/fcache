@@ -41,7 +41,7 @@ namespace fc
 
         switch (values[i].GetType())
         {
-          using enum flexbuffers::Type;
+          using enum FlexType;
 
           case FBT_INT:
             valid = m_map.setOrAdd<IsSet, FBT_INT>(key, values[i].AsInt64());
@@ -75,8 +75,8 @@ namespace fc
             valid = m_map.setOrAdd<IsSet, FBT_VECTOR_FLOAT>(key, values[i].AsTypedVector());
           break;
 
-          case FBT_VECTOR:  // for vector of strings
-            valid = m_map.setOrAdd<IsSet>(key, values[i].AsVector());
+          case FBT_VECTOR_KEY:  // for vector of strings
+            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_KEY>(key, values[i].AsTypedVector());
           break;
 
           default:

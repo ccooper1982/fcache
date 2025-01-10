@@ -30,7 +30,7 @@ namespace fc
     using UIntVector = std::vector<std::uint64_t>;
     using FloatVector = std::vector<float>;
     using CharVector = std::vector<char>; // strings are a vector of chars
-    using StringVector = std::vector<std::string>;  // a vector of strings for now
+    using StringVector = std::vector<std::string>;  // TODO, perhaps std::vector<CharVector>
 
     std::variant<IntVector, UIntVector, FloatVector, CharVector, StringVector> vec;
     ExtractVectorF extract;

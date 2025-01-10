@@ -12,7 +12,7 @@ namespace fc
     using Map = ankerl::unordered_dense::segmented_map<CachedKey, CachedValue>;
     using CacheMapIterator = Map::iterator;
     using CacheMapConstIterator = Map::const_iterator;
-    using enum flexbuffers::Type;
+    using enum FlexType;
 
   public:
     
@@ -21,24 +21,24 @@ namespace fc
     CacheMap& operator=(CacheMap&&) = default; // required by Map::erase()
     CacheMap(CacheMap&&) = default;
 
-    CacheMap& operator=(const CacheMap&) = delete;   
+    CacheMap& operator=(const CacheMap&) = delete;
     CacheMap(CacheMap&) = delete;
 
 
-    template<bool IsSet, flexbuffers::Type FlexT, typename ValueT>
+    template<bool IsSet, FlexType FlexT, typename ValueT>
     bool setOrAdd (const CachedKey& key, const ValueT& value) noexcept requires (std::is_integral_v<ValueT> || std::is_same_v<ValueT, float>)
     {
       try
       {
         ExtractFixedF extract{nullptr};
 
-        if constexpr (FlexT == flexbuffers::Type::FBT_INT)
+        if constexpr (FlexT == FlexType::FBT_INT)
           extract = extractInt;
-        else if constexpr (FlexT == flexbuffers::Type::FBT_UINT)
+        else if constexpr (FlexT == FlexType::FBT_UINT)
           extract = extractUInt;
-        else if constexpr (FlexT == flexbuffers::Type::FBT_FLOAT)
+        else if constexpr (FlexT == FlexType::FBT_FLOAT)
           extract = extractFloat;
-        else if constexpr (FlexT == flexbuffers::Type::FBT_BOOL)
+        else if constexpr (FlexT == FlexType::FBT_BOOL)
           extract = extractBool;
         else
           static_assert(false, "FlexBuffers::Type not supported for fixed type");
@@ -67,7 +67,7 @@ namespace fc
     }
 
 
-    template<bool IsSet, flexbuffers::Type FlexT>
+    template<bool IsSet, FlexType FlexT>
     bool setOrAdd (const CachedKey& key, const flexbuffers::TypedVector v) noexcept
     {
       try
@@ -226,7 +226,7 @@ namespace fc
     }
 
 
-    template<flexbuffers::Type FlexT>
+    template<FlexType FlexT>
     VectorValue makeVectorValue (const flexbuffers::TypedVector& vector)
     {
       if constexpr (FlexT == FBT_VECTOR_INT)
@@ -235,6 +235,8 @@ namespace fc
         return VectorValue {.vec = toStdVector<std::uint64_t>(vector), .extract = extractUIntV};
       else if constexpr (FlexT == FBT_VECTOR_FLOAT)
         return VectorValue {.vec = toStdVector<float>(vector), .extract = extractFloatV};
+      else if constexpr (FlexT == FBT_VECTOR_KEY)
+        return VectorValue {.vec = toStdVector<std::string>(vector), .extract = extractStringV};
     }
 
 
