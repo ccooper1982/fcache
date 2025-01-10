@@ -29,11 +29,38 @@ class ResponseError(FcException):
     return self(bodyType)
   
 
+# def createKvMap(kv: dict) -> bytearray:
+#   """Creates a flexbuffer map, populated with `kv`. """
+#   b = flatbuffers.flexbuffers.Builder()
+#   b.MapFromElements(kv)
+#   return b.Finish()
+
 def createKvMap(kv: dict) -> bytearray:
-  """Creates a flexbuffer map, populated with `kv`. """
-  b = flatbuffers.flexbuffers.Builder()
-  b.MapFromElements(kv)
-  return b.Finish()
+#   """Creates a flexbuffer map, populated with `kv`. """
+  fb = flatbuffers.flexbuffers.Builder()
+
+  with fb.Map():
+    for key, value in kv.items():
+      fb.Key(key)
+      if value is None:
+        fb.Null()
+      elif isinstance(value, bool):
+        fb.Bool(value)
+      elif isinstance(value, int):
+        fb.Int(value)
+      elif isinstance(value, float):
+        fb.Float(value)
+      elif isinstance(value, str):
+        fb.String(value)
+      elif isinstance(value, array.array):
+        fb.TypedVectorFromElements(value)
+      elif isinstance(value, list):
+        all(isinstance(s, str) for s in value)
+        #fb.TypedVectorFromElements(value, element_type=flatbuffers.flexbuffers.Type.STRING)
+        fb.VectorFromElements(value)
+      else:
+        raise ValueError(f'key {key} has invalid value type')
+  return fb.Finish()
 
 
 def createIntArray(items: list[int], unsigned=False):
@@ -47,8 +74,6 @@ def createFloatArray(items: list[float]):
   vec = array.array('f')  # TODO allow double
   vec.fromlist(items)
   return vec
-
-
 
 
 def raise_if_fail(rsp: bytes, expectedRspBody: ResponseBody) -> Response.Response:

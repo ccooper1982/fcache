@@ -34,7 +34,7 @@ namespace fc
 
 
     template<bool IsSet>
-    bool setOrAdd (const BufferVector& msg, const flexbuffers::TypedVector& keys, const flexbuffers::Vector& values)
+    bool setOrAdd (const flexbuffers::TypedVector& keys, const flexbuffers::Vector& values)
     {
       bool valid = true;
       for (std::size_t i = 0 ; i < values.size() && valid; ++i)
@@ -46,39 +46,43 @@ namespace fc
           using enum flexbuffers::Type;
 
           case FBT_INT:
-            valid = m_map.setOrAdd<IsSet, FBT_INT>(msg, key, values[i].AsInt64());
+            valid = m_map.setOrAdd<IsSet, FBT_INT>(key, values[i].AsInt64());
           break;
           
           case FBT_UINT:
-            valid = m_map.setOrAdd<IsSet, FBT_UINT>(msg, key, values[i].AsUInt64());
+            valid = m_map.setOrAdd<IsSet, FBT_UINT>(key, values[i].AsUInt64());
           break;
 
           case FBT_BOOL:
-            valid = m_map.setOrAdd<IsSet, FBT_BOOL>(msg, key, values[i].AsBool());
+            valid = m_map.setOrAdd<IsSet, FBT_BOOL>(key, values[i].AsBool());
           break;
 
           case FBT_FLOAT:
-            valid = m_map.setOrAdd<IsSet, FBT_FLOAT>(msg, key, values[i].AsFloat());
+            valid = m_map.setOrAdd<IsSet, FBT_FLOAT>(key, values[i].AsFloat());
           break;
 
           case FBT_STRING:
-            valid = m_map.setOrAdd<IsSet, FBT_STRING>(msg, key, values[i].AsString().str());
+            valid = m_map.setOrAdd<IsSet, FBT_STRING>(key, values[i].AsString().str());
           break;
 
           case FBT_VECTOR_INT:
-            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_INT>(msg, key, values[i].AsTypedVector());
+            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_INT>(key, values[i].AsTypedVector());
           break;
 
           case FBT_VECTOR_UINT:
-            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_UINT>(msg, key, values[i].AsTypedVector());
+            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_UINT>(key, values[i].AsTypedVector());
           break;
 
           case FBT_VECTOR_FLOAT:
-            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_FLOAT>(msg, key, values[i].AsTypedVector());
+            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_FLOAT>(key, values[i].AsTypedVector());
+          break;
+
+          case FBT_VECTOR:  // for vector of strings
+            valid = m_map.setOrAdd<IsSet, FBT_VECTOR>(key, values[i].AsVector());
           break;
 
           default:
-            PLOGE << __FUNCTION__ << " - unsupported type";
+            PLOGE << __FUNCTION__ << " - unsupported type: " << values[i].GetType();
             valid = false;
           break;
         }

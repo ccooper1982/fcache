@@ -20,7 +20,7 @@ namespace fc
       const auto& values = set.kv_flexbuffer_root().AsMap().Values();
       const auto& keys = set.kv_flexbuffer_root().AsMap().Keys();
 
-      valid = setOrAdd<true>(*(set.kv()), keys, values);
+      valid = setOrAdd<true>(keys, values);
     }
     catch(const std::exception& e)
     {
@@ -39,7 +39,7 @@ namespace fc
       const auto& values = add.kv_flexbuffer_root().AsMap().Values();
       const auto& keys = add.kv_flexbuffer_root().AsMap().Keys();
 
-      valid = setOrAdd<false>(*(add.kv()), keys, values);
+      valid = setOrAdd<false>(keys, values);
     }
     catch(const std::exception& e)
     {
@@ -146,7 +146,7 @@ namespace fc
       const auto& keys = clearSet.kv_flexbuffer_root().AsMap().Keys();
 
       // use as an add here because it lets map use try_emplace, rather than insert_or_assign
-      const auto valid = setOrAdd<false>(*(clearSet.kv()), keys, values);
+      const auto valid = setOrAdd<false>(keys, values);
 
       createEmptyBodyResponse(fbb, valid ? Status_Ok : Status_Fail, ResponseBody_KVClearSet);
     }

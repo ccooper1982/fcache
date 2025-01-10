@@ -29,8 +29,10 @@ namespace fc
     using IntVector = std::vector<std::int64_t>;
     using UIntVector = std::vector<std::uint64_t>;
     using FloatVector = std::vector<float>;
+    using CharVector = std::vector<char>; // strings are a vector of chars
+    using StringVector = std::vector<std::string>;  // a vector of strings for now
 
-    std::variant<IntVector, UIntVector, FloatVector> vec;
+    std::variant<IntVector, UIntVector, FloatVector, CharVector, StringVector> vec;
     ExtractVectorF extract;
   };
 
@@ -41,6 +43,6 @@ namespace fc
     inline static const std::uint8_t VEC   = 1;
 
     std::variant<FixedValue, VectorValue> value;
-    std::uint8_t valueType;    
+    std::uint8_t valueType;
   };
 }
