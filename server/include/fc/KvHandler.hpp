@@ -15,8 +15,6 @@ namespace fc
   public:
     KvHandler() = default;
 
-    bool init();
-
 
   public:
     void handle(FlatBuilder& fbb, const fc::request::KVSet& set) noexcept;

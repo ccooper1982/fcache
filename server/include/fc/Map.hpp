@@ -28,12 +28,6 @@ namespace fc
     }
     
 
-    bool init()
-    {
-      return true;
-    }
-
-
     template<bool IsSet, flexbuffers::Type FlexT, typename ValueT>
     bool setOrAdd (const CachedKey& key, const ValueT& value) noexcept requires (std::is_integral_v<ValueT> || std::is_same_v<ValueT, float>)
     {
