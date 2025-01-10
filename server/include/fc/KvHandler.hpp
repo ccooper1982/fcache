@@ -75,6 +75,10 @@ namespace fc
             valid = m_map.setOrAdd<IsSet, FBT_VECTOR_FLOAT>(key, values[i].AsTypedVector());
           break;
 
+          case FBT_VECTOR_BOOL:
+            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_BOOL>(key, values[i].AsTypedVector());
+          break;
+
           case FBT_VECTOR_KEY:  // for vector of strings
             valid = m_map.setOrAdd<IsSet, FBT_VECTOR_KEY>(key, values[i].AsTypedVector());
           break;

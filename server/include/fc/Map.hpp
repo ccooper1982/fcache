@@ -235,6 +235,8 @@ namespace fc
         return VectorValue {.vec = toStdVector<std::uint64_t>(vector), .extract = extractUIntV};
       else if constexpr (FlexT == FBT_VECTOR_FLOAT)
         return VectorValue {.vec = toStdVector<float>(vector), .extract = extractFloatV};
+      else if constexpr (FlexT == FBT_VECTOR_BOOL)
+        return VectorValue {.vec = toStdVector<bool>(vector), .extract = extractBoolV};
       else if constexpr (FlexT == FBT_VECTOR_KEY)
         return VectorValue {.vec = toStdVector<std::string>(vector), .extract = extractStringV};
     }
@@ -295,6 +297,17 @@ namespace fc
     }
 
 
+    static void extractBoolV(FlexBuilder& fb, const char * key, const VectorValue& vv)
+    {
+      fb.Vector(key, [&vv, &fb]
+      {
+        const auto& bools = std::get<VectorValue::BoolVector>(vv.vec);
+        for (const auto& b : bools)
+          fb.Add(b);
+      });
+    }
+
+  
     static void extractCharV(FlexBuilder& fb, const char * key, const VectorValue& vv)
     {
       const auto& charVector = std::get<VectorValue::CharVector>(vv.vec);

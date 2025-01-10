@@ -36,9 +36,14 @@ class ResponseError(FcException):
 #   return b.Finish()
 
 def createKvMap(kv: dict) -> bytearray:
-#   """Creates a flexbuffer map, populated with `kv`. """
+  """Creates a flexbuffer map, populated with `kv`. """
   fb = flatbuffers.flexbuffers.Builder()
-
+  # an edited/hijacked flatbuffers.flexbuffers.MapFromElements(),
+  # with checks that a list value:
+  #   - cannot be empty
+  #   - all elements are the same type
+  #   - all are serliased as TypedVector
+  #   - list of strings is FBT_VECTOR_KEY
   with fb.Map():
     for key, value in kv.items():
       fb.Key(key)
@@ -55,11 +60,23 @@ def createKvMap(kv: dict) -> bytearray:
       elif isinstance(value, array.array):
         fb.TypedVectorFromElements(value)
       elif isinstance(value, list):
-        all(isinstance(s, str) for s in value)
-        #fb.TypedVectorFromElements(value, element_type=flatbuffers.flexbuffers.Type.STRING)
-        fb.VectorFromElements(value)
+        # cannot allow empty lists because at least one item is required
+        # to know the type of TypedVector.
+        # TODO Should probably create a workaround for this.
+        if len(value) == 0:
+          raise ValueError(f'Key {key}: contains empty list')
+        
+        # all elements must be same type
+        elementType = type(value[0])
+        if not all(isinstance(s, elementType) for s in value):
+          raise ValueError(f'Key {key}: all elements must be the same type')
+        
+        if elementType == str:
+          fb.TypedVectorFromElements(value, element_type=flatbuffers.flexbuffers.Type.KEY)
+        else:
+          fb.TypedVectorFromElements(value)
       else:
-        raise ValueError(f'key {key} has invalid value type')
+        raise ValueError(f'Key {key}: has invalid value type')
   return fb.Finish()
 
 
