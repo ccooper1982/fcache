@@ -16,17 +16,14 @@ namespace fc
 
   public:
     
+    CacheMap() = default;
+
     CacheMap& operator=(CacheMap&&) = default; // required by Map::erase()
     CacheMap(CacheMap&&) = default;
 
     CacheMap& operator=(const CacheMap&) = delete;   
     CacheMap(CacheMap&) = delete;
 
-    
-    CacheMap (const std::size_t buckets = 0) : m_map(buckets) 
-    {
-    }
-    
 
     template<bool IsSet, flexbuffers::Type FlexT, typename ValueT>
     bool setOrAdd (const CachedKey& key, const ValueT& value) noexcept requires (std::is_integral_v<ValueT> || std::is_same_v<ValueT, float>)
