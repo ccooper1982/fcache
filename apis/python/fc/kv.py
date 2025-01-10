@@ -65,8 +65,7 @@ class KV:
       # this is how we get a flexbuffer from a flatbuffer
       result = flatbuffers.flexbuffers.Loads(union_body.KvAsNumpy().tobytes())
       if isSingleKey and len(result):
-        print(result)
-        return result[key]  # single key, so return value
+        return result[key] if key in result else None  # single key, so return value
       else:
         return result # multiple keys, return dict
     except Exception as e:
