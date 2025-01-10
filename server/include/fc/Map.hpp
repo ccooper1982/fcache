@@ -35,27 +35,36 @@ namespace fc
 
 
     template<bool IsSet, flexbuffers::Type FlexT, typename ValueT>
-    bool setOrAdd (const CachedKey& key, const ValueT& v) noexcept
+    bool setOrAdd (const CachedKey& key, const ValueT& value) noexcept requires (std::is_integral_v<ValueT> || std::is_same_v<ValueT, float>)
     {
       try
       {
-        if constexpr (std::is_integral_v<ValueT> || std::is_same_v<ValueT, float>)
-        {
-          doFixedSetAdd<IsSet, FlexT>(key, v);
-        } 
-        else if constexpr (std::is_same_v<ValueT, std::string>)
-        {
-          doStringSetAdd<IsSet, FlexT>(key, v);
-        }  
-        else if constexpr (std::is_same_v<ValueT, flexbuffers::TypedVector>)
-        {
-          doTypedVectorSetAdd<IsSet, FlexT>(key, v);
-        }
-        else if constexpr (std::is_same_v<ValueT, flexbuffers::Vector>)
-        {
-          doVectorSetAdd<IsSet>(key, v);
-        }
+        ExtractFixedF extract{nullptr};
 
+        if constexpr (FlexT == flexbuffers::Type::FBT_INT)
+          extract = extractInt;
+        else if constexpr (FlexT == flexbuffers::Type::FBT_UINT)
+          extract = extractUInt;
+        else if constexpr (FlexT == flexbuffers::Type::FBT_FLOAT)
+          extract = extractFloat;
+        else if constexpr (FlexT == flexbuffers::Type::FBT_BOOL)
+          extract = extractBool;
+        else
+          static_assert(false, "FlexBuffers::Type not supported for fixed type");
+
+
+        // set and add both insert if key not exist
+        if (const auto it = m_map.find(key) ; it == m_map.end())
+        {
+          FixedValue fv {.value = value, .extract = extract};
+          m_map.try_emplace(key, fv, CachedValue::FIXED);
+        }
+        else if constexpr (IsSet)
+        {
+          // but only set overwrites existing
+          it->second.value = FixedValue {.value = value, .extract = extract};
+          it->second.valueType = CachedValue::FIXED;
+        }
         return true;
       }
       catch(const std::exception& ex)
@@ -64,6 +73,57 @@ namespace fc
       }
       
       return false;
+    }
+
+
+    template<bool IsSet, flexbuffers::Type FlexT>
+    bool setOrAdd (const CachedKey& key, const flexbuffers::TypedVector v) noexcept
+    {
+      try
+      {
+        insertVectorValue<IsSet>(key, makeVectorValue<FlexT>(v));
+      }
+      catch(const std::exception& e)
+      {
+        PLOGE << __FUNCTION__ << ":" << e.what();
+        return false;
+      }
+
+      return true;
+    }
+
+
+    template<bool IsSet>
+    bool setOrAdd (const CachedKey& key, const std::string_view str) noexcept
+    {
+      try
+      {
+        // a string is handled as a vector<char>
+        insertVectorValue<IsSet>(key, makeCharVectorValue(str));
+      }
+      catch(const std::exception& e)
+      {
+        PLOGE << __FUNCTION__ << ": " << e.what();
+        return false;
+      }
+      return true;
+    }
+
+
+    template<bool IsSet>
+    bool setOrAdd(const CachedKey& key, const flexbuffers::Vector& v) noexcept // TODO changed to TypedVector (FBT_VECTOR_KEY)
+    {
+      try
+      {
+        VectorValue vv {.vec = toStdVector<std::string>(v), .extract = extractStringV};
+        insertVectorValue<IsSet>(key, std::move(vv));
+      }
+      catch(const std::exception& e)
+      {
+        PLOGE << __FUNCTION__ << ":" << e.what();
+        return false; 
+      }
+      return true;
     }
 
 
@@ -146,64 +206,9 @@ namespace fc
 
   private:
 
-    template<bool IsSet, flexbuffers::Type FlexT, typename ValueT>
-    void doFixedSetAdd(const CachedKey& key, const ValueT value)  requires(std::is_integral_v<ValueT> || std::is_same_v<ValueT, float>)
-    {
-      ExtractFixedF extract{nullptr};
-
-      if constexpr (FlexT == flexbuffers::Type::FBT_INT)
-        extract = extractInt;
-      else if constexpr (FlexT == flexbuffers::Type::FBT_UINT)
-        extract = extractUInt;
-      else if constexpr (FlexT == flexbuffers::Type::FBT_FLOAT)
-        extract = extractFloat;
-      else if constexpr (FlexT == flexbuffers::Type::FBT_BOOL)
-        extract = extractBool;
-      else
-        static_assert(false, "FlexBuffers::Type not supported for fixed type");
-
-
-      // set and add both insert if key not exist
-      if (const auto it = m_map.find(key) ; it == m_map.end())
-      {
-        FixedValue fv {.value = value, .extract = extract};
-        m_map.try_emplace(key, fv, CachedValue::FIXED);
-      }
-      else if constexpr (IsSet)
-      {
-        // but only set overwrites existing
-        it->second.value = FixedValue {.value = value, .extract = extract};
-        it->second.valueType = CachedValue::FIXED;
-      }
-    }
-
-
-    template<bool IsSet, flexbuffers::Type FlexT>
-    void doTypedVectorSetAdd(const CachedKey& key, const flexbuffers::TypedVector& v)
-    { 
-      VectorValue vv = makeVectorValue<FlexT>(v);
-
-      if (const auto it = m_map.find(key) ; it == m_map.end())
-      {
-        m_map.try_emplace(key, vv, CachedValue::VEC);
-      }
-      else if constexpr (IsSet)
-      {
-        // TODO (current value is VectorValue AND
-        //      v.size() <= existing size() AND
-        //      same type): 
-        //      then don't need to make a new VectorValue, can just copy over, and possibly shrink
-        it->second.value = vv ;
-        it->second.valueType = CachedValue::VEC;
-      }
-    }
-
-
     template<bool IsSet>
-    void doVectorSetAdd(const CachedKey& key, const flexbuffers::Vector& v)
+    void insertVectorValue (const CachedKey& key, VectorValue vv)
     {
-      VectorValue vv {.vec = copyVector<std::string>(v), .extract = extractStringV};
-
       if (const auto it = m_map.find(key) ; it == m_map.end())
       {
         m_map.try_emplace(key, vv, CachedValue::VEC);
@@ -218,71 +223,35 @@ namespace fc
         it->second.valueType = CachedValue::VEC;
       }
     }
+    
 
-
-    template<bool IsSet, flexbuffers::Type FlexT>
-    void doStringSetAdd(const CachedKey& key,  const std::string& v)
-    {
-      // a string is handled as a vector<char>
-      VectorValue vv = makeCharVectorValue(v);
-
-      if (const auto it = m_map.find(key) ; it == m_map.end())
-      {
-        m_map.try_emplace(key, vv, CachedValue::VEC);
-      }
-      else if constexpr (IsSet)
-      {
-        // TODO (current value is VectorValue AND
-        //      v.size() <= existing size() AND
-        //      same type): 
-        //      then don't need to make a new VectorValue, can just copy over, and possibly shrink
-        it->second.value = vv ;
-        it->second.valueType = CachedValue::VEC;
-      }
-    }
-   
-
-    template<flexbuffers::Type FlexT>
-    VectorValue makeVectorValue (const flexbuffers::TypedVector& vector)
-    {
-      if constexpr (FlexT == FBT_VECTOR_INT)
-        return VectorValue {.vec = copyTypedVector<std::int64_t>(vector), .extract = extractIntV};
-      else if constexpr (FlexT == FBT_VECTOR_UINT)
-        return VectorValue {.vec = copyTypedVector<std::uint64_t>(vector), .extract = extractUIntV};
-      else if constexpr (FlexT == FBT_VECTOR_FLOAT)
-        return VectorValue {.vec = copyTypedVector<float>(vector), .extract = extractFloatV};
-    }
-
-
-    VectorValue makeCharVectorValue (const std::string& str)
+    VectorValue makeCharVectorValue (const std::string_view str)
     {
       return VectorValue {.vec = VectorValue::CharVector{std::cbegin(str), std::cend(str)},
                           .extract = extractCharV};
     }
 
 
-    // TODO consolidate copyVector() and copyTypedVector()
-    template<typename ElementT>
-    std::vector<ElementT> copyVector(const flexbuffers::Vector& source)
+    template<flexbuffers::Type FlexT>
+    VectorValue makeVectorValue (const flexbuffers::TypedVector& vector)
     {
-      std::vector<ElementT> dest;
-      dest.resize(source.size());
-
-      for (std::size_t i = 0 ; i < source.size() ; ++i)
-          dest[i] = source[i].As<ElementT>();
-
-      return dest;
+      if constexpr (FlexT == FBT_VECTOR_INT)
+        return VectorValue {.vec = toStdVector<std::int64_t>(vector), .extract = extractIntV};
+      else if constexpr (FlexT == FBT_VECTOR_UINT)
+        return VectorValue {.vec = toStdVector<std::uint64_t>(vector), .extract = extractUIntV};
+      else if constexpr (FlexT == FBT_VECTOR_FLOAT)
+        return VectorValue {.vec = toStdVector<float>(vector), .extract = extractFloatV};
     }
 
 
-    template<typename ElementT>
-    std::vector<ElementT> copyTypedVector(const flexbuffers::TypedVector& source)
+    template<typename ElementT, typename FlexVectorT>
+    std::vector<ElementT> toStdVector(const FlexVectorT& source)
     {
       std::vector<ElementT> dest;
       dest.resize(source.size());
 
       for (std::size_t i = 0 ; i < source.size() ; ++i)
-          dest[i] = source[i].As<ElementT>();
+          dest[i] = source[i].template As<ElementT>();
 
       return dest;
     }

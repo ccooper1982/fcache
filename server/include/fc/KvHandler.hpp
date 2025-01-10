@@ -62,7 +62,7 @@ namespace fc
           break;
 
           case FBT_STRING:
-            valid = m_map.setOrAdd<IsSet, FBT_STRING>(key, values[i].AsString().str());
+            valid = m_map.setOrAdd<IsSet>(key, values[i].AsString().c_str());
           break;
 
           case FBT_VECTOR_INT:
@@ -78,7 +78,7 @@ namespace fc
           break;
 
           case FBT_VECTOR:  // for vector of strings
-            valid = m_map.setOrAdd<IsSet, FBT_VECTOR>(key, values[i].AsVector());
+            valid = m_map.setOrAdd<IsSet>(key, values[i].AsVector());
           break;
 
           default:
