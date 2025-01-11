@@ -1,17 +1,12 @@
 # fcache
 
-fcache is a data cache, using Google's FlatBuffers over WebSockets.
+fcache is a FlatBuffers cache over WebSockets.
 
 There is support for key-values, with containers (Arrays, Lists) coming soon.
 
 FlatBuffers offer zero-copy deserialising: when the server receives data, it can deserialise without an intermediate step which requires allocating memory (as with ProtoBuf), and is considerably more compact than JSON.
 
 fcache docs available [here](https://ccooper1982.github.io/fcache/).
-
-<br/>
-
->[!NOTE]
-> A value can only be scalar, so not an array/vector etc. This will be added in a future release.
 
 <br/>
 
@@ -41,16 +36,21 @@ async def kv():
   # create API object for KV commands
   kv = KV(client)
 
-  data = {'user':'user1', 'age':25, 'active':True}
-  await kv.set(data)
+  await kv.set({'player':'Monster',
+                'level':25,
+                'active':True,
+                'perks':['Armour','Kilt']})
 
-  # get single key, returns the value
-  age = await kv.get(key='age')
+  # get single key, returns the value (or None if key not found)
+  age = await kv.get(key='level')
   print(f'Age: {age}')
 
   # get multiple keys, returns dict
-  rsp = await kv.get(keys=['user', 'active'])
-  print(f"User: {rsp['user']}, Active: {rsp['active']}")
+  rsp = await kv.get(keys=['player', 'active'])
+  print(f"Player: {rsp['player']}, Active: {rsp['active']}")
+
+  # get list
+  print(await kv.get(key='perks'))
 
 
 if __name__ == "__main__":
