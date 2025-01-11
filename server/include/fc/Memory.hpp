@@ -9,6 +9,7 @@
 
 namespace fc
 {
+  /* 
   using BlockId = std::uint32_t;
   using BlockPos = std::uint16_t;
   using BlockBuffSize = std::uint16_t;
@@ -214,5 +215,6 @@ namespace fc
   {
     
   };
+  */
   
 }
