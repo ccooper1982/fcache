@@ -647,9 +647,9 @@
 <div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">kv</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div>
 <p>Sets new key(s) but unlike <a href="../set/">set</a>, if a key already exists, the value is <strong>not</strong> replaced.</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>The value of a key cannot be an iterable. This will be added in a future release.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If value is a <code>list</code>, all items must be the same type.</p>
 </div>
 <h2 id="examples">Examples</h2>
 <div class="language-py highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="n">kv</span><span class="o">.</span><span class="n">set</span><span class="p">({</span><span class="s1">&#39;user&#39;</span><span class="p">:</span><span class="s1">&#39;user1&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">:</span><span class="mi">25</span><span class="p">,</span> <span class="s1">&#39;active&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">})</span>

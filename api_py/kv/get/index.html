@@ -668,8 +668,8 @@
 <h2 id="returns">Returns</h2>
 <p>Called with:</p>
 <ul>
-<li><code>key</code>: the value is returned</li>
-<li><code>keys</code>: all key values returned in a <code>dict</code></li>
+<li><code>key</code>: if key exists the value is returned, otherwise <code>None</code></li>
+<li><code>keys</code>: all key values in a <code>dict</code></li>
 </ul>
 <h2 id="examples">Examples</h2>
 <div class="language-py highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="n">kv</span><span class="o">.</span><span class="n">set</span><span class="p">({</span><span class="s1">&#39;user&#39;</span><span class="p">:</span><span class="s1">&#39;user1&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">:</span><span class="mi">25</span><span class="p">,</span> <span class="s1">&#39;active&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">})</span>
