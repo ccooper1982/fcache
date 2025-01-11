@@ -5,7 +5,6 @@ import sys
 sys.path.append('../')
 import fc
 from fc.kv import KV
-from fc.common import createIntArray,createFloatArray
 
 
 async def connect() -> fc.Client:
@@ -167,10 +166,11 @@ async def test_lists():
   await kv.set({'b':[True, False, True]})
   print(await kv.get(key='b'))
 
-  # empty: cannot allow empty lists because at least one item is required
-  #        to know what the type of TypedVector. Should probably create a workaround for this.
-  await kv.set({'s_empty':['']})
-  print(await kv.get(key='s_empty'))
+  # empty:
+  try:
+    await kv.set({'s_empty':[]})
+  except ValueError as ve:
+    print(f'Good fail: {ve}')
 
 
 if __name__ == "__main__":
