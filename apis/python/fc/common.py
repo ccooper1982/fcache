@@ -40,16 +40,16 @@ class ResponseError(FcException):
 
 def createKvMap(kv: dict) -> bytearray:
   """Creates a flexbuffer map, populated with `kv`. """
-  fb = flatbuffers.flexbuffers.Builder()
-  # an edited/hijacked flatbuffers.flexbuffers.MapFromElements(),
+  # a hijacked flatbuffers.flexbuffers.MapFromElements(),
   # with checks that a list value:
   #   - cannot be empty
   #   - all elements are the same type
   #   - all are serliased as TypedVector
   #   - list of strings is FBT_VECTOR_KEY
+  fb = flatbuffers.flexbuffers.Builder()
   
-  try:
-    with fb.Map():
+  with fb.Map():
+    try:
       # value is None?
       for key, value in kv.items():
         fb.Key(key)
@@ -66,20 +66,19 @@ def createKvMap(kv: dict) -> bytearray:
           fb.TypedVectorFromElements(value)
         elif isinstance(value, list):
           _createTypedVector(fb, key, value)
-        else:
-          # we added key, but we're not adding value, so clear to prevent
-          # further exceptions with uneven key/value pairs
-          fb.Clear()
+        else:          
           raise ValueError(f'Key {key}: has invalid value type')
-  except:
-    raise
-    
+    except:
+      # we likely added a key without corresponding value, and in either case,
+      # the buffer state is unknown if we're here, so clear
+      fb.Clear()
+      raise
   return fb.Finish()
 
 
 def _createTypedVector(fb: flatbuffers.flexbuffers.Builder, key: str, items: list):
   # cannot allow empty lists because at least one item is required
-  # to know the type of TypedVector.
+  # to know the type of the TypedVector.
   # TODO Should probably create a workaround for this.
   if len(items) == 0:
     raise ValueError(f'Key {key}: contains empty list')
@@ -87,7 +86,6 @@ def _createTypedVector(fb: flatbuffers.flexbuffers.Builder, key: str, items: lis
   # all elements must be same type
   elementType = type(items[0])
   if not all(isinstance(s, elementType) for s in items):
-    fb.Clear()    
     raise ValueError(f'Key {key}: all elements must be the same type')
   
   if elementType == str:
