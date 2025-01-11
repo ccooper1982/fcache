@@ -38,13 +38,14 @@ def createKvMap(kv: dict) -> bytearray:
   #   - all elements are the same type
   #   - all are serliased as TypedVector
   #   - list of strings is FBT_VECTOR_KEY
-  with fb.Map():
-    try:
+  
+  try:
+    with fb.Map():
+      # value is None?
       for key, value in kv.items():
         fb.Key(key)
-        if value is None:
-          fb.Null()
-        elif isinstance(value, bool):
+
+        if isinstance(value, bool):
           fb.Bool(value)
         elif isinstance(value, int):
           fb.Int(value)
@@ -61,10 +62,10 @@ def createKvMap(kv: dict) -> bytearray:
           # further exceptions with uneven key/value pairs
           fb.Clear()
           raise ValueError(f'Key {key}: has invalid value type')
-    except:
-      raise
+  except:
+    raise
     
-    return fb.Finish()
+  return fb.Finish()
 
 
 def _createTypedVector(fb: flatbuffers.flexbuffers.Builder, key: str, items: list):
