@@ -58,13 +58,13 @@ class Connection:
   async def query(self, buffer: bytearray) -> bytes:
     try:
       queryTask = asio.create_task(self._query(buffer))
-      await queryTask
-      msg = queryTask.result()
+      msg = await asio.wait_for(queryTask, timeout=5)
     except asio.CancelledError:
       # if there is an active query when we are disconnected, the query
       # task is cancelled, raising an exception
-      pass
-    
+      return None
+    except asio.TimeoutError:
+      return None
     return msg
 
 
