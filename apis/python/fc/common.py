@@ -29,12 +29,6 @@ class ResponseError(FcException):
     return self(bodyType)
   
 
-# def createKvMap(kv: dict) -> bytearray:
-#   """Creates a flexbuffer map, populated with `kv`. """
-#   b = flatbuffers.flexbuffers.Builder()
-#   b.MapFromElements(kv)
-#   return b.Finish()
-
 def createKvMap(kv: dict) -> bytearray:
   """Creates a flexbuffer map, populated with `kv`. """
   fb = flatbuffers.flexbuffers.Builder()
@@ -45,52 +39,65 @@ def createKvMap(kv: dict) -> bytearray:
   #   - all are serliased as TypedVector
   #   - list of strings is FBT_VECTOR_KEY
   with fb.Map():
-    for key, value in kv.items():
-      fb.Key(key)
-      if value is None:
-        fb.Null()
-      elif isinstance(value, bool):
-        fb.Bool(value)
-      elif isinstance(value, int):
-        fb.Int(value)
-      elif isinstance(value, float):
-        fb.Float(value)
-      elif isinstance(value, str):
-        fb.String(value)
-      elif isinstance(value, array.array):
-        fb.TypedVectorFromElements(value)
-      elif isinstance(value, list):
-        # cannot allow empty lists because at least one item is required
-        # to know the type of TypedVector.
-        # TODO Should probably create a workaround for this.
-        if len(value) == 0:
-          raise ValueError(f'Key {key}: contains empty list')
-        
-        # all elements must be same type
-        elementType = type(value[0])
-        if not all(isinstance(s, elementType) for s in value):
-          raise ValueError(f'Key {key}: all elements must be the same type')
-        
-        if elementType == str:
-          fb.TypedVectorFromElements(value, element_type=flatbuffers.flexbuffers.Type.KEY)
-        else:
+    try:
+      for key, value in kv.items():
+        fb.Key(key)
+        if value is None:
+          fb.Null()
+        elif isinstance(value, bool):
+          fb.Bool(value)
+        elif isinstance(value, int):
+          fb.Int(value)
+        elif isinstance(value, float):
+          fb.Float(value)
+        elif isinstance(value, str):
+          fb.String(value)
+        elif isinstance(value, array.array):
           fb.TypedVectorFromElements(value)
-      else:
-        raise ValueError(f'Key {key}: has invalid value type')
-  return fb.Finish()
+        elif isinstance(value, list):
+          _createTypedVector(fb, key, value)
+        else:
+          # we added key, but we're not adding value, so clear to prevent
+          # further exceptions with uneven key/value pairs
+          fb.Clear()
+          raise ValueError(f'Key {key}: has invalid value type')
+    except:
+      raise
+    
+    return fb.Finish()
 
 
-def createIntArray(items: list[int], unsigned=False):
-  # q: int8, Q: uint8
-  vec = array.array('Q' if unsigned else 'q')
-  vec.fromlist(items)
-  return vec
+def _createTypedVector(fb: flatbuffers.flexbuffers.Builder, key: str, items: list):
+  # cannot allow empty lists because at least one item is required
+  # to know the type of TypedVector.
+  # TODO Should probably create a workaround for this.
+  if len(items) == 0:
+    raise ValueError(f'Key {key}: contains empty list')
+  
+  # all elements must be same type
+  elementType = type(items[0])
+  if not all(isinstance(s, elementType) for s in items):
+    fb.Clear()    
+    raise ValueError(f'Key {key}: all elements must be the same type')
+  
+  if elementType == str:
+    fb.TypedVectorFromElements(items, element_type=flatbuffers.flexbuffers.Type.KEY)
+  else:
+    fb.TypedVectorFromElements(items)
+  
 
 
-def createFloatArray(items: list[float]):
-  vec = array.array('f')  # TODO allow double
-  vec.fromlist(items)
-  return vec
+# def createIntArray(items: list[int], unsigned=False):
+#   # q: int8, Q: uint8
+#   vec = array.array('Q' if unsigned else 'q')
+#   vec.fromlist(items)
+#   return vec
+
+
+# def createFloatArray(items: list[float]):
+#   vec = array.array('f')  # TODO allow double
+#   vec.fromlist(items)
+#   return vec
 
 
 def raise_if_fail(rsp: bytes, expectedRspBody: ResponseBody) -> Response.Response:
