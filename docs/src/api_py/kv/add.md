@@ -6,9 +6,8 @@ async def add(kv: dict) -> None
 
 Sets new key(s) but unlike [set](./set.md), if a key already exists, the value is __not__ replaced.
 
-!!! warning
-    The value of a key cannot be an iterable. This will be added in a future release.
-
+!!! note
+    If value is a `list`, all items must be the same type.
 
 ## Examples
 

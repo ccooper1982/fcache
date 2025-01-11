@@ -22,15 +22,21 @@ async def kv():
   # create API object for KV commands
   kv = KV(client)
 
-  await kv.set({'user':'user1', 'age':25, 'active':True})
+  await kv.set({'player':'Monster',
+                'level':25,
+                'active':True,
+                'perks':['Armour','Kilt']})
 
-  # get single key, returns the value
-  age = await kv.get(key='age')
+  # get single key, returns the value (or None if key not found)
+  age = await kv.get(key='level')
   print(f'Age: {age}')
 
   # get multiple keys, returns dict
-  rsp = await kv.get(keys=['user', 'active'])
-  print(f"User: {rsp['user']}, Active: {rsp['active']}")
+  rsp = await kv.get(keys=['player', 'active'])
+  print(f"Player: {rsp['player']}, Active: {rsp['active']}")
+
+  # get list
+  print(await kv.get(key='perks'))
 
 
 if __name__ == "__main__":
