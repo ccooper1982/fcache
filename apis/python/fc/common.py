@@ -10,14 +10,18 @@ class FcException(Exception):
 
 
 class ResponseError(FcException):
-  def __init__(self, bodyType: ResponseBody.ResponseBody, status = None):
-    if status == None:
-      super().__init__(f'Response Error: Status {status}')
+  def __init__(self, *, bodyType=None, fbStatus = None, connectionFail = False):
+    if connectionFail:
+      super().__init__(f'Disconnected')
+    elif fbStatus == None:
+      super().__init__(f'Response Error: Status {fbStatus}')
     else:
       super().__init__(f'Response Error: Unexpected Body Type {bodyType}')
 
-    self.status = status
+    self.status = fbStatus
     self.bodyType = bodyType
+    self.connectionFail = connectionFail
+
 
   @classmethod
   def statusError(self, bodyType: ResponseBody.ResponseBody, status: Status.Status):
@@ -27,6 +31,11 @@ class ResponseError(FcException):
   def bodyTypeError(self, bodyType: ResponseBody.ResponseBody):
     "If body type is incorrect, status is irrelevant"
     return self(bodyType)
+  
+  @classmethod
+  def disconnected(self):
+    "If connection failed"
+    return self(connectionFail=True)
   
 
 def createKvMap(kv: dict) -> bytearray:
@@ -107,13 +116,16 @@ def raise_if_fail(rsp: bytes, expectedRspBody: ResponseBody) -> Response.Respons
   If status or body type checks fail, raise a ResponseError. Otherwise,
   return the deserialised Response object.
   """
-  response = Response.Response.GetRootAs(rsp)
-  if response.Status() != Status.Status.Ok:
-    raise ResponseError.statusError(response.BodyType(), response.Status())
-  elif response.BodyType() != expectedRspBody:
-    raise ResponseError.bodyTypeError(response.BodyType())
+  if rsp:
+    response = Response.Response.GetRootAs(rsp)
+    if response.Status() != Status.Status.Ok:
+      raise ResponseError.statusError(response.BodyType(), response.Status())
+    elif response.BodyType() != expectedRspBody:
+      raise ResponseError.bodyTypeError(bodyType=response.BodyType())
+    else:
+      return response
   else:
-    return response
+    raise ResponseError.disconnected()
   
 
 def raise_if_empty (value: str):
