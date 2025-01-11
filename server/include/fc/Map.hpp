@@ -101,23 +101,6 @@ namespace fc
     }
 
 
-    template<bool IsSet>
-    bool setOrAdd(const CachedKey& key, const flexbuffers::Vector& v) noexcept // TODO changed to TypedVector (FBT_VECTOR_KEY)
-    {
-      try
-      {
-        VectorValue vv {.vec = toStdVector<std::string>(v), .extract = extractStringV};
-        insertVectorValue<IsSet>(key, std::move(vv));
-      }
-      catch(const std::exception& e)
-      {
-        PLOGE << __FUNCTION__ << ":" << e.what();
-        return false; 
-      }
-      return true;
-    }
-
-
     inline void get (const KeyVector& keys, FlexBuilder& fb)
     {
       fb.Map([&]()
