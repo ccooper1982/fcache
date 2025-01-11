@@ -1,4 +1,4 @@
-fcache is a data cache, using Google's FlatBuffers over WebSockets.
+fcache is a FlatBuffers cache over WebSockets.
 
 There is support for key-values, with containers such as arrays and lists, coming soon.
 
