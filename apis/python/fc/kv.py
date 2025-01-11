@@ -27,11 +27,11 @@ class KV:
 
 
   async def set(self, kv: dict) -> None:
-    await self._doSetAdd(kv, RequestBody.RequestBody.KVSet)
+    await self._do_set_add(kv, RequestBody.RequestBody.KVSet)
 
 
   async def add(self, kv: dict) -> None:
-    await self._doSetAdd(kv, RequestBody.RequestBody.KVAdd)
+    await self._do_set_add(kv, RequestBody.RequestBody.KVAdd)
   
 
   async def get(self, *, key=None, keys=[]) -> dict | Any:
@@ -49,13 +49,13 @@ class KV:
 
     try:
       fb = flatbuffers.Builder()
-      keysOff = self._createStrings(fb, keys)
+      keysOff = self._create_strings(fb, keys)
 
       KVGet.Start(fb)
       KVGet.AddKeys(fb, keysOff)
       body = KVGet.End(fb)
 
-      self._completeRequest(fb, body, RequestBody.RequestBody.KVGet)
+      self._complete_request(fb, body, RequestBody.RequestBody.KVGet)
       
       rsp = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVGet)
 
@@ -81,13 +81,13 @@ class KV:
 
     try:
       fb = flatbuffers.Builder()
-      keysOff = self._createStrings(fb, keys)
+      keysOff = self._create_strings(fb, keys)
 
       KVRmv.Start(fb)
       KVRmv.AddKeys(fb, keysOff)
       body = KVRmv.End(fb)
 
-      self._completeRequest(fb, body, RequestBody.RequestBody.KVRmv)
+      self._complete_request(fb, body, RequestBody.RequestBody.KVRmv)
 
       await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVRmv)
     except Exception as e:
@@ -98,7 +98,7 @@ class KV:
     fb = flatbuffers.Builder()
     KVCount.Start(fb)    
     body = KVCount.End(fb)
-    self._completeRequest(fb, body, RequestBody.RequestBody.KVCount)
+    self._complete_request(fb, body, RequestBody.RequestBody.KVCount)
 
     rsp = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVCount)
     union_body = KVCountRsp.KVCount()
@@ -111,13 +111,13 @@ class KV:
 
     try:
       fb = flatbuffers.Builder()
-      keysOff = self._createStrings(fb, keys)
+      keysOff = self._create_strings(fb, keys)
 
       KVContains.Start(fb)
       KVContains.AddKeys(fb, keysOff)
       body = KVContains.End(fb)
 
-      self._completeRequest(fb, body, RequestBody.RequestBody.KVContains)
+      self._complete_request(fb, body, RequestBody.RequestBody.KVContains)
       
       rsp = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVContains)
       union_body = KVContainsRsp.KVContains()
@@ -137,17 +137,17 @@ class KV:
     fb = flatbuffers.Builder()
     KVClear.Start(fb)    
     body = KVClear.End(fb)
-    self._completeRequest(fb, body, RequestBody.RequestBody.KVClear)
+    self._complete_request(fb, body, RequestBody.RequestBody.KVClear)
 
     await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVClear)
 
   
   async def clear_set(self, kv:dict):
-    await self._doSetAdd(kv, RequestBody.RequestBody.KVClearSet)
+    await self._do_set_add(kv, RequestBody.RequestBody.KVClearSet)
     
 
   ## Helpers ##
-  def _createStrings (self, fb: flatbuffers.Builder, strings: list) -> int:
+  def _create_strings (self, fb: flatbuffers.Builder, strings: list) -> int:
     keysOffsets = []
     for key in strings:
       keysOffsets.append(fb.CreateString(key))
@@ -158,7 +158,7 @@ class KV:
     return fb.EndVector()
     
 
-  def _completeRequest(self, fb: flatbuffers.Builder, body: int, bodyType: RequestBody.RequestBody):
+  def _complete_request(self, fb: flatbuffers.Builder, body: int, bodyType: RequestBody.RequestBody):
     try:
       Request.RequestStart(fb)
       Request.AddBodyType(fb, bodyType)
@@ -171,7 +171,7 @@ class KV:
       fb.Clear()
 
 
-  async def _doSetAdd(self, kv: dict, requestType: RequestBody.RequestBody) -> None:
+  async def _do_set_add(self, kv: dict, requestType: RequestBody.RequestBody) -> None:
     """KVSet, KVAdd and KVClearSet all use a flexbuffer map, so they all 
     use this function to populate the map from `kv`"""
 
@@ -196,7 +196,7 @@ class KV:
       else:
         raise ValueError("RequestBody not permitted")
 
-      self._completeRequest(fb, body, requestType)
+      self._complete_request(fb, body, requestType)
 
       await self.client.sendCmd(fb.Output(), requestType)
     except ResponseError as re:
@@ -204,5 +204,6 @@ class KV:
     except Exception as e:
       logger.error(e)
       raise
+
 
 

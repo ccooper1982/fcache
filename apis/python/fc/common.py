@@ -1,6 +1,5 @@
 from fc.fbs.fc.response import Response, ResponseBody, Status
-import flatbuffers
-import flatbuffers.flexbuffers
+import flatbuffers.flexbuffers as FlexBuffers
 import array
 
 
@@ -42,11 +41,11 @@ def createKvMap(kv: dict) -> bytearray:
   """Creates a flexbuffer map, populated with `kv`. """
   # a hijacked flatbuffers.flexbuffers.MapFromElements(),
   # with checks that a list value:
-  #   - cannot be empty
+  #   - is not empty
   #   - all elements are the same type
-  #   - all are serliased as TypedVector
-  #   - list of strings is FBT_VECTOR_KEY
-  fb = flatbuffers.flexbuffers.Builder()
+  #   - all are serialised as TypedVector
+  #   - list of strings is serialised as FBT_VECTOR_KEY
+  fb = FlexBuffers.Builder()
   
   with fb.Map():
     try:
@@ -76,7 +75,7 @@ def createKvMap(kv: dict) -> bytearray:
   return fb.Finish()
 
 
-def _createTypedVector(fb: flatbuffers.flexbuffers.Builder, key: str, items: list):
+def _createTypedVector(fb: FlexBuffers.Builder, key: str, items: list):
   # cannot allow empty lists because at least one item is required
   # to know the type of the TypedVector.
   # TODO Should probably create a workaround for this.
@@ -89,7 +88,7 @@ def _createTypedVector(fb: flatbuffers.flexbuffers.Builder, key: str, items: lis
     raise ValueError(f'Key {key}: all elements must be the same type')
   
   if elementType == str:
-    fb.TypedVectorFromElements(items, element_type=flatbuffers.flexbuffers.Type.KEY)
+    fb.TypedVectorFromElements(items, element_type=FlexBuffers.Type.KEY)
   else:
     fb.TypedVectorFromElements(items)
   
