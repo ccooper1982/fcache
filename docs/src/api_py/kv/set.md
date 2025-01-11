@@ -6,8 +6,8 @@ async def set(kv: dict) -> None
 
 Sets new key(s). If a key already exists, the value is replaced.
 
-!!! warning
-    The value of a key cannot be an iterable. This will be added in a future release.
+!!! note
+    If value is a `list`, all items must be the same type.
 
 
 ## Examples

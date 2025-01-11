@@ -2,33 +2,48 @@
 
 #include <variant>
 #include <fc/FlatBuffers.hpp>
+#include <fc/Memory.hpp>
 
 
 namespace fc
-{  
+{ 
+  struct FixedValue;
+  struct VectorValue;
 
-  using KeyVector = flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>;  
-  using ValueVariant = std::variant<std::string, int64_t, uint64_t, double, bool>;
-  using ValueExtractF = void (*)(const char *, const ValueVariant&, FlexBuilder&);
-
-  // This struct is 48 bytes which is larger than I want. The 
-  // std::string in ValueVariant is 32 bytes, but it will do
-  // for now until memory slabs are implemented
-  struct CachedValue
-  {
-    static const std::size_t GET_STR = 0;
-    static const std::size_t GET_INT = 1;
-    static const std::size_t GET_UINT = 2;
-    static const std::size_t GET_DBL = 3;
-    static const std::size_t GET_BOOL = 4;
-
-    CachedValue(const ValueVariant vv, const ValueExtractF f) : value(vv), extract(f)
-    {
-    }
-
-    ValueVariant value;
-    ValueExtractF extract;
-  };
 
   using CachedKey = std::string;
+  using KeyVector = flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>;  
+  using ExtractFixedF = void (*)(FlexBuilder&, const char * key, const FixedValue&);
+  using ExtractVectorF = void (*)(FlexBuilder&, const char * key, const VectorValue&);
+
+
+  struct FixedValue
+  {
+    std::variant<std::int64_t, std::uint64_t, float, bool> value;
+    ExtractFixedF extract;
+  };
+
+
+  struct VectorValue
+  {
+    using IntVector = std::vector<std::int64_t>;
+    using UIntVector = std::vector<std::uint64_t>;
+    using FloatVector = std::vector<float>;
+    using BoolVector = std::vector<bool>;
+    using CharVector = std::vector<char>; // strings are a vector of chars
+    using StringVector = std::vector<std::string>;  // TODO, perhaps std::vector<CharVector>
+
+    std::variant<IntVector, UIntVector, FloatVector, CharVector, StringVector, BoolVector> vec;
+    ExtractVectorF extract;
+  };
+
+
+  struct CachedValue
+  {
+    inline static const std::uint8_t FIXED = 0;
+    inline static const std::uint8_t VEC   = 1;
+
+    std::variant<FixedValue, VectorValue> value;
+    std::uint8_t valueType;
+  };
 }

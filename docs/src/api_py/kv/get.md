@@ -9,8 +9,8 @@ Gets a single key or multiple keys.
 ## Returns
 Called with:
 
-- `key`: the value is returned
-- `keys`: all key values returned in a `dict`
+- `key`: if key exists the value is returned, otherwise `None`
+- `keys`: all key values in a `dict`
 
 
 ## Examples

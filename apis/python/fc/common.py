@@ -1,6 +1,7 @@
 from fc.fbs.fc.response import Response, ResponseBody, Status
 import flatbuffers
 import flatbuffers.flexbuffers
+import array
 
 
 class FcException(Exception):
@@ -29,10 +30,75 @@ class ResponseError(FcException):
   
 
 def createKvMap(kv: dict) -> bytearray:
-  """Creates a flexbuffer map, populating with `kv`. """
-  b = flatbuffers.flexbuffers.Builder()
-  b.MapFromElements(kv)
-  return b.Finish()
+  """Creates a flexbuffer map, populated with `kv`. """
+  fb = flatbuffers.flexbuffers.Builder()
+  # an edited/hijacked flatbuffers.flexbuffers.MapFromElements(),
+  # with checks that a list value:
+  #   - cannot be empty
+  #   - all elements are the same type
+  #   - all are serliased as TypedVector
+  #   - list of strings is FBT_VECTOR_KEY
+  
+  try:
+    with fb.Map():
+      # value is None?
+      for key, value in kv.items():
+        fb.Key(key)
+
+        if isinstance(value, bool):
+          fb.Bool(value)
+        elif isinstance(value, int):
+          fb.Int(value)
+        elif isinstance(value, float):
+          fb.Float(value)
+        elif isinstance(value, str):
+          fb.String(value)
+        elif isinstance(value, array.array):
+          fb.TypedVectorFromElements(value)
+        elif isinstance(value, list):
+          _createTypedVector(fb, key, value)
+        else:
+          # we added key, but we're not adding value, so clear to prevent
+          # further exceptions with uneven key/value pairs
+          fb.Clear()
+          raise ValueError(f'Key {key}: has invalid value type')
+  except:
+    raise
+    
+  return fb.Finish()
+
+
+def _createTypedVector(fb: flatbuffers.flexbuffers.Builder, key: str, items: list):
+  # cannot allow empty lists because at least one item is required
+  # to know the type of TypedVector.
+  # TODO Should probably create a workaround for this.
+  if len(items) == 0:
+    raise ValueError(f'Key {key}: contains empty list')
+  
+  # all elements must be same type
+  elementType = type(items[0])
+  if not all(isinstance(s, elementType) for s in items):
+    fb.Clear()    
+    raise ValueError(f'Key {key}: all elements must be the same type')
+  
+  if elementType == str:
+    fb.TypedVectorFromElements(items, element_type=flatbuffers.flexbuffers.Type.KEY)
+  else:
+    fb.TypedVectorFromElements(items)
+  
+
+
+# def createIntArray(items: list[int], unsigned=False):
+#   # q: int8, Q: uint8
+#   vec = array.array('Q' if unsigned else 'q')
+#   vec.fromlist(items)
+#   return vec
+
+
+# def createFloatArray(items: list[float]):
+#   vec = array.array('f')  # TODO allow double
+#   vec.fromlist(items)
+#   return vec
 
 
 def raise_if_fail(rsp: bytes, expectedRspBody: ResponseBody) -> Response.Response:

@@ -1,14 +1,16 @@
 import asyncio as asio
+import random
+import array
 import sys
 sys.path.append('../')
-from fc.client import FcClient
+import fc
 from fc.kv import KV
+from fc.common import createIntArray,createFloatArray
 
-async def connect() -> FcClient:
+
+async def connect() -> fc.Client:
   try:
-    client = FcClient()
-    await client.open('ws://127.0.0.1:1987')
-    return client
+    return await fc.fcache('ws://127.0.0.1:1987')
   except:
     print ('Failed to connect')
   
@@ -16,7 +18,6 @@ async def connect() -> FcClient:
 
 
 async def test():
-
   if (client := await connect()) is None:
     return
 
@@ -53,10 +54,128 @@ async def test():
     print('Query failed')
         
 
+async def test2():
+  if (client := await connect()) is None:
+    return
+  
+  kv = KV(client)
+  
+  ## set
+
+  # flip flop keys' value types
+  await kv.set({'k1':123, 'k2':234})
+  print(await kv.get(keys=['k1','k2']))
+
+  await kv.set({'k1':True, 'k2':False})
+  print(await kv.get(keys=['k1','k2']))
+  
+  await kv.set({'k1':123, 'k2':234})
+  print(await kv.get(keys=['k1','k2']))
+
+  await kv.set({'k1':True, 'k2':False})
+  print(await kv.get(keys=['k1','k2']))
+
+  #decimal
+  await kv.set({'f':123.5})
+  print(await kv.get(keys=['f']))
+
+  ## str
+  await kv.set({'s':'hello'})
+  print(await kv.get(keys=['s']))
+
+  #vector
+  
+  # await kv.set({'i':createIntArray([123,456,34])})
+  # print(await kv.get(key='i'))
+
+  # await kv.set({'f':createFloatArray([12.34, 56.78])})
+  # print(await kv.get(key='f'))
+
+  # await kv.set({'list':['asda','adsa']})
+  # print(await kv.get(keys=['list']))
+
+  # fixed to vector
+  # await kv.set({'x':20})
+  # print(await kv.get(key='x'))
+  # await kv.set({'x':createIntArray([123,456,34])})
+  # print(await kv.get(key='x'))
+  # await kv.set({'x':30})
+  # print(await kv.get(key='x'))
+
+  
+  # ## add
+  await kv.add({'a1':456}) # new key
+  print(await kv.get(keys=['a1']))
+
+  await kv.add({'a2':456}) # attempt overwrite existing
+  print(await kv.get(keys=['a2']))
+
+
+  # # remove
+  # await kv.set({'k1':123, 'k2':234})
+  # print(await kv.get(keys=['k1','k2']))
+
+  # await kv.remove(key='k2')
+  # print(await kv.get(keys=['k1','k2']))
+
+  # await kv.set({'k2':234})
+  # print(await kv.get(keys=['k1','k2']))
+
+
+  # clear
+
+
+async def more():
+  if (client := await connect()) is None:
+    return
+  
+  kv = KV(client)
+
+  data = {}
+  for i in range(500):
+    data[f'k{i}'] = i
+
+  await kv.set(data)
+  print(await kv.count())
+
+  keys = []
+  for _ in range(20):
+    keys.append(f'k{random.randrange(0, 20)}')
+  print(await kv.get(keys=keys))
+
+
+async def test_lists():
+  if (client := await connect()) is None:
+    return
+  
+  kv = KV(client)
+
+  # strings
+  await kv.set({'s':['hello', 'wurluld']})
+  print(await kv.get(key='s'))
+
+
+  # int
+  await kv.set({'i':[123,456]})
+  print(await kv.get(key='i'))
+
+  # float
+  await kv.set({'f':[12.5,45.5]})
+  print(await kv.get(key='f'))
+
+  # bool
+  await kv.set({'b':[True, False, True]})
+  print(await kv.get(key='b'))
+
+  # empty: cannot allow empty lists because at least one item is required
+  #        to know what the type of TypedVector. Should probably create a workaround for this.
+  await kv.set({'s_empty':['']})
+  print(await kv.get(key='s_empty'))
+
 
 if __name__ == "__main__":
   async def run():
-    for f in [test]:
+    for f in [test_lists]:
       print(f'---- {f.__name__} ----')
       await f()
   

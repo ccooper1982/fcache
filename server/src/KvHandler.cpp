@@ -5,7 +5,6 @@
 
 namespace fc
 {
-
   void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVSet& set) noexcept
   { 
     bool valid = false;
@@ -70,7 +69,7 @@ namespace fc
     }
     catch(const std::exception& e)
     {
-      PLOGE << e.what();
+      PLOGE << __FUNCTION__ << ":" << e.what();
       createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVGet);
     }
   }

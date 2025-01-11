@@ -71,6 +71,12 @@
     "variant": "cpp",
     "format": "cpp",
     "regex": "cpp",
-    "cinttypes": "cpp"
+    "cinttypes": "cpp",
+    "ranges": "cpp",
+    "forward_list": "cpp",
+    "any": "cpp",
+    "csignal": "cpp",
+    "future": "cpp",
+    "*.inc": "cpp"
   }
 }

@@ -7,8 +7,8 @@ async def clear_set(kv:dict) -> None:
 Deletes all keys then sets new keys in a single command.
 
 
-!!! warning
-    The value of a key cannot be an iterable. This will be added in a future release.
+!!! note
+    If value is a `list`, all items must be the same type.
 
 
 ## Examples

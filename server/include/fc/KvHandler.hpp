@@ -35,40 +35,61 @@ namespace fc
     bool setOrAdd (const flexbuffers::TypedVector& keys, const flexbuffers::Vector& values)
     {
       bool valid = true;
-      for (std::size_t i = 0 ; i < values.size(); ++i)
+      for (std::size_t i = 0 ; i < values.size() && valid; ++i)
       {
         const auto& key = keys[i].AsString().str();
 
         switch (values[i].GetType())
         {
-          using enum flexbuffers::Type;
+          using enum FlexType;
 
           case FBT_INT:
-            m_map.setOrAdd<IsSet, FBT_INT>(key, values[i].AsInt64());
+            valid = m_map.setOrAdd<IsSet, FBT_INT>(key, values[i].AsInt64());
           break;
           
           case FBT_UINT:
-            m_map.setOrAdd<IsSet, FBT_UINT>(key, values[i].AsUInt64());
+            valid = m_map.setOrAdd<IsSet, FBT_UINT>(key, values[i].AsUInt64());
           break;
 
           case FBT_BOOL:
-            m_map.setOrAdd<IsSet, FBT_BOOL>(key, values[i].AsBool());
-          break;
-
-          case FBT_STRING:
-            m_map.setOrAdd<IsSet, FBT_STRING>(key, values[i].AsString().str());
+            valid = m_map.setOrAdd<IsSet, FBT_BOOL>(key, values[i].AsBool());
           break;
 
           case FBT_FLOAT:
-            m_map.setOrAdd<IsSet, FBT_FLOAT>(key, values[i].AsFloat());
+            valid = m_map.setOrAdd<IsSet, FBT_FLOAT>(key, values[i].AsFloat());
+          break;
+
+          case FBT_STRING:
+            valid = m_map.setOrAdd<IsSet>(key, values[i].AsString().c_str());
+          break;
+
+          case FBT_VECTOR_INT:
+            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_INT>(key, values[i].AsTypedVector());
+          break;
+
+          case FBT_VECTOR_UINT:
+            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_UINT>(key, values[i].AsTypedVector());
+          break;
+
+          case FBT_VECTOR_FLOAT:
+            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_FLOAT>(key, values[i].AsTypedVector());
+          break;
+
+          case FBT_VECTOR_BOOL:
+            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_BOOL>(key, values[i].AsTypedVector());
+          break;
+
+          case FBT_VECTOR_KEY:  // for vector of strings
+            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_KEY>(key, values[i].AsTypedVector());
           break;
 
           default:
-            PLOGE << __FUNCTION__ << " - unsupported type";
+            PLOGE << __FUNCTION__ << " - unsupported type: " << values[i].GetType();
             valid = false;
           break;
         }
       }
+
       return valid;
     }
 

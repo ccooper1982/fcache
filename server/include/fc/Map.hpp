@@ -12,47 +12,113 @@ namespace fc
     using Map = ankerl::unordered_dense::segmented_map<CachedKey, CachedValue>;
     using CacheMapIterator = Map::iterator;
     using CacheMapConstIterator = Map::const_iterator;
+    using enum FlexType;
 
   public:
     
+    CacheMap() = default;
+
     CacheMap& operator=(CacheMap&&) = default; // required by Map::erase()
     CacheMap(CacheMap&&) = default;
 
-    CacheMap& operator=(const CacheMap&) = delete;   
+    CacheMap& operator=(const CacheMap&) = delete;
     CacheMap(CacheMap&) = delete;
 
-    
-    CacheMap (const std::size_t buckets = 0) : m_map(buckets) 
+
+    template<bool IsSet, FlexType FlexT, typename ValueT>
+    bool setOrAdd (const CachedKey& key, const ValueT& value) noexcept requires (std::is_integral_v<ValueT> || std::is_same_v<ValueT, float>)
     {
+      try
+      {
+        ExtractFixedF extract{nullptr};
+
+        if constexpr (FlexT == FlexType::FBT_INT)
+          extract = extractInt;
+        else if constexpr (FlexT == FlexType::FBT_UINT)
+          extract = extractUInt;
+        else if constexpr (FlexT == FlexType::FBT_FLOAT)
+          extract = extractFloat;
+        else if constexpr (FlexT == FlexType::FBT_BOOL)
+          extract = extractBool;
+        else
+          static_assert(false, "FlexBuffers::Type not supported for fixed type");
+
+
+        // set and add both insert if key not exist
+        if (const auto it = m_map.find(key) ; it == m_map.end())
+        {
+          FixedValue fv {.value = value, .extract = extract};
+          m_map.try_emplace(key, fv, CachedValue::FIXED);
+        }
+        else if constexpr (IsSet)
+        {
+          // but only set overwrites existing
+          it->second.value = FixedValue {.value = value, .extract = extract};
+          it->second.valueType = CachedValue::FIXED;
+        }
+        return true;
+      }
+      catch(const std::exception& ex)
+      {
+        PLOGE << ex.what();
+      }
+      
+      return false;
     }
 
 
-    template<bool IsSet, flexbuffers::Type FlexT, typename ValueT>
-    void setOrAdd (const CachedKey& key, const ValueT& v)
+    template<bool IsSet, FlexType FlexT>
+    bool setOrAdd (const CachedKey& key, const flexbuffers::TypedVector v) noexcept
     {
-      ValueExtractF extract{nullptr};
+      try
+      {
+        insertVectorValue<IsSet>(key, makeVectorValue<FlexT>(v));
+      }
+      catch(const std::exception& e)
+      {
+        PLOGE << __FUNCTION__ << ":" << e.what();
+        return false;
+      }
 
-      if constexpr (FlexT == flexbuffers::Type::FBT_INT)
-        extract = extractInt;
-      else if constexpr (FlexT == flexbuffers::Type::FBT_UINT)
-        extract = extractUInt;
-      else if constexpr (FlexT == flexbuffers::Type::FBT_FLOAT)
-        extract = extractFloat;
-      else if constexpr (FlexT == flexbuffers::Type::FBT_BOOL)
-        extract = extractBool;
-      else if constexpr (FlexT == flexbuffers::Type::FBT_STRING)
-        extract = extractString;
-      else
-        static_assert("Unsupported FlexBuffer::Type");
-
-      if constexpr (IsSet)
-        m_map.insert_or_assign(key, CachedValue{v, extract});
-      else
-        m_map.try_emplace(key, v, extract);
+      return true;
     }
 
 
-    void get (const KeyVector& keys, FlexBuilder& fb)
+    template<bool IsSet>
+    bool setOrAdd (const CachedKey& key, const std::string_view str) noexcept
+    {
+      try
+      {
+        // a string is handled as a vector<char>
+        insertVectorValue<IsSet>(key, makeCharVectorValue(str));
+      }
+      catch(const std::exception& e)
+      {
+        PLOGE << __FUNCTION__ << ": " << e.what();
+        return false;
+      }
+      return true;
+    }
+
+
+    template<bool IsSet>
+    bool setOrAdd(const CachedKey& key, const flexbuffers::Vector& v) noexcept // TODO changed to TypedVector (FBT_VECTOR_KEY)
+    {
+      try
+      {
+        VectorValue vv {.vec = toStdVector<std::string>(v), .extract = extractStringV};
+        insertVectorValue<IsSet>(key, std::move(vv));
+      }
+      catch(const std::exception& e)
+      {
+        PLOGE << __FUNCTION__ << ":" << e.what();
+        return false; 
+      }
+      return true;
+    }
+
+
+    inline void get (const KeyVector& keys, FlexBuilder& fb)
     {
       fb.Map([&]()
       {
@@ -62,38 +128,52 @@ namespace fc
           {
             const auto pKey = key->c_str();
             const auto& cachedValue = it->second;
-            
-            cachedValue.extract(pKey, cachedValue.value, fb);
+
+            if (cachedValue.valueType == CachedValue::FIXED)
+            {
+              const auto& fixedValue = std::get<FixedValue>(cachedValue.value);
+              fixedValue.extract(fb, pKey, fixedValue);
+            }
+            else if (cachedValue.valueType == CachedValue::VEC)
+            {
+              const auto& vecValue = std::get<VectorValue>(cachedValue.value);
+              vecValue.extract(fb, pKey, vecValue);
+            }
           }
         }      
-      });
+      });      
     }
 
 
     void remove (const KeyVector& keys)
     {
-      for (const auto& key : keys)
+      for (const auto key : keys)
       {
         m_map.erase(key->str());
       }
     };
 
     
-    void clear()
+    bool clear() noexcept
     {
       try
       {
-        m_map.replace(Map::value_container_type{});
+        m_map.clear();//replace(Map::value_container_type{});
+        PLOGD << __FUNCTION__ << ":" << m_map.size();
+        return true;
       }
       catch (const std::exception& ex)
       {
         PLOGE << ex.what();
+        return false;
       }
     };
 
     
     flatbuffers::Offset<KeyVector> contains (FlatBuilder& fb, const KeyVector& keys) const
     {
+      // TODO change this response to use a flexbuffer, responding with a TypedVector (FBT_VECTOR_KEY)
+
       // Building a flatbuffer vector, we need to know the length of the vector at construction.
       // We don't know that until we've checked which keys exist.
       // There may be a better way of doing this.
@@ -118,37 +198,132 @@ namespace fc
     }
 
 
-    const Map& map () const noexcept
-    {
-      return m_map;
-    }
-
-
   private:
 
-    static void extractInt(const char * key, const ValueVariant& value, FlexBuilder& fb)
+    template<bool IsSet>
+    void insertVectorValue (const CachedKey& key, VectorValue vv)
     {
-      fb.Int(key, std::get<CachedValue::GET_INT>(value));
+      if (const auto it = m_map.find(key) ; it == m_map.end())
+      {
+        m_map.try_emplace(key, vv, CachedValue::VEC);
+      }
+      else if constexpr (IsSet)
+      {
+        // TODO (current value is VectorValue AND
+        //      v.size() <= existing size() AND
+        //      same type): 
+        //      then don't need to make a new VectorValue, can just copy over, and possibly shrink
+        it->second.value = vv ;
+        it->second.valueType = CachedValue::VEC;
+      }
+    }
+    
+
+    VectorValue makeCharVectorValue (const std::string_view str)
+    {
+      return VectorValue {.vec = VectorValue::CharVector{std::cbegin(str), std::cend(str)},
+                          .extract = extractCharV};
     }
 
-    static void extractUInt(const char * key, const ValueVariant& value, FlexBuilder& fb)
+
+    template<FlexType FlexT>
+    VectorValue makeVectorValue (const flexbuffers::TypedVector& vector)
     {
-      fb.UInt(key, std::get<CachedValue::GET_UINT>(value));
+      if constexpr (FlexT == FBT_VECTOR_INT)
+        return VectorValue {.vec = toStdVector<std::int64_t>(vector), .extract = extractIntV};
+      else if constexpr (FlexT == FBT_VECTOR_UINT)
+        return VectorValue {.vec = toStdVector<std::uint64_t>(vector), .extract = extractUIntV};
+      else if constexpr (FlexT == FBT_VECTOR_FLOAT)
+        return VectorValue {.vec = toStdVector<float>(vector), .extract = extractFloatV};
+      else if constexpr (FlexT == FBT_VECTOR_BOOL)
+        return VectorValue {.vec = toStdVector<bool>(vector), .extract = extractBoolV};
+      else if constexpr (FlexT == FBT_VECTOR_KEY)
+        return VectorValue {.vec = toStdVector<std::string>(vector), .extract = extractStringV};
     }
 
-    static void extractFloat(const char * key, const ValueVariant& value, FlexBuilder& fb)
+
+    template<typename ElementT, typename FlexVectorT>
+    std::vector<ElementT> toStdVector(const FlexVectorT& source)
     {
-      fb.Float(key, std::get<CachedValue::GET_DBL>(value));
+      std::vector<ElementT> dest;
+      dest.resize(source.size());
+
+      for (std::size_t i = 0 ; i < source.size() ; ++i)
+          dest[i] = source[i].template As<ElementT>();
+
+      return dest;
     }
 
-    static void extractBool(const char * key, const ValueVariant& value, FlexBuilder& fb)
+    
+    static void extractInt(FlexBuilder& fb, const char * key, const FixedValue& fv)
     {
-      fb.Bool(key, std::get<CachedValue::GET_BOOL>(value));
+      fb.Add(key, std::get<std::int64_t>(fv.value));
     }
 
-    static void extractString(const char * key, const ValueVariant& value, FlexBuilder& fb)
+    
+    static void extractUInt(FlexBuilder& fb, const char * key, const FixedValue& fv)
     {
-      fb.String(key, std::get<CachedValue::GET_STR>(value));
+      fb.Add(key, std::get<std::uint64_t>(fv.value));
+    }
+
+    
+    static void extractFloat(FlexBuilder& fb, const char * key, const FixedValue& fv)
+    {
+      fb.Add(key, std::get<float>(fv.value));
+    }
+
+    
+    static void extractBool(FlexBuilder& fb, const char * key, const FixedValue& fv)
+    {
+      fb.Add(key, std::get<bool>(fv.value));
+    }
+
+
+    static void extractIntV(FlexBuilder& fb, const char * key, const VectorValue& vv)
+    {
+      fb.Add(key, std::get<VectorValue::IntVector>(vv.vec));
+    }
+
+
+    static void extractUIntV(FlexBuilder& fb, const char * key, const VectorValue& vv)
+    {
+      fb.Add(key, std::get<VectorValue::UIntVector>(vv.vec));
+    }
+
+
+    static void extractFloatV(FlexBuilder& fb, const char * key, const VectorValue& vv)
+    {
+      fb.Add(key, std::get<VectorValue::FloatVector>(vv.vec));
+    }
+
+
+    static void extractBoolV(FlexBuilder& fb, const char * key, const VectorValue& vv)
+    {
+      fb.Vector(key, [&vv, &fb]
+      {
+        const auto& bools = std::get<VectorValue::BoolVector>(vv.vec);
+        for (const auto& b : bools)
+          fb.Add(b);
+      });
+    }
+
+  
+    static void extractCharV(FlexBuilder& fb, const char * key, const VectorValue& vv)
+    {
+      const auto& charVector = std::get<VectorValue::CharVector>(vv.vec);
+      fb.Key(key);
+      fb.String(charVector.data(), charVector.size());
+    }
+
+
+    static void extractStringV(FlexBuilder& fb, const char * key, const VectorValue& vv)
+    {
+      fb.Vector(key, [&vv, &fb]()
+      {
+        const auto& strings = std::get<VectorValue::StringVector>(vv.vec);
+        for (const auto& s : strings)
+          fb.Add(s);
+      });
     }
 
 
