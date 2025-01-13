@@ -51,6 +51,9 @@ def createKvMap(kv: dict) -> bytearray:
     try:
       # value is None?
       for key, value in kv.items():
+        if not isinstance(key, str):
+          raise ValueError('Key must be a string')
+        
         fb.Key(key)
 
         if isinstance(value, bool):
