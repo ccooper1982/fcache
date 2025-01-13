@@ -78,6 +78,7 @@ Player: Monster, Active: True
 |float|float|`float` (4 bytes)|
 |str|string|`std::vector<char>`|
 |bool|bool|`bool`|
+|bytes|BLOB|`std::vector<uint8_t>`|
 |list[int]|TypedVector: VECTOR_INT|`std::vector<int64>`|
 |list[float]|TypedVector: VECTOR_FLOAT|`std::vector<float>`|
 |list[str]|TypedVector: VECTOR_KEY|`std::vector<std::string>`|

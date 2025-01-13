@@ -61,6 +61,8 @@ def createKvMap(kv: dict) -> bytearray:
           fb.Float(value)
         elif isinstance(value, str):
           fb.String(value)
+        elif isinstance(value, bytes):
+          fb.Blob(value)
         elif isinstance(value, array.array):
           fb.TypedVectorFromElements(value)
         elif isinstance(value, list):

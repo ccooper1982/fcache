@@ -27,6 +27,23 @@ namespace fc
   }
 
 
+  void CacheMap::extractBlob(FlexBuilder& fb, const char * key, const VectorValue& vv)
+  {
+    fb.Blob(key, std::get<VectorValue::BlobVector>(vv.vec));
+  }
+
+
+  void CacheMap::extractString(FlexBuilder& fb, const char * key, const VectorValue& vv)
+  {
+    fb.Vector(key, [&vv, &fb]()
+    {
+      const auto& strings = std::get<VectorValue::StringVector>(vv.vec);
+      for (const auto& s : strings)
+        fb.Add(s);
+    });
+  }
+
+
   void CacheMap::extractIntV(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
     fb.Add(key, std::get<VectorValue::IntVector>(vv.vec));
@@ -61,16 +78,5 @@ namespace fc
     const auto& charVector = std::get<VectorValue::CharVector>(vv.vec);
     fb.Key(key);
     fb.String(charVector.data(), charVector.size());
-  }
-
-
-  void CacheMap::extractStringV(FlexBuilder& fb, const char * key, const VectorValue& vv)
-  {
-    fb.Vector(key, [&vv, &fb]()
-    {
-      const auto& strings = std::get<VectorValue::StringVector>(vv.vec);
-      for (const auto& s : strings)
-        fb.Add(s);
-    });
   }
 }

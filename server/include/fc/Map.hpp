@@ -68,7 +68,7 @@ namespace fc
 
 
     template<bool IsSet, FlexType FlexT>
-    bool setOrAdd (const CachedKey& key, const flexbuffers::TypedVector v) noexcept
+    bool setOrAdd (const CachedKey& key, const flexbuffers::TypedVector& v) noexcept
     {
       try
       {
@@ -97,6 +97,23 @@ namespace fc
         PLOGE << __FUNCTION__ << ": " << e.what();
         return false;
       }
+      return true;
+    }
+
+
+    template<bool IsSet>
+    bool setOrAdd (const CachedKey& key, const flexbuffers::Blob& blob)
+    {
+      try
+      {
+        insertVectorValue<IsSet>(key, makeBlobVectorValue(blob.data(), blob.size()));
+      }
+      catch(const std::exception& e)
+      {
+        PLOGE << __FUNCTION__ << ":" << e.what();
+        return false;
+      }
+
       return true;
     }
 
@@ -187,12 +204,14 @@ namespace fc
     static void extractUInt(FlexBuilder& fb, const char * key, const FixedValue& fv);
     static void extractFloat(FlexBuilder& fb, const char * key, const FixedValue& fv);
     static void extractBool(FlexBuilder& fb, const char * key, const FixedValue& fv);
+    static void extractBlob(FlexBuilder& fb, const char * key, const VectorValue& fv);
+    static void extractString(FlexBuilder& fb, const char * key, const VectorValue& vv);
     static void extractIntV(FlexBuilder& fb, const char * key, const VectorValue& vv);
     static void extractUIntV(FlexBuilder& fb, const char * key, const VectorValue& vv);
     static void extractFloatV(FlexBuilder& fb, const char * key, const VectorValue& vv);
     static void extractBoolV(FlexBuilder& fb, const char * key, const VectorValue& vv);
     static void extractCharV(FlexBuilder& fb, const char * key, const VectorValue& vv);
-    static void extractStringV(FlexBuilder& fb, const char * key, const VectorValue& vv);
+    
 
 
     template<bool IsSet>
@@ -221,6 +240,17 @@ namespace fc
     }
 
 
+    VectorValue makeBlobVectorValue (const std::uint8_t * data, const std::size_t size)
+    {
+      VectorValue::BlobVector vec;
+      vec.resize(size);
+      std::memcpy(vec.data(), data, size);
+
+      return VectorValue {.vec = std::move(vec),
+                          .extract = extractBlob};
+    }
+
+
     template<FlexType FlexT>
     VectorValue makeVectorValue (const flexbuffers::TypedVector& vector)
     {
@@ -233,7 +263,7 @@ namespace fc
       else if constexpr (FlexT == FBT_VECTOR_BOOL)
         return VectorValue {.vec = toStdVector<bool>(vector), .extract = extractBoolV};
       else if constexpr (FlexT == FBT_VECTOR_KEY)
-        return VectorValue {.vec = toStdVector<std::string>(vector), .extract = extractStringV};
+        return VectorValue {.vec = toStdVector<std::string>(vector), .extract = extractString};
     }
 
 

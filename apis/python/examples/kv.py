@@ -143,7 +143,7 @@ async def more():
   print(await kv.get(keys=keys))
 
 
-async def test_lists():
+async def lists():
   if (client := await connect()) is None:
     return
   
@@ -173,9 +173,29 @@ async def test_lists():
     print(f'Good fail: {ve}')
 
 
+async def blob():
+  # Requires fcache is started with maxPayload to size of the cat image which is 11,030 bytes
+  # ./fcache --maxPayload=16384
+  if (client := await connect()) is None:
+    return
+  
+  file_data = bytes()
+  with open('cat.jpg', mode='rb') as file:
+    file_data = file.read()
+
+  kv = KV(client)
+
+  await kv.set({'img_cat':file_data})
+  
+  if data := await kv.get(key='img_cat'):
+    with open('cat_rsp.jpg', mode='wb') as file:
+      file.write(data)
+
+
+
 if __name__ == "__main__":
   async def run():
-    for f in [test_lists]:
+    for f in [blob]:
       print(f'---- {f.__name__} ----')
       await f()
   

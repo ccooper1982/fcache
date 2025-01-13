@@ -48,8 +48,11 @@ namespace fc
     using BoolVector = std::vector<bool>;
     using CharVector = std::vector<char>; // strings are a vector of chars
     using StringVector = std::vector<std::string>;  // TODO, perhaps std::vector<CharVector>
+    using BlobVector = std::vector<uint8_t>;
 
-    std::variant<IntVector, UIntVector, FloatVector, CharVector, StringVector, BoolVector> vec;
+    std::variant< IntVector, UIntVector, FloatVector,
+                  CharVector, StringVector, BoolVector,
+                  BlobVector> vec;
     ExtractVectorF extract;
   };
 

@@ -63,6 +63,10 @@ namespace fc
             valid = m_map.setOrAdd<IsSet>(key, values[i].AsString().c_str());
           break;
 
+          case FBT_BLOB:
+            valid = m_map.setOrAdd<IsSet>(key, values[i].AsBlob());
+          break;
+
           case FBT_VECTOR_INT:
             valid = m_map.setOrAdd<IsSet, FBT_VECTOR_INT>(key, values[i].AsTypedVector());
           break;

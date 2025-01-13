@@ -39,5 +39,32 @@ async def kv():
   print(await kv.get(key='perks'))
 
 
+
+async def kv_blob():
+  # Requires fcache is started with maxPayload to size of the cat image which is 11,030 bytes
+  # ./fcache --maxPayload=16384
+
+  if (client := await connect()) is None:
+    return
+  
+  file_data = bytes()
+  with open('cat.jpg', mode='rb') as file:
+    file_data = file.read()
+
+  kv = KV(client)
+
+  await kv.set({'img_cat':file_data})
+
+  if data := await kv.get(key='img_cat'):
+    with open('cat_rsp.jpg', mode='wb') as file:
+      file.write(data)
+      print('Image written')
+
+
 if __name__ == "__main__":
-  asio.run(kv())
+  async def run():
+    for f in [kv, kv_blob]:
+      print(f'---- {f.__name__} ----')
+      await f()
+  
+  asio.run(run())
