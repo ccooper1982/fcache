@@ -1,5 +1,13 @@
 # Key Values
 
+- Key must be a string
+- Supported values:    
+    - integer
+    - unsigned integer
+    - float
+    - bool
+    - string
+    - List/vector/array of the above
 
 
 ## List/Array/Vector Values
@@ -11,7 +19,7 @@ Using Python as an example:
 data =
 {
   'animals':['cat', 'dog', 'horse'],
-  'scores':[50,55,5]
+  'scores':[50,55,5],
   'anything':['xyz', 15, False]
 }
 ```
