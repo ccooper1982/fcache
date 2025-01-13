@@ -45,7 +45,8 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(fcache
   "fcache.cpp"
   "src/Server.cpp"
-  "src/KvHandler.cpp")
+  "src/KvHandler.cpp"
+  "src/Map.cpp")
 
 #add_dependencies(fcache libflatbuffers)
 

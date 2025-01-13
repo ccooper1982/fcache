@@ -130,7 +130,7 @@ namespace fc
 
     void remove (const KeyVector& keys)
     {
-      for (const auto key : keys)
+      for (const auto& key : keys)
       {
         m_map.erase(key->str());
       }
@@ -182,6 +182,18 @@ namespace fc
 
 
   private:
+
+    static void extractInt(FlexBuilder& fb, const char * key, const FixedValue& fv);
+    static void extractUInt(FlexBuilder& fb, const char * key, const FixedValue& fv);
+    static void extractFloat(FlexBuilder& fb, const char * key, const FixedValue& fv);
+    static void extractBool(FlexBuilder& fb, const char * key, const FixedValue& fv);
+    static void extractIntV(FlexBuilder& fb, const char * key, const VectorValue& vv);
+    static void extractUIntV(FlexBuilder& fb, const char * key, const VectorValue& vv);
+    static void extractFloatV(FlexBuilder& fb, const char * key, const VectorValue& vv);
+    static void extractBoolV(FlexBuilder& fb, const char * key, const VectorValue& vv);
+    static void extractCharV(FlexBuilder& fb, const char * key, const VectorValue& vv);
+    static void extractStringV(FlexBuilder& fb, const char * key, const VectorValue& vv);
+
 
     template<bool IsSet>
     void insertVectorValue (const CachedKey& key, VectorValue vv)
@@ -236,79 +248,6 @@ namespace fc
 
       return dest;
     }
-
-    
-    static void extractInt(FlexBuilder& fb, const char * key, const FixedValue& fv)
-    {
-      fb.Add(key, std::get<std::int64_t>(fv.value));
-    }
-
-    
-    static void extractUInt(FlexBuilder& fb, const char * key, const FixedValue& fv)
-    {
-      fb.Add(key, std::get<std::uint64_t>(fv.value));
-    }
-
-    
-    static void extractFloat(FlexBuilder& fb, const char * key, const FixedValue& fv)
-    {
-      fb.Add(key, std::get<float>(fv.value));
-    }
-
-    
-    static void extractBool(FlexBuilder& fb, const char * key, const FixedValue& fv)
-    {
-      fb.Add(key, std::get<bool>(fv.value));
-    }
-
-
-    static void extractIntV(FlexBuilder& fb, const char * key, const VectorValue& vv)
-    {
-      fb.Add(key, std::get<VectorValue::IntVector>(vv.vec));
-    }
-
-
-    static void extractUIntV(FlexBuilder& fb, const char * key, const VectorValue& vv)
-    {
-      fb.Add(key, std::get<VectorValue::UIntVector>(vv.vec));
-    }
-
-
-    static void extractFloatV(FlexBuilder& fb, const char * key, const VectorValue& vv)
-    {
-      fb.Add(key, std::get<VectorValue::FloatVector>(vv.vec));
-    }
-
-
-    static void extractBoolV(FlexBuilder& fb, const char * key, const VectorValue& vv)
-    {
-      fb.Vector(key, [&vv, &fb]
-      {
-        const auto& bools = std::get<VectorValue::BoolVector>(vv.vec);
-        for (const auto& b : bools)
-          fb.Add(b);
-      });
-    }
-
-  
-    static void extractCharV(FlexBuilder& fb, const char * key, const VectorValue& vv)
-    {
-      const auto& charVector = std::get<VectorValue::CharVector>(vv.vec);
-      fb.Key(key);
-      fb.String(charVector.data(), charVector.size());
-    }
-
-
-    static void extractStringV(FlexBuilder& fb, const char * key, const VectorValue& vv)
-    {
-      fb.Vector(key, [&vv, &fb]()
-      {
-        const auto& strings = std::get<VectorValue::StringVector>(vv.vec);
-        for (const auto& s : strings)
-          fb.Add(s);
-      });
-    }
-
 
   private:
     Map m_map;
