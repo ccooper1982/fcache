@@ -28,6 +28,18 @@ namespace fc
   //  - store vector<T> (including strings) in memory blocks
   //  - a block is pre-allocated memory
   //  - write values to a memory block, 'flattening' the vector to contigious bytes
+  // VectorValue may become:
+  //  struct VariedValue
+  //  {
+  //    BlockView view; // contains BlockId (which block),
+  //                    //          BlockPos (position in the block)
+  //                    //          std::size_t (size of data)
+  //                    //          FlexType (type of data, required when creating FlexBuffer response)
+  //    Memory * mem;   // may have a string specific Memory handler
+  //  }
+  //
+  // VariedValue - the value is not fixed size (unlike int, float, bool, etc)
+  //             - contains everything required to extract the value.
   struct VectorValue
   {
     using IntVector = std::vector<std::int64_t>;
