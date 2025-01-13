@@ -698,13 +698,25 @@
 
 
 <h1 id="key-values">Key Values</h1>
+<ul>
+<li>Key must be a string</li>
+<li>Supported values:    <ul>
+<li>integer</li>
+<li>unsigned integer</li>
+<li>float</li>
+<li>bool</li>
+<li>string</li>
+<li>List/vector/array of the above</li>
+</ul>
+</li>
+</ul>
 <h2 id="listarrayvector-values">List/Array/Vector Values</h2>
 <p>A value which is not scalar is serialised as a <code>TypedVector</code>. This means that all elements of the vector must be the same type. </p>
 <p>Using Python as an example:</p>
 <div class="language-py highlight"><span class="filename">Lists</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">data</span> <span class="o">=</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="p">{</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  <span class="s1">&#39;animals&#39;</span><span class="p">:[</span><span class="s1">&#39;cat&#39;</span><span class="p">,</span> <span class="s1">&#39;dog&#39;</span><span class="p">,</span> <span class="s1">&#39;horse&#39;</span><span class="p">],</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  <span class="s1">&#39;scores&#39;</span><span class="p">:[</span><span class="mi">50</span><span class="p">,</span><span class="mi">55</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  <span class="s1">&#39;scores&#39;</span><span class="p">:[</span><span class="mi">50</span><span class="p">,</span><span class="mi">55</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  <span class="s1">&#39;anything&#39;</span><span class="p">:[</span><span class="s1">&#39;xyz&#39;</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}</span>
 </span></code></pre></div>
