@@ -24,6 +24,10 @@ namespace fc
   };
 
 
+  // Temporary solution until Memory.hpp is used:
+  //  - store vector<T> (including strings) in memory blocks
+  //  - a block is pre-allocated memory
+  //  - write values to a memory block, 'flattening' the vector to contigious bytes
   struct VectorValue
   {
     using IntVector = std::vector<std::int64_t>;
