@@ -127,7 +127,7 @@ namespace fc
 
       if (!listening)
       {
-        PLOGF << "Failed to start WS server";
+        PLOGF << "Failed to start WS server. Check IP and port";
       }          
       else if (!setThreadAffinity(m_wsThread->native_handle(), core))
       {

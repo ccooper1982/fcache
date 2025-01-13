@@ -11,6 +11,11 @@ static std::latch run{1U};
 static plog::ColorConsoleAppender<fc::FcFormatter> consoleAppender;
 
 
+static unsigned int MinPayload = 64;
+static unsigned int MaxPayload = 4 * 1024*1024;
+static unsigned int DefaultPayload = 2048;
+
+
 static void kvSigHandle(int param)
 {
   run.count_down();
@@ -25,18 +30,20 @@ void usage(const char opt = ' ')
 }
 
 
-std::tuple<bool, std::string, int> getCmdArgs(int argc, char ** argv)
+std::tuple<bool, std::string, int, unsigned long> getCmdArgs(int argc, char ** argv)
 {
   option opts[] = 
   {
-    {"ip",  optional_argument, NULL, 'i'},
-    {"port",  optional_argument, NULL, 'p'},
+    {"ip",  optional_argument, NULL, 0},
+    {"port",  optional_argument, NULL, 1},
+    {"maxPayload", optional_argument, NULL, 2},
     {NULL, 0, NULL, 0}
   };
 
   bool valid = true;
   std::string ip{"127.0.0.1"};
   int port {1987};
+  unsigned int maxPayload{DefaultPayload};
 
   try
   {
@@ -44,18 +51,23 @@ std::tuple<bool, std::string, int> getCmdArgs(int argc, char ** argv)
     {
       switch (opt)
       {
-      case 'i':
+      case 0:
         ip = optarg;
-        break;
+      break;
       
-      case 'p':
+      case 1:
         port = std::stoi(optarg);
-        break;
+      break;
+      
+      case 2:
+        // low: 64B, high: 2MB
+        maxPayload = std::clamp<unsigned int>(std::stoul(optarg), MinPayload, MaxPayload);  
+      break;
 
       default:
         valid = false;
         usage(opt);
-        break;
+      break;
       }
     }
   }
@@ -65,7 +77,7 @@ std::tuple<bool, std::string, int> getCmdArgs(int argc, char ** argv)
     valid = false;
   }
 
-  return {valid, ip, port};
+  return {valid, ip, port, maxPayload};
 }
 
 
@@ -77,7 +89,7 @@ int main (int argc, char ** argv)
   signal(SIGTERM, kvSigHandle);
   signal(SIGKILL, kvSigHandle);
   
-  const auto [valid, ip, port] = getCmdArgs(argc, argv);
+  const auto [valid, ip, port, maxPayload] = getCmdArgs(argc, argv);
   
   if (!valid)
     return 1;
@@ -91,8 +103,10 @@ int main (int argc, char ** argv)
   }
   else
   {
-    if (server.start(ip, port, 8192, 0))
+    if (server.start(ip, port, maxPayload, 0))
     {
+      PLOGI << "Listening on " << ip << ":" << port;
+      PLOGI << "Max payload: " << maxPayload << " bytes";
       PLOGI << "fcache started";
       run.wait();
     }

@@ -35,6 +35,7 @@ theme:
         name: Switch to dark mode
 nav:
   - index.md
+  - start.md
   - kv.md
   - Python API: 
     - 'api_py/intro.md'
