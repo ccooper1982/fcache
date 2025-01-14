@@ -78,28 +78,10 @@ async def test2():
   await kv.set({'f':123.5})
   print(await kv.get(keys=['f']))
 
+  
   ## str
   await kv.set({'s':'hello'})
   print(await kv.get(keys=['s']))
-
-  #vector
-  
-  # await kv.set({'i':createIntArray([123,456,34])})
-  # print(await kv.get(key='i'))
-
-  # await kv.set({'f':createFloatArray([12.34, 56.78])})
-  # print(await kv.get(key='f'))
-
-  # await kv.set({'list':['asda','adsa']})
-  # print(await kv.get(keys=['list']))
-
-  # fixed to vector
-  # await kv.set({'x':20})
-  # print(await kv.get(key='x'))
-  # await kv.set({'x':createIntArray([123,456,34])})
-  # print(await kv.get(key='x'))
-  # await kv.set({'x':30})
-  # print(await kv.get(key='x'))
 
   
   # ## add
@@ -110,15 +92,15 @@ async def test2():
   print(await kv.get(keys=['a2']))
 
 
-  # # remove
-  # await kv.set({'k1':123, 'k2':234})
-  # print(await kv.get(keys=['k1','k2']))
+  # remove
+  await kv.set({'k1':123, 'k2':234})
+  print(await kv.get(keys=['k1','k2']))
 
-  # await kv.remove(key='k2')
-  # print(await kv.get(keys=['k1','k2']))
+  await kv.remove(key='k2')
+  print(await kv.get(keys=['k1','k2']))
 
-  # await kv.set({'k2':234})
-  # print(await kv.get(keys=['k1','k2']))
+  await kv.set({'k2':234})
+  print(await kv.get(keys=['k1','k2']))
 
 
   # clear
@@ -195,7 +177,7 @@ async def blob():
 
 if __name__ == "__main__":
   async def run():
-    for f in [blob]:
+    for f in [test, more, lists]:
       print(f'---- {f.__name__} ----')
       await f()
   

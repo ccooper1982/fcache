@@ -29,36 +29,42 @@ namespace fc
 
   void CacheMap::extractBlob(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    fb.Blob(key, std::get<VectorValue::BlobVector>(vv.vec));
+    const auto& vec = std::get<BlobVector>(vv.vec);
+    fb.Blob(key, vec.data(), vec.size());
   }
 
 
-  void CacheMap::extractString(FlexBuilder& fb, const char * key, const VectorValue& vv)
+  void CacheMap::extractStringV(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    fb.Vector(key, [&vv, &fb]()
+    fb.TypedVector(key, [&vv, &fb]()
     {
-      const auto& strings = std::get<VectorValue::StringVector>(vv.vec);
+      const auto& strings = std::get<StringVector>(vv.vec);
       for (const auto& s : strings)
-        fb.Add(s);
+        fb.String(s.data());
     });
   }
 
 
+  // TODO should these not all be TypedVector?
+
   void CacheMap::extractIntV(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    fb.Add(key, std::get<VectorValue::IntVector>(vv.vec));
+    const auto& vec = std::get<IntVector>(vv.vec);
+    fb.Vector(key, vec.data(), vec.size());
   }
 
 
   void CacheMap::extractUIntV(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    fb.Add(key, std::get<VectorValue::UIntVector>(vv.vec));
+    const auto& vec = std::get<UIntVector>(vv.vec);
+    fb.Vector(key, vec.data(), vec.size());
   }
 
 
   void CacheMap::extractFloatV(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    fb.Add(key, std::get<VectorValue::FloatVector>(vv.vec));
+    const auto& vec = std::get<FloatVector>(vv.vec);
+    fb.Vector(key, vec.data(), vec.size());
   }
 
 
@@ -66,7 +72,7 @@ namespace fc
   {
     fb.Vector(key, [&vv, &fb]
     {
-      const auto& bools = std::get<VectorValue::BoolVector>(vv.vec);
+      const auto& bools = std::get<BoolVector>(vv.vec);
       for (const auto& b : bools)
         fb.Add(b);
     });
@@ -75,7 +81,7 @@ namespace fc
 
   void CacheMap::extractCharV(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    const auto& charVector = std::get<VectorValue::CharVector>(vv.vec);
+    const auto& charVector = std::get<CharVector>(vv.vec);
     fb.Key(key);
     fb.String(charVector.data(), charVector.size());
   }

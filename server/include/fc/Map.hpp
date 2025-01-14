@@ -205,7 +205,7 @@ namespace fc
     static void extractFloat(FlexBuilder& fb, const char * key, const FixedValue& fv);
     static void extractBool(FlexBuilder& fb, const char * key, const FixedValue& fv);
     static void extractBlob(FlexBuilder& fb, const char * key, const VectorValue& fv);
-    static void extractString(FlexBuilder& fb, const char * key, const VectorValue& vv);
+    static void extractStringV(FlexBuilder& fb, const char * key, const VectorValue& vv);
     static void extractIntV(FlexBuilder& fb, const char * key, const VectorValue& vv);
     static void extractUIntV(FlexBuilder& fb, const char * key, const VectorValue& vv);
     static void extractFloatV(FlexBuilder& fb, const char * key, const VectorValue& vv);
@@ -235,19 +235,17 @@ namespace fc
 
     VectorValue makeCharVectorValue (const std::string_view str)
     {
-      return VectorValue {.vec = VectorValue::CharVector{std::cbegin(str), std::cend(str)},
-                          .extract = extractCharV};
+      auto vec = createFcVectorSized<char>(str.size());
+      std::memcpy(vec.data(), str.data(), str.size());
+      return VectorValue {.vec = std::move(vec), .extract = extractCharV};
     }
 
 
     VectorValue makeBlobVectorValue (const std::uint8_t * data, const std::size_t size)
     {
-      VectorValue::BlobVector vec;
-      vec.resize(size);
+      auto vec = createFcVectorSized<uint8_t>(size);
       std::memcpy(vec.data(), data, size);
-
-      return VectorValue {.vec = std::move(vec),
-                          .extract = extractBlob};
+      return VectorValue {.vec = std::move(vec), .extract = extractBlob};
     }
 
 
@@ -255,28 +253,37 @@ namespace fc
     VectorValue makeVectorValue (const flexbuffers::TypedVector& vector)
     {
       if constexpr (FlexT == FBT_VECTOR_INT)
-        return VectorValue {.vec = toStdVector<std::int64_t>(vector), .extract = extractIntV};
+        return VectorValue {.vec = toFcVector<std::int64_t>(vector), .extract = extractIntV};
       else if constexpr (FlexT == FBT_VECTOR_UINT)
-        return VectorValue {.vec = toStdVector<std::uint64_t>(vector), .extract = extractUIntV};
+        return VectorValue {.vec = toFcVector<std::uint64_t>(vector), .extract = extractUIntV};
       else if constexpr (FlexT == FBT_VECTOR_FLOAT)
-        return VectorValue {.vec = toStdVector<float>(vector), .extract = extractFloatV};
+        return VectorValue {.vec = toFcVector<float>(vector), .extract = extractFloatV};
       else if constexpr (FlexT == FBT_VECTOR_BOOL)
-        return VectorValue {.vec = toStdVector<bool>(vector), .extract = extractBoolV};
+        return VectorValue {.vec = toFcVector<bool>(vector), .extract = extractBoolV};
       else if constexpr (FlexT == FBT_VECTOR_KEY)
-        return VectorValue {.vec = toStdVector<std::string>(vector), .extract = extractString};
+        return VectorValue {.vec = toFcVector<std::pmr::string>(vector), .extract = extractStringV};
     }
 
 
-    template<typename ElementT, typename FlexVectorT>
-    std::vector<ElementT> toStdVector(const FlexVectorT& source)
+    template<typename ElementT>
+    fc::Vector<ElementT> toFcVector(const flexbuffers::TypedVector& source)
     {
-      std::vector<ElementT> dest;
-      dest.resize(source.size());
-
-      for (std::size_t i = 0 ; i < source.size() ; ++i)
+      if constexpr (std::is_same_v<ElementT, std::pmr::string>)
+      {
+        auto dest = createFcVectorReserved<ElementT>(source.size());
+        for (std::size_t i = 0 ; i < source.size() ; ++i)
+          dest.emplace_back(source[i].AsString().c_str());
+      
+        return dest;
+      }
+      else
+      {
+        auto dest = createFcVectorSized<ElementT>(source.size());
+        for (std::size_t i = 0 ; i < source.size() ; ++i)
           dest[i] = source[i].template As<ElementT>();
-
-      return dest;
+      
+        return dest;
+      }
     }
 
   private:

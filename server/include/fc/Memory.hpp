@@ -1,220 +1,169 @@
 #pragma once
 
-#include <vector>
-#include <memory>
-#include <cstdint>
-#include <cstring>
+#include <memory_resource>
 #include <plog/Log.h>
-
+#include <format>
 
 namespace fc
 {
-  /* 
-  using BlockId = std::uint32_t;
-  using BlockPos = std::uint16_t;
-  using BlockBuffSize = std::uint16_t;
-
-
-  struct Block
-  {
-    Block(const std::size_t capacity) : capacity(capacity), used(0)
+  #ifdef FC_DEBUG
+    class print_alloc : public std::pmr::memory_resource
     {
-      buffer = std::make_unique<char[]>(capacity);
-    }
+    public:
+      print_alloc(std::string name, std::pmr::memory_resource* upstream)
+          : m_name(std::move(name)),
+            m_upstream(upstream)
+      {
+        assert(upstream);
+      }
 
-    bool hasCapacity(const std::size_t n) const noexcept
-    {
-      return used + n <= capacity;
-    }
-
-    template<typename T>
-    BlockPos write (const T& v)
-    {
-      const auto start = used;
-      overwrite(used, v);
-      used += sizeof(T);
-      return start;
-    }
-
-
-    template<typename T>
-    void overwrite (const BlockPos pos, const T& v)
-    {
-      std::memcpy(std::next(buffer.get(), used), &v, sizeof(T));
-    }
-
-
-    const char * getRead(const BlockPos pos) const 
-    {
-      return std::next(buffer.get(), pos);
-    }
-
-
-    void clear(const BlockPos pos, const BlockBuffSize size)
-    {
-      // if this data is last in the buffer
-      //  [--------------####]
-      //         ^------^
-      //        pos     | free
-      //  [-------############]
-      // we can reduce used ,
-      
-      // otherwise do nothing, the key that refers to this will be deleted anyway.
-      // could improve this by tracking unused regions, when we find unused 
-      // regions adjacent to the last used position, we can release that region:
-      // #:released, X:never used, -:in-use
-      // 
-      //  [--------####----XXXXXXXX]
-      //               ^  ^ 
-      //               clear
-      // if these last 4 bytes are cleared:
-      //  [--------########XXXXXXXX]
-      // from # to the last X are available
-      if (pos+size == used)
-        used -= size;
-    }
 
     private:
-      std::unique_ptr<char[]> buffer;
-      BlockBuffSize capacity;    
-      BlockBuffSize used;
-  };
+      std::string m_name;
+      std::pmr::memory_resource * m_upstream;
+
+      void * do_allocate(std::size_t bytes, std::size_t alignment) override
+      {
+        auto result = m_upstream->allocate(bytes, alignment);
+        PLOGD << m_name << " ALLOC: Size: " << bytes << ", Align: " << alignment << ", Address: " << result;
+        return result;
+      }
 
 
-  struct BlockView
+      std::string format_destroyed_bytes(std::byte* p, const std::size_t size)
+      {
+        std::string result = "";
+        bool in_string = false;
+
+        auto format_char = [](bool& in_string, const char c, const char next)
+        {
+          auto format_byte = [](const char byte)
+          {
+            return std::format(" {:02x}", static_cast<unsigned char>(byte));
+          };
+
+          if (std::isprint(static_cast<int>(c)))
+          {
+            if (!in_string)
+            {
+              if (std::isprint(static_cast<int>(next)))
+              {
+                in_string = true;
+                return std::format(" \"{}", c);
+              }
+              else
+              {
+                return format_byte(c);
+              }
+            }
+            else
+            {
+              return std::string(1, c);
+            }
+          }
+          else
+          {
+            if (in_string)
+            {
+              in_string = false;
+              return '"' + format_byte(c);
+            }
+            return format_byte(c);
+          }
+        };
+
+        std::size_t pos = 0;
+        for (; pos < std::min(size - 1, static_cast<std::size_t>(32)); ++pos) {
+          result += format_char(in_string, static_cast<char>(p[pos]),
+                                static_cast<char>(p[pos + 1]));
+        }
+        result += format_char(in_string, static_cast<char>(p[pos]), 0);
+        if (in_string)
+        {
+          result += '"';
+        }
+        if (pos < (size - 1))
+        {
+          result += " <truncated...>";
+        }
+        return result;
+      }
+
+
+      void do_deallocate(void* p, std::size_t bytes, std::size_t alignment) override
+      {
+        PLOGD << m_name << " DEALLOC: Address: " << p << " Size: " << bytes <<
+                          " Data: " << format_destroyed_bytes(static_cast<std::byte*>(p), bytes);
+            
+        m_upstream->deallocate(p, bytes, alignment);
+      }
+
+      
+      bool do_is_equal(const std::pmr::memory_resource& other) const noexcept override
+      {
+        return this == &other;
+      }
+    };
+  #endif
+  
+
+  // TODO std::pmr::pool_options
+  class Memory
   {
-    BlockId id;
-    BlockPos pos;
-    std::size_t size;
-  };
+  private:
+    #ifdef FC_DEBUG
 
-
-  class FixedMemory
-  {
-    inline const static std::uint32_t InitialBlocks = 32;
-    inline const static BlockBuffSize BlockCapacity = 1024;
+    Memory() :  m_fixedResource(1024),  // this size is irrelevant: pool determines alloc sizes
+                m_fixedPrint("Fixed", &m_fixedResource),
+                m_poolResource(&m_fixedPrint),
+                m_poolPrint("Pool", &m_poolResource)
+    {
+    }
+    #else
+    Memory() :  m_fixedResource(1024),  // this size is irrelevant: pool determines alloc sizes
+                m_poolResource(&m_fixedResource)
+    {
+    }
+    #endif
 
 
   public:
+    ~Memory() = default;
 
-    ~FixedMemory ()
+
+  public:
+    static std::pmr::memory_resource * getPool() noexcept
     {
-      for (auto block : m_blocks)
-        delete block;
-    }
-
-    
-    bool init ()
-    {
-      try
-      {
-        PLOGD << "FixedMemory: initialising with " << InitialBlocks << " blocks @ " << BlockCapacity << " bytes";
-
-        for (std::size_t i = 0 ; i < InitialBlocks ; ++i)
-          m_blocks.emplace_back(new Block{BlockCapacity});
-      }
-      catch(const std::exception& e)
-      {
-        PLOGE << "FixedMemory failed to initialise. InitialBlocks: "
-              << InitialBlocks << ", BlockCapacity: " << BlockCapacity;
-
-        return false;
-      }
-      
-      return true;
-    }
-
-
-    // TODO do write() and overwrite() need to return size? The caller should always know
-    template<typename T>
-    BlockView write(const T v) noexcept requires (std::is_integral_v<T> || std::is_same_v<T, float>) 
-    {
-      constexpr const std::size_t Size = sizeof(T);
-      
-      const auto [block, id] = nextBlock(Size);
-      
-      BlockView bv;
-      bv.id = id;
-      bv.pos = block->write(v);
-      bv.size = Size;
-      return bv;
-    }
-
-
-    template<typename T>
-    void overwrite(BlockView& bv, const T v)  requires (std::is_integral_v<T> || std::is_same_v<T, float>)
-    {
-      constexpr const std::size_t NewSize = sizeof(T);
-
-      if (NewSize > bv.size)
-      {
-        // grab next with sufficient space or create new
-        const auto [block, id] = nextBlock(NewSize);
-        bv.pos = block->write(v);
-        bv.id = id;
-        bv.size = NewSize;
-      }
-      else
-      {
-        m_blocks[bv.id]->overwrite(bv.pos, v);
-      }
-    }
-
-
-    template<typename T>
-    const T get(const BlockView& bv) const requires (std::is_integral_v<T> || std::is_same_v<T, float>)
-    {
-      T v{};
-      std::memcpy(&v, m_blocks[bv.id]->getRead(bv.pos), sizeof(T)); 
-      return v;
-    }
-
-
-    void clear(const BlockView& bv)
-    {
-      m_blocks[bv.id]->clear(bv.pos, bv.size);
+      return get().pool();
     }
 
 
   private:
-    Block * addBlock()
-    {
-      PLOGD << "Creating new block: " << BlockCapacity << " bytes";
 
-      Block * const b = new Block{BlockCapacity};
-      m_blocks.emplace_back(b);
-      return b;
+    static Memory& get()
+    {
+      static Memory mem;
+      return mem;
     }
 
-
-    std::tuple<Block *, BlockId> nextBlock(const std::size_t size)
+    std::pmr::memory_resource * pool() noexcept
     {
-      Block * block = nullptr;
-      BlockId id = 0;
-
-      for ( ; !block && id < m_blocks.size() ; ++id)
-      {
-        if (m_blocks[id]->hasCapacity(size))
-          block = m_blocks[id];
-      }
-      
-      if (block)
-        return {block,id};
-      else
-        return {addBlock(), m_blocks.size()-1};
+      #ifdef FC_DEBUG
+        return &m_poolPrint; 
+      #else
+        return &m_poolResource;     
+      #endif
     }
-
 
   private:
-    std::vector<Block *> m_blocks;
+    #ifdef FC_DEBUG
+      std::pmr::monotonic_buffer_resource m_fixedResource;
+      print_alloc m_fixedPrint;
+      std::pmr::unsynchronized_pool_resource m_poolResource;
+      print_alloc m_poolPrint;
+    #else
+      std::pmr::monotonic_buffer_resource m_fixedResource;
+      std::pmr::unsynchronized_pool_resource m_poolResource;
+    #endif
   };
-
-
-  // for future use, just to allow CachedValue to compile
-  class VariedMemory
-  {
-    
-  };
-  */
-  
 }

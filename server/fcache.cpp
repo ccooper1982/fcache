@@ -1,11 +1,13 @@
 #include <fc/Server.hpp>
 #include <fc/Common.hpp>
 #include <fc/LogFormatter.hpp>
+#include <fc/Memory.hpp>
 #include <stdlib.h>
 #include <signal.h>
 #include <getopt.h>
 #include <latch>
 #include <tuple>
+
 
 static std::latch run{1U};
 static plog::ColorConsoleAppender<fc::FcFormatter> consoleAppender;
@@ -13,7 +15,12 @@ static plog::ColorConsoleAppender<fc::FcFormatter> consoleAppender;
 
 static unsigned int MinPayload = 64;
 static unsigned int MaxPayload = 4 * 1024*1024;
+#ifdef FC_DEBUG
+static unsigned int DefaultPayload = 16384;
+#else
 static unsigned int DefaultPayload = 2048;
+#endif
+
 
 
 static void kvSigHandle(int param)
@@ -25,8 +32,9 @@ static void kvSigHandle(int param)
 void usage(const char opt = ' ')
 {
   PLOGE <<  "Incorrect switch " << opt << '\n' <<
-            "--ip <ipv4>:   The IPv4 address for the server (default 127.0.0.1)\n"
-            "--port <p>:    Port (default: 1987)";
+            "--ip <ipv4>        The IPv4 address for the server (default 127.0.0.1)\n"
+            "--port <p>         Port (default: 1987)\n"
+            "--maxPayload <n>   Max bytes accepted by the WebSocket server";
 }
 
 
@@ -89,6 +97,24 @@ int main (int argc, char ** argv)
   signal(SIGTERM, kvSigHandle);
   signal(SIGKILL, kvSigHandle);
   
+  // temp here to see debug output at first call to the memory resources
+  fc::Memory::getPool();
+
+  
+  /*
+  PLOGE << "Bools";
+  {
+    PLOGE << "Creating";
+    std::pmr::vector<bool> v{fc::Memory::getPool()};
+
+    PLOGE << "Emplacing";
+    v.emplace_back(true);
+
+    PLOGE << "Destroying";
+  }
+  */ 
+
+    
   const auto [valid, ip, port, maxPayload] = getCmdArgs(argc, argv);
   
   if (!valid)
@@ -116,6 +142,7 @@ int main (int argc, char ** argv)
       run.count_down();
     }
   }
+
 
   return 0;
 }

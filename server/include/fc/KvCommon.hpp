@@ -17,39 +17,27 @@ namespace fc
   using ExtractVectorF = void (*)(FlexBuilder&, const char * key, const VectorValue&);
 
 
+  template<typename T>
+  using Vector = std::pmr::vector<T>;
+
+  using IntVector = Vector<std::int64_t>;
+  using UIntVector = Vector<std::uint64_t>;
+  using FloatVector = Vector<float>;
+  using BoolVector = Vector<bool>;
+  using CharVector = Vector<char>; 
+  using StringVector = Vector<std::pmr::string>;  // TODO, perhaps Vector<CharVector>
+  using BlobVector = Vector<uint8_t>;
+
+  
   struct FixedValue
   {
     std::variant<std::int64_t, std::uint64_t, float, bool> value;
     ExtractFixedF extract;
   };
 
-
-  // Temporary solution until Memory.hpp is used:
-  //  - store vector<T> (including strings) in memory blocks
-  //  - a block is pre-allocated memory
-  //  - write values to a memory block, 'flattening' the vector to contigious bytes
-  // VectorValue may become:
-  //  struct VariedValue
-  //  {
-  //    BlockView view; // contains BlockId (which block),
-  //                    //          BlockPos (position in the block)
-  //                    //          std::size_t (size of data)
-  //                    //          FlexType (type of data, required when creating FlexBuffer response)
-  //    Memory * mem;   // may have a string specific Memory handler
-  //  }
-  //
-  // VariedValue - the value is not fixed size (unlike int, float, bool, etc)
-  //             - contains everything required to extract the value.
+ 
   struct VectorValue
   {
-    using IntVector = std::vector<std::int64_t>;
-    using UIntVector = std::vector<std::uint64_t>;
-    using FloatVector = std::vector<float>;
-    using BoolVector = std::vector<bool>;
-    using CharVector = std::vector<char>; // strings are a vector of chars
-    using StringVector = std::vector<std::string>;  // TODO, perhaps std::vector<CharVector>
-    using BlobVector = std::vector<uint8_t>;
-
     std::variant< IntVector, UIntVector, FloatVector,
                   CharVector, StringVector, BoolVector,
                   BlobVector> vec;
@@ -65,4 +53,21 @@ namespace fc
     std::variant<FixedValue, VectorValue> value;
     std::uint8_t valueType;
   };
+
+   
+  template<typename ElementT>
+  fc::Vector<ElementT> createFcVectorSized(const std::size_t size)  
+  {
+    fc::Vector<ElementT> dest(Memory::getPool());
+    dest.resize(size);
+    return dest;
+  }
+
+  template<typename ElementT>
+  fc::Vector<ElementT> createFcVectorReserved(const std::size_t size)  
+  {
+    fc::Vector<ElementT> dest(Memory::getPool());
+    dest.reserve(size);
+    return dest;
+  }
 }
