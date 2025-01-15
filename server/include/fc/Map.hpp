@@ -223,10 +223,6 @@ namespace fc
       }
       else if constexpr (IsSet)
       {
-        // TODO (current value is VectorValue AND
-        //      v.size() <= existing size() AND
-        //      same type): 
-        //      then don't need to make a new VectorValue, can just copy over, and possibly shrink
         it->second.value = vv ;
         it->second.valueType = CachedValue::VEC;
       }
@@ -235,8 +231,16 @@ namespace fc
 
     VectorValue makeCharVectorValue (const std::string_view str)
     {
-      auto vec = createFcVectorSized<char>(str.size());
-      std::memcpy(vec.data(), str.data(), str.size());
+      // must add the null terminator here or when writing to response buffer:
+      //  originally the '\0' was omitted. But when running through 
+      //  valgrind, it complained of invalid read in CacheMap::extractCharV()
+      //  It was written to flexbuffer with:  fb.String(vec.data(), vec.size())
+      //  but that String() calls CreateBlock() and assumes there's a trailing
+      //  byte, which must be the `\0`.
+      // or use std::pmr::string
+      auto vec = createFcVectorSized<char>(str.size()+1); 
+      *(vec.rbegin()) = '\0';
+      std::memcpy(vec.data(), str.data(), vec.size());
       return VectorValue {.vec = std::move(vec), .extract = extractCharV};
     }
 
