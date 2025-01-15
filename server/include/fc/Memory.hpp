@@ -7,10 +7,11 @@
 namespace fc
 {
   #ifdef FC_DEBUG
-    class print_alloc : public std::pmr::memory_resource
+    // Doesn't directly allocate/deallocate, only logs then passes alloc/dealloc requests to upstream.
+    class PrintResource : public std::pmr::memory_resource
     {
     public:
-      print_alloc(std::string name, std::pmr::memory_resource* upstream)
+      PrintResource(std::string name, std::pmr::memory_resource* upstream)
           : m_name(std::move(name)),
             m_upstream(upstream)
       {
@@ -105,12 +106,22 @@ namespace fc
       }
     };
   #endif
-  
 
-  // TODO std::pmr::pool_options
+
+  /// Uses a pool resource backed by monotonic resource:
+  ///   - when the pool requires memory it requests a buffer from the monotonic resource
+  ///   - a mononotic resource only releases memory when the resource is destroyed
+  ///   - but that's ok because the pool tracks unused memory (free list) within the buffer allocated by the monotonic
+  ///   - when a key is erased, the free list is aware and can reuse it
+  ///
+  /// This has been influenced by Jason Turners video:
+  ///   https://www.youtube.com/watch?v=Zt0q3OEeuB0&list=PLs3KjaCtOwSYX3X0L36NgwK0pxZZavDSF&index=5&t=265
+  /// Specifically from 6mins45.
   class Memory
   {
   private:
+    // TODO std::pmr::pool_options
+
     #ifdef FC_DEBUG
 
     Memory() :  m_fixedResource(1024),  // this size is irrelevant: pool determines alloc sizes
@@ -158,9 +169,9 @@ namespace fc
   private:
     #ifdef FC_DEBUG
       std::pmr::monotonic_buffer_resource m_fixedResource;
-      print_alloc m_fixedPrint;
+      PrintResource m_fixedPrint;
       std::pmr::unsynchronized_pool_resource m_poolResource;
-      print_alloc m_poolPrint;
+      PrintResource m_poolPrint;
     #else
       std::pmr::monotonic_buffer_resource m_fixedResource;
       std::pmr::unsynchronized_pool_resource m_poolResource;
