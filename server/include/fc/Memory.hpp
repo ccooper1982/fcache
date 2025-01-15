@@ -114,13 +114,15 @@ namespace fc
   ///   - but that's ok because the pool tracks unused memory (free list) within the buffer allocated by the monotonic
   ///   - when a key is erased, the free list is aware and can reuse it
   ///
-  /// This has been influenced by Jason Turners video:
+  /// This has been influenced by Jason Turner's video:
   ///   https://www.youtube.com/watch?v=Zt0q3OEeuB0&list=PLs3KjaCtOwSYX3X0L36NgwK0pxZZavDSF&index=5&t=265
   /// Specifically from 6mins45.
   class Memory
   {
   private:
     // TODO std::pmr::pool_options
+    // TODO conisder alternative pools for specific types, i.e. blobs are likely larger and may benefit
+    //      from larger pool blocks (largest_required_pool_block)
 
     #ifdef FC_DEBUG
 
