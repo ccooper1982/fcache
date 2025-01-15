@@ -107,13 +107,14 @@ async def test2():
 
 
 async def more():
+  "range(100) can be increased, but maxPayload may also require increasing maxPayload"
   if (client := await connect()) is None:
     return
   
   kv = KV(client)
 
   data = {}
-  for i in range(500):
+  for i in range(100):
     data[f'k{i}'] = i
 
   await kv.set(data)
@@ -156,7 +157,8 @@ async def lists():
 
 
 async def blob():
-  # Requires fcache is started with maxPayload to size of the cat image which is 11,030 bytes
+  # Requires fcache is started with maxPayload to at least 
+  # size of the cat image which is 11,030 bytes
   # ./fcache --maxPayload=16384
   if (client := await connect()) is None:
     return
@@ -174,10 +176,9 @@ async def blob():
       file.write(data)
 
 
-
 if __name__ == "__main__":
   async def run():
-    for f in [test, more, lists]:
+    for f in [lists, more, test, test2]:
       print(f'---- {f.__name__} ----')
       await f()
   
