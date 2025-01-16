@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 include_directories(
   "../externals/plog/include"
+  "../externals/unordered_dense/include"
   "../server/include")
 
 

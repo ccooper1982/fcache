@@ -144,10 +144,10 @@ namespace fc
     // TODO std::pmr::pool_options, see if there are optimisations for larger chunk sizes,
     //      particularly with blobs which will likely be a factor larger
     #ifdef FC_DEBUG
-      Memory() :  m_fixedResource(1024),  // this size is irrelevant: pool determines alloc sizes
-                  m_fixedPrint("Fixed", &m_fixedResource),
+      Memory() :  m_fixedResource(1024),
+                  m_fixedPrint("Value Fixed", &m_fixedResource),
                   m_poolResource(&m_fixedPrint),
-                  m_poolPrint("Pool", &m_poolResource)
+                  m_poolPrint("Value Pool", &m_poolResource)
       {
       }
     #else
@@ -208,6 +208,7 @@ namespace fc
       #endif
     }
 
+
   private:
     #ifdef FC_DEBUG
       std::pmr::monotonic_buffer_resource m_fixedResource;
@@ -217,6 +218,66 @@ namespace fc
     #else
       std::pmr::monotonic_buffer_resource m_fixedResource;
       std::pmr::unsynchronized_pool_resource m_poolResource;
+    #endif
+  };
+
+
+  //
+  class MapMemory
+  {
+  private:
+    #ifdef FC_DEBUG
+      MapMemory() : m_mapFixedResource(1024),
+                    m_mapFixedPrint("Map Fixed", &m_mapFixedResource),
+                    m_mapPoolResource(&m_mapFixedPrint),
+                    m_mapPoolPrint("Map Pool", &m_mapPoolResource)
+      {
+      }
+    #else
+      MapMemory() : m_fixedResource(1024),
+                    m_poolResource(&m_fixedResource)
+      {
+      }
+    #endif
+
+
+  public:
+    ~MapMemory() = default;
+
+
+    static std::pmr::memory_resource * getMapPool() noexcept
+    {
+      return get().mapPool();
+    }
+
+
+  private:
+
+    static MapMemory& get()
+    {
+      static MapMemory mem;
+      return mem;
+    }
+    
+
+    std::pmr::memory_resource * mapPool() noexcept
+    {
+      #ifdef FC_DEBUG
+        return &m_mapPoolPrint; 
+      #else
+        return &m_mapPoolResource;     
+      #endif
+    }
+
+  private:
+    #ifdef FC_DEBUG
+      std::pmr::monotonic_buffer_resource m_mapFixedResource;
+      PrintResource m_mapFixedPrint;
+      std::pmr::unsynchronized_pool_resource m_mapPoolResource;
+      PrintResource m_mapPoolPrint;
+    #else
+      std::pmr::monotonic_buffer_resource m_mapFixedResource;
+      std::pmr::unsynchronized_pool_resource m_mapPoolResource;
     #endif
   };
 }
