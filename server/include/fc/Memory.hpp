@@ -1,19 +1,36 @@
 #pragma once
 
 #include <memory_resource>
+#include <functional>
 #include <plog/Log.h>
 #include <format>
 
 namespace fc
 {
+  /// Uses a pool resource backed by monotonic resource:
+  ///   - when the pool requires memory it requests a buffer from the monotonic resource
+  ///   - a mononotic resource only releases memory when the resource is destroyed
+  ///   - but that's ok because the pool tracks unused memory (free list) within the buffer allocated by the monotonic
+  ///   - when a key is erased, the free list is aware and can reuse it
+  ///
+  /// This has been influenced by Jason Turner's video:
+  ///   https://www.youtube.com/watch?v=Zt0q3OEeuB0&list=PLs3KjaCtOwSYX3X0L36NgwK0pxZZavDSF&index=5&t=265
+  /// Specifically from 6mins45.
+  ///
+  /// - The pool resource allocates an internal structure to track pools
+  /// - The pool resource contains multiple pools, each intended for different size requirements
+  /// - Each of those pools contains multiple blocks (which are logically split into chunks)
+
+
   #ifdef FC_DEBUG
     // Doesn't directly allocate/deallocate, only logs then passes alloc/dealloc requests to upstream.
     class PrintResource : public std::pmr::memory_resource
     {
     public:
-      PrintResource(std::string name, std::pmr::memory_resource* upstream)
+      PrintResource(std::string name, std::pmr::memory_resource* upstream, std::function<void(std::byte *, const std::size_t)> deallocCheck = nullptr)
           : m_name(std::move(name)),
-            m_upstream(upstream)
+            m_upstream(upstream),
+            m_deallocCheck(deallocCheck)
       {
         assert(upstream);
       }
@@ -105,7 +122,10 @@ namespace fc
 
         PLOGD << m_name << " DEALLOC: Address: " << p << " Size: " << bytes <<
                            " Data: " << format_destroyed_bytes(static_cast<std::byte*>(p), bytes);
-            
+        
+        if (m_deallocCheck)
+          m_deallocCheck(static_cast<std::byte*>(p), bytes);
+
         m_upstream->deallocate(p, bytes, alignment);
       }
 
@@ -116,28 +136,14 @@ namespace fc
       }
     
 
-
-
       private:
         std::size_t m_alloc = 0;
         std::size_t m_dealloc = 0;
+        std::function<void(std::byte *, const std::size_t)> m_deallocCheck;
     };
   #endif
 
-
-  /// Uses a pool resource backed by monotonic resource:
-  ///   - when the pool requires memory it requests a buffer from the monotonic resource
-  ///   - a mononotic resource only releases memory when the resource is destroyed
-  ///   - but that's ok because the pool tracks unused memory (free list) within the buffer allocated by the monotonic
-  ///   - when a key is erased, the free list is aware and can reuse it
-  ///
-  /// This has been influenced by Jason Turner's video:
-  ///   https://www.youtube.com/watch?v=Zt0q3OEeuB0&list=PLs3KjaCtOwSYX3X0L36NgwK0pxZZavDSF&index=5&t=265
-  /// Specifically from 6mins45.
-  ///
-  /// - The pool resource allocates an internal structure to track pools
-  /// - The pool resource contains multiple pools, each intended for different size requirements
-  /// - Each of those pools contains multiple blocks (which are logically split into chunks)
+  
   class Memory
   {
   private:
@@ -221,16 +227,25 @@ namespace fc
     #endif
   };
 
-
+  
+  // This contains the resources used by the cache map (ankerl::unordered_dense::map).
+  // This is to ensure the key (std::pmr::string) and value (CachedValue) are placed in
+  // pooled memory.
   //
+  // This class has some debugging code, which will be removed and tidied. It is used to convince myself
+  // data is being stored in memory allocated by the pool.
+  //
+  // The checkF function is called from the PrintResource::do_deallocate(). The checkF() checks through the
+  // pool's memory to find particular data (proving the map's value are infact in the pool's memory as expected).
   class MapMemory
   {
   private:
     #ifdef FC_DEBUG
-      MapMemory() : m_mapFixedResource(1024),
-                    m_mapFixedPrint("Map Fixed", &m_mapFixedResource),
-                    m_mapPoolResource(&m_mapFixedPrint),
-                    m_mapPoolPrint("Map Pool", &m_mapPoolResource)
+      MapMemory(std::function<void(std::byte *, const std::size_t)> checkF = nullptr) :
+                  m_mapFixedResource(m_buffer.data(), m_buffer.size(), std::pmr::null_memory_resource()),
+                  m_mapFixedPrint("Map Fixed", &m_mapFixedResource),
+                  m_mapPoolResource(&m_mapFixedPrint),
+                  m_mapPoolPrint("Map Pool", &m_mapPoolResource, checkF)
       {
       }
     #else
@@ -245,22 +260,37 @@ namespace fc
     ~MapMemory() = default;
 
 
-    static std::pmr::memory_resource * getMapPool() noexcept
-    {
-      return get().mapPool();
-    }
+    #ifdef FC_DEBUG
+      static std::pmr::memory_resource * getPool(std::function<void(std::byte *, const std::size_t)> checkF = nullptr) noexcept
+      {
+        return get(checkF).pool();
+      }
+    #else
+      static std::pmr::memory_resource * getPool() noexcept
+      {
+        return get().pool();
+      }
+    #endif
 
 
   private:
 
-    static MapMemory& get()
-    {
-      static MapMemory mem;
-      return mem;
-    }
+    #ifdef FC_DEBUG
+      static MapMemory& get(std::function<void(std::byte *, const std::size_t)> checkF)
+      {
+        static MapMemory mem{checkF};
+        return mem;
+      }
+    #else
+      static MapMemory& get()
+      {
+        static MapMemory mem;
+        return mem;
+      }
+    #endif
     
 
-    std::pmr::memory_resource * mapPool() noexcept
+    std::pmr::memory_resource * pool() noexcept
     {
       #ifdef FC_DEBUG
         return &m_mapPoolPrint; 
@@ -271,6 +301,7 @@ namespace fc
 
   private:
     #ifdef FC_DEBUG
+      std::array<std::uint8_t, 32768> m_buffer;
       std::pmr::monotonic_buffer_resource m_mapFixedResource;
       PrintResource m_mapFixedPrint;
       std::pmr::unsynchronized_pool_resource m_mapPoolResource;
