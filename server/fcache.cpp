@@ -100,20 +100,6 @@ int main (int argc, char ** argv)
   // temp here to see debug output at first call to the memory resources
   fc::Memory::getPool();
 
-  
-  /*
-  PLOGE << "Bools";
-  {
-    PLOGE << "Creating";
-    std::pmr::vector<bool> v{fc::Memory::getPool()};
-
-    PLOGE << "Emplacing";
-    v.emplace_back(true);
-
-    PLOGE << "Destroying";
-  }
-  */ 
-
     
   const auto [valid, ip, port, maxPayload] = getCmdArgs(argc, argv);
   
