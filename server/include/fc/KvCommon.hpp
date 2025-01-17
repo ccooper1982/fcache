@@ -45,7 +45,7 @@ namespace fc
   };
 
   /*
-  Investigate treating all data as a bunch of bytes (BoB):
+  Investigate treating vectors and string data as a bunch of bytes (BoB):
 
   struct CachedValue
   {
