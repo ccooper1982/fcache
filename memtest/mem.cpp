@@ -1,7 +1,10 @@
 
-#define FC_DEBUG  // to enable debug from Memory.hpp
+//#define FC_DEBUG  // to enable debug from Memory.hpp
+#undef FC_DEBUG
 
 #include <variant>
+#include <numeric>
+#include <chrono>
 #include <fc/Memory.hpp>
 #include <fc/LogFormatter.hpp>
 #include <plog/Init.h>
@@ -11,50 +14,6 @@
 
 
 static plog::ColorConsoleAppender<fc::FcFormatter> consoleAppender;
-
-
-struct Value
-{
-  using allocator_type = std::pmr::polymorphic_allocator<>;
-
-  Value() = default;
-  Value(const Value&) = default;
-  Value(Value&&) = default;
-
-  explicit Value (const std::pmr::polymorphic_allocator<>& alloc) : s(alloc)
-  {    
-  }
-
-  explicit Value (const char * str, const std::pmr::polymorphic_allocator<>& alloc) : s(str, alloc)
-  {
-
-  }
-
-  Value (const Value& other, const std::pmr::polymorphic_allocator<>& alloc) : s(other.s, alloc)
-  {    
-  }
-
-  Value (Value&& other, const std::pmr::polymorphic_allocator<>& alloc) : s(std::move(other.s), alloc)
-  {    
-  }
-
-
-  Value& operator= (const Value& other)
-  {
-    if (this != &other)
-      s = other.s;
-    return *this;
-  }
-
-  Value& operator= (Value&& other)
-  {
-    if (this != &other)
-      s = std::move(other.s);
-    return *this;
-  }
-
-  std::pmr::string s;
-};
 
 
 template<typename T>
@@ -68,133 +27,51 @@ using CharVector = Vector<char>;
 using StringVector = Vector<std::pmr::string>;  // TODO, perhaps Vector<CharVector>
 using BlobVector = Vector<uint8_t>;
 
-// emulating CachedValue from fcache
-struct CV
+
+// emulating CachedValue from fcache but PMR aware
+struct PmrCV
 {
   using allocator_type = std::pmr::polymorphic_allocator<>;
 
-  CV() = default;
-  CV(const CV&) = default;
-  CV(CV&&) = default;
+  PmrCV() = default;
+  PmrCV(const PmrCV&) = default;
+  PmrCV(PmrCV&&) noexcept = default;
+  
+  PmrCV& operator= (const PmrCV& other) noexcept = default;
+  PmrCV& operator= (PmrCV&& other) noexcept = default;
 
-  explicit CV (const std::pmr::polymorphic_allocator<>& alloc)
+
+  explicit PmrCV (const allocator_type& alloc) noexcept
   {    
   }
 
-  CV (const IntVector& v, const std::pmr::polymorphic_allocator<>& alloc) : value(v)
+  PmrCV (const IntVector& v, const allocator_type& alloc) noexcept : value(v)
+  {
+    //value = IntVector(v, alloc);
+    //PLOGI << "Here";
+  }
+
+  PmrCV (const StringVector& v, const allocator_type& alloc) noexcept : value(v)
   {
   }
 
-  CV (const CV& other, const std::pmr::polymorphic_allocator<>& alloc) : value(other.value)
+  PmrCV (const PmrCV& other, const allocator_type& alloc) noexcept : value(other.value)
   {    
   }
 
-  CV (CV&& other, const std::pmr::polymorphic_allocator<>& alloc) : value(std::move(other.value))
+  PmrCV (PmrCV&& other, const allocator_type& alloc) noexcept : value(std::move(other.value))
   {    
   }
 
-  CV& operator= (const CV& other) = default;
-  CV& operator= (CV&& other) = default;
-
-  std::variant<IntVector> value;
+  std::variant<IntVector, StringVector> value;
 };
 
 
-/*
-The first alloc is 528 bytes, which is likely the pool's internal containers,
-used to track the pools.
-*/
-
-
-void general()
+// not PMR aware
+struct CV
 {
-  // TODO confirm why segmented_map does not compile, and if that's by design
-  using Map = ankerl::unordered_dense::pmr::map<std::pmr::string, Value>;
-
-  PLOGE << "Creating Map";
-  {
-    std::pmr::polymorphic_allocator alloc{fc::MapMemory::getPool()};
-    Map map{alloc};
-
-    PLOGE << "Emplacing 1";
-    map.emplace(std::pmr::string("key1",fc::MapMemory::getPool()), "THIS is a long string 1");
-
-    if (auto it = map.find("key1") ; it != map.end())
-    {
-      PLOGE << "Replacing";
-      it->second.s = "THIS IS STRING NEW VALUE";
-    }
-    
-    // PLOGE << "Emplacing";
-    // map.emplace("key2", "THIS is a long string 2");
-    // PLOGE << "Emplacing";
-    // map.emplace("key3", "THIS is a long string 3");
-
-    PLOGE << "Destroying Map";
-  }
-
-  // PLOGE << "Creating Map Loop";
-  // {
-  //   std::pmr::polymorphic_allocator alloc{fc::MapMemory::getPool()};
-  //   Map map{alloc};
-
-  //   std::vector<std::string> keys{"k1", "k2", "k3", "k4", "k5", "k6", "k7", "k8"};
-    
-  //   PLOGE << "Begin loop";
-  //   for (const auto& k : keys)
-  //   {
-  //     PLOGE << "Emplacing";
-  //     map.emplace(k, "THIS IS A LONG STRING");
-  //   }
-      
-  //   PLOGE << "End loop";
-  // }
-  
-
-
-  // PLOGE << "String";
-  // {
-  //   PLOGE << "Creating";
-  //   std::pmr::vector<std::pmr::string> v(fc::Memory::getPool());
-
-  //   PLOGE << "Emplacing";
-  //   v.emplace_back("Hello World");
-
-  //   PLOGE << "Destroying";
-  // }
-
-  // PLOGD << "------------";
-
-  // PLOGE << "vector<char>";
-  // {
-  //   PLOGE << "Creating";
-  //   std::pmr::vector<char> v(fc::Memory::getPool());
-
-  //   PLOGE << "Emplacing";
-  //   v.emplace_back('H');
-  //   v.emplace_back('E');
-  //   v.emplace_back('L');
-  //   v.emplace_back('L');
-  //   v.emplace_back('O');
-
-  //   PLOGE << "Destroying";
-  // }
-
-  // PLOGD << "------------";
-
-  // PLOGE << "Blob";
-  // {
-  //   PLOGE << "Creating";
-  //   std::pmr::vector<uint8_t> v(fc::Memory::getPool());
-    
-  //   PLOGE << "Inserting";
-  //   v.insert(v.cbegin(), 11'030, 0);
-
-  //   PLOGE << "Destroying";
-  // }
-
-  // PLOGD << "Allocated: " << fc::Memory::nAllocated() << ", Deallocated: " << fc::Memory::nDeallocated();
-}
+  std::variant<std::vector<int64_t>, std::vector<std::string>> value;
+};
 
 
 static void checkMemory (std::byte * buffer, const std::size_t size)
@@ -203,12 +80,11 @@ static void checkMemory (std::byte * buffer, const std::size_t size)
 
   for (std::size_t i = 0 ; i < size ; )
   {
-    if (static_cast<int>(buffer[i]) == 1 && i+31 < size)
+    if (static_cast<int>(buffer[i]) == 10 && i+31 < size)
     {
-      PLOGE << "size: " << size;
-      if (static_cast<int>(buffer[i+8]) == 2 &&
-          static_cast<int>(buffer[i+16]) == 3 &&
-          static_cast<int>(buffer[i+24]) == 4)
+      if (static_cast<int>(buffer[i+8]) == 11 &&
+          static_cast<int>(buffer[i+16]) == 12 &&
+          static_cast<int>(buffer[i+24]) == 13)
       {
         PLOGE << "Found values in buffer: " << buffer;
         i = size; // force exit
@@ -216,11 +92,16 @@ static void checkMemory (std::byte * buffer, const std::size_t size)
     }
     else if (static_cast<char>(buffer[i]) == 'k' && i+1 < size)
     {
-      if (static_cast<char>(buffer[i+1]) == '1')
+      if (static_cast<char>(buffer[i+1]) == '2')
       {
-        PLOGE << "Found k1";
+        PLOGE << "Found k2";
         i = size;
       }
+    }
+    else if (static_cast<char>(buffer[i]) == 'l' && static_cast<char>(buffer[i+1]) == 'o' && i+23 < size)
+    {
+      std::string_view sv{reinterpret_cast<char *>(buffer+i), 23};
+      PLOGE << sv;
     }
     
     ++i;
@@ -228,22 +109,143 @@ static void checkMemory (std::byte * buffer, const std::size_t size)
 }
 
 
+using clok = std::chrono::steady_clock;
+using PmrMap = ankerl::unordered_dense::pmr::map<std::pmr::string, PmrCV>;
+using Map = ankerl::unordered_dense::map<std::string, CV>;
+
+
+struct Timer
+{
+  Timer(const std::string_view name = "") : s(clok::now()), name(name)
+  {
+  }
+
+  ~Timer()
+  {
+    duration = clok::now() - s;
+    PLOGI << name << ": " << duration.count();
+  }
+
+  clok::time_point s, e;
+  clok::duration duration;
+  std::string name;
+};
+
+
+template<typename M>
+void dump (const M& m)
+{
+  for (const auto& pair : m)
+  {
+    if constexpr (std::is_same_v<M, PmrMap>)
+      PLOGE << pair.first << "=" << std::get<IntVector>(pair.second.value);
+    else
+      PLOGE << pair.first << "=" << std::get<std::vector<int64_t>>(pair.second.value);
+  }
+    
+}
+
+
+void perfPmr(const int nVectors, const int nValuesPerVector)
+{
+  std::vector<std::pmr::string> keys;
+  keys.reserve(nVectors);
+  for(auto i =0 ; i < nVectors ; ++i)
+    keys.emplace_back(std::to_string(i));
+  
+
+  std::pmr::polymorphic_allocator alloc{fc::MapMemory::getPool()};
+  PmrMap map(alloc);
+
+  int total = 0;
+  
+  {
+    Timer t{"PMR Create"};
+  
+    for (auto i = 0 ; i < nVectors ; ++i)
+    {
+      auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, IntVector{fc::Memory::getPool()});
+
+      auto& vec = std::get<IntVector>(it->second.value);
+      vec.resize(nValuesPerVector);
+
+      int c = 0;
+      std::generate_n(vec.begin(), nValuesPerVector, [&c]{return c++;});
+    }
+  }
+
+  {
+    Timer t{"PMR Get"};
+
+    for (const auto& k : keys)
+    {
+      const auto& values = std::get<IntVector>(map.at(k).value);
+      total = std::accumulate(values.cbegin(), values.cend(), 0);
+    }
+  }  
+  
+  
+  PLOGI << total;
+}
+
+
+void perfNormal(const int nVectors, const int nValuesPerVector)
+{
+  std::vector<std::string> keys(nVectors);
+  for(auto i =0 ; i < nVectors ; ++i)
+    keys[i] = std::to_string(i);
+
+  Map map;
+
+  int total = 0;
+  {
+    Timer t{"Create"};
+
+    for (auto i = 0 ; i < nVectors ; ++i)
+    {
+      std::vector<int64_t> v{};
+      v.resize(nValuesPerVector);
+
+      int c = 0;
+      std::generate_n(v.begin(), nValuesPerVector, [&c]{return c++;});
+
+      map.emplace(std::to_string(i), std::move(v));
+    }
+
+  }
+
+  {  
+    Timer t{"Get"};
+
+    for (const auto& k : keys)
+    {
+      const auto& values = std::get<std::vector<int64_t>>(map.at(k).value);
+      total = std::accumulate(values.cbegin(), values.cend(), 0);
+    }
+  }
+  
+  PLOGI << total;
+
+  //dump(map);
+}
+
+
 int main (int argc, char ** argv)
 {
   plog::init(plog::verbose, &consoleAppender);
 
+  // std::pmr::polymorphic_allocator alloc{fc::MapMemory::getPool(checkMemory)};
+  // PmrMap map(alloc);
 
-  //general();
+  // IntVector v{{10,11,12,13}, alloc};
+  // StringVector v2{{"long_string_beats_sso_1"}, alloc};
 
+  // map.emplace("k2", v);
+  // map.emplace("k3", v2);
 
-  using Map = ankerl::unordered_dense::pmr::map<std::pmr::string, CV>;
-
-  std::pmr::polymorphic_allocator alloc{fc::MapMemory::getPool(checkMemory)};
-  Map map(alloc);
-
-  IntVector v{{1,2,3,4}, alloc};
-
-  map.emplace("k1", v);
+  
+  perfNormal(10000, 3000);
+  perfPmr(10000, 3000);
 
   return 0;
 }
