@@ -124,12 +124,10 @@ struct Timer
 
   ~Timer()
   {
-    duration = clok::now() - s;
-    PLOGI << name << ": " << duration.count();
+    PLOGI << name << ": " << (clok::now() - s).count();
   }
 
-  clok::time_point s, e;
-  clok::duration duration;
+  clok::time_point s;
   std::string name;
 };
 
