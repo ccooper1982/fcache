@@ -97,9 +97,7 @@ int main (int argc, char ** argv)
   signal(SIGTERM, kvSigHandle);
   signal(SIGKILL, kvSigHandle);
   
-  // temp here to see debug output at first call to the memory resources
-  fc::Memory::getPool();
-
+  // TODO warm up memory pools
     
   const auto [valid, ip, port, maxPayload] = getCmdArgs(argc, argv);
   

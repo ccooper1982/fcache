@@ -176,9 +176,23 @@ async def blob():
       file.write(data)
 
 
+async def pmr():
+  if (client := await connect()) is None:
+    return
+  
+  kv = KV(client)
+
+  await kv.set({'k1':[1,2,3,4]})
+  print(await kv.get(key='k1'))
+
+  await kv.set({'k2':['hello', 'world']})
+  print(await kv.get(key='k2'))
+  
+
 if __name__ == "__main__":
   async def run():
-    for f in [lists, more, test, test2]:
+    #for f in [lists, more, test, test2]:
+    for f in [pmr]:
       print(f'---- {f.__name__} ----')
       await f()
   

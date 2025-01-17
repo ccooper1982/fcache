@@ -9,14 +9,17 @@ namespace fc
 {
   class CacheMap
   {
-    using Map = ankerl::unordered_dense::segmented_map<CachedKey, CachedValue>;
+    using Map = ankerl::unordered_dense::pmr::map<std::pmr::string, CachedValue>;
     using CacheMapIterator = Map::iterator;
     using CacheMapConstIterator = Map::const_iterator;
     using enum FlexType;
 
+
   public:
-    
-    CacheMap() = default;
+    CacheMap() : m_map(std::pmr::polymorphic_allocator {fc::MapMemory::getPool()})
+    {
+
+    }
 
     CacheMap& operator=(CacheMap&&) = default; // required by Map::erase()
     CacheMap(CacheMap&&) = default;
@@ -43,12 +46,13 @@ namespace fc
         else
           static_assert(false, "FlexBuffers::Type not supported for fixed type");
 
+        const std::pmr::string pmrKey{key, MapMemory::getPool()};
 
         // set and add both insert if key not exist
-        if (const auto it = m_map.find(key) ; it == m_map.end())
+        if (const auto it = m_map.find(pmrKey) ; it == m_map.end())
         {
           FixedValue fv {.value = value, .extract = extract};
-          m_map.try_emplace(key, fv, CachedValue::FIXED);
+          m_map.try_emplace(pmrKey, fv, CachedValue::FIXED);
         }
         else if constexpr (IsSet)
         {
@@ -72,7 +76,18 @@ namespace fc
     {
       try
       {
-        insertVectorValue<IsSet>(key, makeVectorValue<FlexT>(v));
+        const std::pmr::string pmrKey{key, MapMemory::getPool()};
+        
+        if (const auto it = m_map.find(pmrKey) ; it == m_map.end())
+        {
+          makeVectorValue<FlexT>(pmrKey, v);
+        }
+        else if (IsSet)
+        {
+          PLOGE << "TODO";
+          //it->second.value
+          //it->second.valueType = CachedValue::VEC;
+        }
       }
       catch(const std::exception& e)
       {
@@ -89,14 +104,29 @@ namespace fc
     {
       try
       {
-        // a string is handled as a vector<char>
-        insertVectorValue<IsSet>(key, makeCharVectorValue(str));
+        const std::pmr::string pmrKey{key, MapMemory::getPool()};
+        
+        if (const auto it = m_map.find(pmrKey) ; it == m_map.end())
+        {
+          m_map.try_emplace(pmrKey,
+                            VectorValue {.vec = String{str, VectorMemory::getPool()}, .extract = extractString},
+                            CachedValue::VEC);
+        }
+        else if (IsSet)
+        {
+          PLOGE << "TODO";
+          //it->second.value
+          //it->second.valueType = CachedValue::VEC;
+        }
+
+        //insertVectorValue<IsSet>(key, makeVectorValue<FlexT>(v));
       }
       catch(const std::exception& e)
       {
-        PLOGE << __FUNCTION__ << ": " << e.what();
+        PLOGE << __FUNCTION__ << ":" << e.what();
         return false;
       }
+
       return true;
     }
 
@@ -106,7 +136,25 @@ namespace fc
     {
       try
       {
-        insertVectorValue<IsSet>(key, makeBlobVectorValue(blob.data(), blob.size()));
+        const std::pmr::string pmrKey{key, MapMemory::getPool()};
+        
+        if (const auto it = m_map.find(pmrKey) ; it == m_map.end())
+        {
+          auto [itEmplaced, emplaced] = m_map.try_emplace(pmrKey,
+                                                  VectorValue {.vec = BlobVector{VectorMemory::getPool()}, .extract = extractBlob},
+                                                  CachedValue::VEC);
+
+          auto& vv = std::get<VectorValue>(itEmplaced->second.value);
+          auto& dest = std::get<BlobVector>(vv.vec);
+          dest.resize(blob.size());
+          std::memcpy(dest.data(), blob.data(), blob.size());
+        }
+        else if (IsSet)
+        {
+          PLOGE << "TODO";
+          //it->second.value
+          //it->second.valueType = CachedValue::VEC;
+        }
       }
       catch(const std::exception& e)
       {
@@ -124,7 +172,9 @@ namespace fc
       {
         for (const auto& key : keys)
         { 
-          if (const auto& it = m_map.find(key->str()); it != m_map.cend())
+          const std::pmr::string pmrKey{key->str(), MapMemory::getPool()};
+
+          if (const auto& it = m_map.find(pmrKey); it != m_map.cend())
           {
             const auto pKey = key->c_str();
             const auto& cachedValue = it->second;
@@ -149,7 +199,8 @@ namespace fc
     {
       for (const auto& key : keys)
       {
-        m_map.erase(key->str());
+        const std::pmr::string pmrKey{key->str(), MapMemory::getPool()};
+        m_map.erase(pmrKey);
       }
     };
 
@@ -182,10 +233,11 @@ namespace fc
 
       for (const auto& key : keys)
       {
-        const auto& sKey = key->str();
+        const auto& stdString = key->str();
+        const std::pmr::string pmrKey{key->str(), MapMemory::getPool()};
 
-        if (m_map.contains(sKey))
-          keysExist.emplace_back(sKey);
+        if (m_map.contains(pmrKey))
+          keysExist.emplace_back(stdString);
       }
       
       return fb.CreateVectorOfStrings(keysExist.cbegin(), keysExist.cend());
@@ -210,40 +262,8 @@ namespace fc
     static void extractUIntV(FlexBuilder& fb, const char * key, const VectorValue& vv);
     static void extractFloatV(FlexBuilder& fb, const char * key, const VectorValue& vv);
     static void extractBoolV(FlexBuilder& fb, const char * key, const VectorValue& vv);
-    static void extractCharV(FlexBuilder& fb, const char * key, const VectorValue& vv);
+    static void extractString(FlexBuilder& fb, const char * key, const VectorValue& vv);
     
-
-
-    template<bool IsSet>
-    void insertVectorValue (const CachedKey& key, VectorValue vv)
-    {
-      if (const auto it = m_map.find(key) ; it == m_map.end())
-      {
-        m_map.try_emplace(key, vv, CachedValue::VEC);
-      }
-      else if constexpr (IsSet)
-      {
-        it->second.value = vv ;
-        it->second.valueType = CachedValue::VEC;
-      }
-    }
-    
-
-    VectorValue makeCharVectorValue (const std::string_view str)
-    {
-      // must add the null terminator here or when writing to response buffer:
-      //  originally the '\0' was omitted. But when running through 
-      //  valgrind, it complained of invalid read in CacheMap::extractCharV()
-      //  It was written to flexbuffer with:  fb.String(vec.data(), vec.size())
-      //  but that String() calls CreateBlock() and assumes there's a trailing
-      //  byte, which must be the `\0`.
-      // or use std::pmr::string
-      auto vec = createFcVectorSized<char>(str.size()+1); 
-      *(vec.rbegin()) = '\0';
-      std::memcpy(vec.data(), str.data(), vec.size());
-      return VectorValue {.vec = std::move(vec), .extract = extractCharV};
-    }
-
 
     VectorValue makeBlobVectorValue (const std::uint8_t * data, const std::size_t size)
     {
@@ -253,42 +273,97 @@ namespace fc
     }
 
 
-    template<FlexType FlexT>
-    VectorValue makeVectorValue (const flexbuffers::TypedVector& vector)
+    template<typename ElementT, typename VectorT>
+    void copyToMap (const flexbuffers::TypedVector& source, VectorValue& vv) 
     {
-      if constexpr (FlexT == FBT_VECTOR_INT)
-        return VectorValue {.vec = toFcVector<std::int64_t>(vector), .extract = extractIntV};
-      else if constexpr (FlexT == FBT_VECTOR_UINT)
-        return VectorValue {.vec = toFcVector<std::uint64_t>(vector), .extract = extractUIntV};
-      else if constexpr (FlexT == FBT_VECTOR_FLOAT)
-        return VectorValue {.vec = toFcVector<float>(vector), .extract = extractFloatV};
-      else if constexpr (FlexT == FBT_VECTOR_BOOL)
-        return VectorValue {.vec = toFcVector<bool>(vector), .extract = extractBoolV};
-      else if constexpr (FlexT == FBT_VECTOR_KEY)
-        return VectorValue {.vec = toFcVector<std::pmr::string>(vector), .extract = extractStringV};
+      auto& dest = std::get<VectorT>(vv.vec);
+      dest.resize(source.size());
+
+      for (std::size_t i = 0 ; i < source.size() ; ++i)
+      {
+        if constexpr (std::is_same_v<ElementT, std::pmr::string>)
+          dest[i].assign(source[i].AsString().c_str());
+        else
+          dest[i] = source[i].template As<ElementT>();
+      }
     }
 
 
-    template<typename ElementT>
-    fc::Vector<ElementT> toFcVector(const flexbuffers::TypedVector& source)
+    template<FlexType FlexT>
+    void makeVectorValue (const std::pmr::string& key, const flexbuffers::TypedVector& source)
     {
-      if constexpr (std::is_same_v<ElementT, std::pmr::string>)
+      // TODO this can be tidied
+
+      if constexpr (FlexT == FBT_VECTOR_INT)
       {
-        auto dest = createFcVectorReserved<ElementT>(source.size());
-        for (std::size_t i = 0 ; i < source.size() ; ++i)
-          dest.emplace_back(source[i].AsString().c_str());
-      
-        return dest;
+        auto [it, emplaced] = m_map.try_emplace(  key,
+                                                  VectorValue {.vec = IntVector{VectorMemory::getPool()}, .extract = extractIntV},
+                                                  CachedValue::VEC);
+
+        auto& vv = std::get<VectorValue>(it->second.value);
+        copyToMap<int64_t, IntVector>(source, vv);
+      }
+      else if constexpr (FlexT == FBT_VECTOR_UINT)
+      {
+        auto [it, emplaced] = m_map.try_emplace(  key,
+                                                  VectorValue {.vec = UIntVector{VectorMemory::getPool()}, .extract = extractUIntV},
+                                                  CachedValue::VEC);
+
+        auto& vv = std::get<VectorValue>(it->second.value);
+        copyToMap<uint64_t, UIntVector>(source, vv);
+      }
+      else if constexpr (FlexT == FBT_VECTOR_FLOAT)
+      {
+        auto [it, emplaced] = m_map.try_emplace(  key,
+                                                  VectorValue {.vec = FloatVector{VectorMemory::getPool()}, .extract = extractFloatV},
+                                                  CachedValue::VEC);
+
+        auto& vv = std::get<VectorValue>(it->second.value);
+        copyToMap<float, FloatVector>(source, vv);
+      }
+      else if constexpr (FlexT == FBT_VECTOR_BOOL)
+      {
+        auto [it, emplaced] = m_map.try_emplace(  key,
+                                                  VectorValue {.vec = BoolVector(VectorMemory::getPool()), .extract = extractBoolV},
+                                                  CachedValue::VEC);
+
+        auto& vv = std::get<VectorValue>(it->second.value);
+        copyToMap<bool, BoolVector>(source, vv);
+      }
+      else if constexpr (FlexT == FBT_VECTOR_KEY) // vector of strings
+      {
+        auto [it, emplaced] = m_map.try_emplace(  key,
+                                                  VectorValue {.vec = StringVector{VectorMemory::getPool()}, .extract = extractStringV},
+                                                  CachedValue::VEC);
+
+        auto& vv = std::get<VectorValue>(it->second.value);
+        copyToMap<std::pmr::string, StringVector>(source, vv);
       }
       else
-      {
-        auto dest = createFcVectorSized<ElementT>(source.size());
-        for (std::size_t i = 0 ; i < source.size() ; ++i)
-          dest[i] = source[i].template As<ElementT>();
-      
-        return dest;
-      }
+        static_assert(false, "Unsupported vector type");
     }
+
+
+    // template<typename ElementT>
+    // fc::Vector<ElementT> toFcVector(const flexbuffers::TypedVector& source)
+    // {
+    //   if constexpr (std::is_same_v<ElementT, std::pmr::string>)
+    //   {
+    //     auto dest = createFcVectorReserved<ElementT>(source.size());
+    //     for (std::size_t i = 0 ; i < source.size() ; ++i)
+    //       dest.emplace_back(source[i].AsString().c_str());
+      
+    //     return dest;
+    //   }
+    //   else
+    //   {
+    //     auto dest = createFcVectorSized<ElementT>(source.size());
+    //     for (std::size_t i = 0 ; i < source.size() ; ++i)
+    //       dest[i] = source[i].template As<ElementT>();
+      
+    //     return dest;
+    //   }
+    // }
 
   private:
     Map m_map;

@@ -157,7 +157,7 @@ void perfPmr(const int nKeys, const int nValuesPerKey)
   // memory already allocated.
   for (auto i = 0 ; i < nKeys ; ++i)
   {
-    auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, IntVector{fc::Memory::getPool()});
+    auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, IntVector{fc::VectorMemory::getPool()});
     auto& vec = std::get<IntVector>(it->second.value);
     vec.resize(nValuesPerKey);
     // don't add anything to the map, we've resized which forces the pool to allocate memory
@@ -180,7 +180,7 @@ void perfPmr(const int nKeys, const int nValuesPerKey)
   
     for (auto i = 0 ; i < nKeys ; ++i)
     {
-      auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, IntVector{fc::Memory::getPool()});
+      auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, IntVector{fc::VectorMemory::getPool()});
 
       auto& vec = std::get<IntVector>(it->second.value);
       vec.resize(nValuesPerKey);

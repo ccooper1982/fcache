@@ -58,10 +58,10 @@ namespace fc
   }
   
   
-  void CacheMap::extractCharV(FlexBuilder& fb, const char * key, const VectorValue& vv)
+  void CacheMap::extractString(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    const auto& charVector = std::get<CharVector>(vv.vec);
-    fb.String(key, charVector.data());
+    const auto& str = std::get<String>(vv.vec);
+    fb.String(key, str.data());
   }
 
 

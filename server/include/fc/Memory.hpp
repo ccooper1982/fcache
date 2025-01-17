@@ -131,20 +131,20 @@ namespace fc
   #endif
 
   
-  class Memory
+  class VectorMemory
   {
   private:
     // TODO std::pmr::pool_options, see if there are optimisations for larger chunk sizes,
     //      particularly with blobs which will likely be a factor larger
     #ifdef FC_DEBUG
-      Memory() :  m_fixedResource(1024),
+      VectorMemory() :  m_fixedResource(1024),
                   m_fixedPrint("Value Mono", &m_fixedResource),
                   m_poolResource(&m_fixedPrint),
                   m_poolPrint("Value Pool", &m_poolResource)
       {
       }
     #else
-      Memory() :  m_fixedResource(1024),  // this size is irrelevant: pool determines alloc sizes
+      VectorMemory() :  m_fixedResource(1024),  // this size is irrelevant: pool determines alloc sizes
                   m_poolResource(&m_fixedResource)
       {
       }
@@ -152,7 +152,7 @@ namespace fc
 
 
   public:
-    ~Memory() = default;
+    ~VectorMemory() = default;
 
 
     static std::pmr::memory_resource * getPool() noexcept
@@ -162,9 +162,9 @@ namespace fc
 
   private:
 
-    static Memory& get()
+    static VectorMemory& get()
     {
-      static Memory mem;
+      static VectorMemory mem;
       return mem;
     }
 
