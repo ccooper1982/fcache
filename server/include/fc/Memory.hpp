@@ -138,7 +138,7 @@ namespace fc
     //      particularly with blobs which will likely be a factor larger
     #ifdef FC_DEBUG
       Memory() :  m_fixedResource(1024),
-                  m_fixedPrint("Value Fixed", &m_fixedResource),
+                  m_fixedPrint("Value Mono", &m_fixedResource),
                   m_poolResource(&m_fixedPrint),
                   m_poolPrint("Value Pool", &m_poolResource)
       {
@@ -207,7 +207,7 @@ namespace fc
       MapMemory(std::function<void(std::byte *, const std::size_t)> checkF = nullptr) :
                   //m_mapFixedResource(m_buffer.data(), m_buffer.size(), std::pmr::null_memory_resource()),
                   m_mapFixedResource(1024),
-                  m_mapFixedPrint("Map Fixed", &m_mapFixedResource),
+                  m_mapFixedPrint("Map Mono", &m_mapFixedResource),
                   m_mapPoolResource(&m_mapFixedPrint),
                   m_mapPoolPrint("Map Pool", &m_mapPoolResource, checkF)
       {

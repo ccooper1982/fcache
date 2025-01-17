@@ -74,6 +74,7 @@ struct CV
 };
 
 
+/*
 static void checkMemory (std::byte * buffer, const std::size_t size)
 {
   PLOGE << "Checking Buffer: " << buffer << ", size: " << size;
@@ -107,6 +108,7 @@ static void checkMemory (std::byte * buffer, const std::size_t size)
     ++i;
   }
 }
+*/
 
 
 using clok = std::chrono::steady_clock;
@@ -176,7 +178,7 @@ void perfPmr(const int nKeys, const int nValuesPerKey)
   int total = 0;
   
   {
-    Timer t{"PMR Create"};
+    Timer t{"PMR Set 1"};
   
     for (auto i = 0 ; i < nKeys ; ++i)
     {
@@ -201,9 +203,27 @@ void perfPmr(const int nKeys, const int nValuesPerKey)
         total = std::accumulate(values.cbegin(), values.cend(), 0);
       }
     }
-  }  
+  }
+
+  // delete keys then add more
+  for (int i = 0 ; i < nKeys/10 ; ++i)
+    map.erase(std::pmr::string(std::to_string(i), alloc));
   
+  {
+    Timer t{"PMR Set 2"};
   
+    for (auto i = 0 ; i < nKeys/10 ; ++i)
+    {
+      auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, IntVector{fc::Memory::getPool()});
+
+      auto& vec = std::get<IntVector>(it->second.value);
+      vec.resize(nValuesPerKey);
+
+      int c = 0;
+      std::generate_n(vec.begin(), nValuesPerKey, [&c]{return c++;});
+    }
+  }
+
   PLOGI << total;
 }
 
@@ -218,19 +238,18 @@ void perfNormal(const int nKeys, const int nValuesPerKey)
 
   int total = 0;
   {
-    Timer t{"Create"};
+    Timer t{"Set 1"};
 
     for (auto i = 0 ; i < nKeys ; ++i)
     {
-      std::vector<int64_t> v{};
-      v.resize(nValuesPerKey);
+      auto [it, emplaced] = map.try_emplace(std::to_string(i), std::vector<int64_t> {});
+
+      auto& vec = std::get<std::vector<int64_t>>(it->second.value);
+      vec.resize(nValuesPerKey);
 
       int c = 0;
-      std::generate_n(v.begin(), nValuesPerKey, [&c]{return c++;});
-
-      map.emplace(std::to_string(i), std::move(v));
+      std::generate_n(vec.begin(), nValuesPerKey, [&c]{return c++;});
     }
-
   }
 
   {  
@@ -242,10 +261,29 @@ void perfNormal(const int nKeys, const int nValuesPerKey)
       total = std::accumulate(values.cbegin(), values.cend(), 0);
     }
   }
-  
-  PLOGI << total;
 
-  //dump(map);
+
+  // delete keys then add more
+  for (int i = 0 ; i < nKeys/10 ; ++i)
+    map.erase(std::to_string(i));
+
+
+  {
+    Timer t{"Set 2"};
+  
+    for (auto i = 0 ; i < nKeys ; ++i)
+    {
+      auto [it, emplaced] = map.try_emplace(std::to_string(i), std::vector<int64_t> {});
+
+      auto& vec = std::get<std::vector<int64_t>>(it->second.value);
+      vec.resize(nValuesPerKey);
+
+      int c = 0;
+      std::generate_n(vec.begin(), nValuesPerKey, [&c]{return c++;});
+    }
+  }
+  
+  PLOGI << total;    
 }
 
 
@@ -263,8 +301,8 @@ int main (int argc, char ** argv)
   // map.emplace("k3", v2);
 
   
-  perfNormal(10000, 100);
-  perfPmr(10000, 100);
+  perfNormal(100000, 10);
+  perfPmr(100000, 10);
 
   return 0;
 }
