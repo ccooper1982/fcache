@@ -37,8 +37,7 @@ namespace fc
 
 
     private:
-      std::string m_name;
-      std::pmr::memory_resource * m_upstream;
+      
 
       void * do_allocate(std::size_t bytes, std::size_t alignment) override
       {
@@ -123,9 +122,11 @@ namespace fc
     
 
       private:
+        std::string m_name;
+        std::pmr::memory_resource * m_upstream;
+        std::function<void(std::byte *, const std::size_t)> m_deallocCheck;
         std::size_t m_alloc = 0;
         std::size_t m_dealloc = 0;
-        std::function<void(std::byte *, const std::size_t)> m_deallocCheck;
     };
   #endif
 
@@ -204,14 +205,16 @@ namespace fc
   private:
     #ifdef FC_DEBUG
       MapMemory(std::function<void(std::byte *, const std::size_t)> checkF = nullptr) :
-                  m_mapFixedResource(m_buffer.data(), m_buffer.size(), std::pmr::null_memory_resource()),
+                  //m_mapFixedResource(m_buffer.data(), m_buffer.size(), std::pmr::null_memory_resource()),
+                  m_mapFixedResource(1024),
                   m_mapFixedPrint("Map Fixed", &m_mapFixedResource),
                   m_mapPoolResource(&m_mapFixedPrint),
                   m_mapPoolPrint("Map Pool", &m_mapPoolResource, checkF)
       {
       }
     #else
-      MapMemory() : m_mapFixedResource(m_buffer.data(), m_buffer.size()),
+      MapMemory() : //m_mapFixedResource(m_buffer.data(), m_buffer.size()),
+                    m_mapFixedResource(1024),
                     m_mapPoolResource(&m_mapFixedResource)
       {
       }
@@ -263,13 +266,13 @@ namespace fc
 
   private:
     #ifdef FC_DEBUG
-      std::array<std::uint8_t, 32768> m_buffer;
+      //std::array<std::uint8_t, 32768> m_buffer;
       std::pmr::monotonic_buffer_resource m_mapFixedResource;
       PrintResource m_mapFixedPrint;
       std::pmr::unsynchronized_pool_resource m_mapPoolResource;
       PrintResource m_mapPoolPrint;
     #else
-      std::array<std::uint8_t, 32768> m_buffer;
+      //std::array<std::uint8_t, 32768> m_buffer;
       std::pmr::monotonic_buffer_resource m_mapFixedResource;
       std::pmr::unsynchronized_pool_resource m_mapPoolResource;
     #endif

@@ -146,31 +146,47 @@ void dump (const M& m)
 }
 
 
-void perfPmr(const int nVectors, const int nValuesPerVector)
+void perfPmr(const int nKeys, const int nValuesPerKey)
 {
-  std::vector<std::pmr::string> keys;
-  keys.reserve(nVectors);
-  for(auto i =0 ; i < nVectors ; ++i)
-    keys.emplace_back(std::to_string(i));
-  
-
   std::pmr::polymorphic_allocator alloc{fc::MapMemory::getPool()};
   PmrMap map(alloc);
+
+
+  // warm up the pool: the pool will allocate memory. We can't do this with non-PMR version.
+  // we then clear the map, making the pool memory available for subsequent keys, with
+  // memory already allocated.
+  for (auto i = 0 ; i < nKeys ; ++i)
+  {
+    auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, IntVector{fc::Memory::getPool()});
+    auto& vec = std::get<IntVector>(it->second.value);
+    vec.resize(nValuesPerKey);
+    // don't add anything to the map, we've resized which forces the pool to allocate memory
+  }
+
+  map.clear();
+
+  // bunch of keys we'll later retrieve. build here rather than in the
+  // loop below to avoid skewing timing.
+  std::vector<std::pmr::string> keys;
+  keys.reserve(nKeys);
+  for(auto i =0 ; i < nKeys ; ++i)
+    keys.emplace_back(std::pmr::string{std::to_string(i), alloc});
+  
 
   int total = 0;
   
   {
     Timer t{"PMR Create"};
   
-    for (auto i = 0 ; i < nVectors ; ++i)
+    for (auto i = 0 ; i < nKeys ; ++i)
     {
       auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, IntVector{fc::Memory::getPool()});
 
       auto& vec = std::get<IntVector>(it->second.value);
-      vec.resize(nValuesPerVector);
+      vec.resize(nValuesPerKey);
 
       int c = 0;
-      std::generate_n(vec.begin(), nValuesPerVector, [&c]{return c++;});
+      std::generate_n(vec.begin(), nValuesPerKey, [&c]{return c++;});
     }
   }
 
@@ -179,8 +195,11 @@ void perfPmr(const int nVectors, const int nValuesPerVector)
 
     for (const auto& k : keys)
     {
-      const auto& values = std::get<IntVector>(map.at(k).value);
-      total = std::accumulate(values.cbegin(), values.cend(), 0);
+      if (const auto it = map.find(k); it != map.cend())
+      {
+        const auto& values = std::get<IntVector>(it->second.value);
+        total = std::accumulate(values.cbegin(), values.cend(), 0);
+      }
     }
   }  
   
@@ -189,10 +208,10 @@ void perfPmr(const int nVectors, const int nValuesPerVector)
 }
 
 
-void perfNormal(const int nVectors, const int nValuesPerVector)
+void perfNormal(const int nKeys, const int nValuesPerKey)
 {
-  std::vector<std::string> keys(nVectors);
-  for(auto i =0 ; i < nVectors ; ++i)
+  std::vector<std::string> keys(nKeys);
+  for(auto i =0 ; i < nKeys ; ++i)
     keys[i] = std::to_string(i);
 
   Map map;
@@ -201,13 +220,13 @@ void perfNormal(const int nVectors, const int nValuesPerVector)
   {
     Timer t{"Create"};
 
-    for (auto i = 0 ; i < nVectors ; ++i)
+    for (auto i = 0 ; i < nKeys ; ++i)
     {
       std::vector<int64_t> v{};
-      v.resize(nValuesPerVector);
+      v.resize(nValuesPerKey);
 
       int c = 0;
-      std::generate_n(v.begin(), nValuesPerVector, [&c]{return c++;});
+      std::generate_n(v.begin(), nValuesPerKey, [&c]{return c++;});
 
       map.emplace(std::to_string(i), std::move(v));
     }
@@ -244,8 +263,8 @@ int main (int argc, char ** argv)
   // map.emplace("k3", v2);
 
   
-  perfNormal(10000, 3000);
-  perfPmr(10000, 3000);
+  perfNormal(10000, 100);
+  perfPmr(10000, 100);
 
   return 0;
 }
