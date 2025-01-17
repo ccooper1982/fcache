@@ -10,6 +10,7 @@ namespace fc
   struct FixedValue;
   struct VectorValue;
 
+  static const uint8_t BytesPerStringLength = 3;
 
   using CachedKey = std::string;  // TODO change to std::pmr::string, requires some func signatures changed
   using KeyVector = flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>;  
@@ -35,35 +36,57 @@ namespace fc
     ExtractFixedF extract;
   };
 
- 
+   
   struct VectorValue
   {
-    std::variant< IntVector, UIntVector, FloatVector,
-                  String, StringVector, BoolVector,
-                  BlobVector> vec;
-    ExtractVectorF extract;
-  };
+    using allocator_type = std::pmr::polymorphic_allocator<uint8_t>;
+    
 
-  /*
-  Investigate treating vectors and string data as a bunch of bytes (BoB):
+    VectorValue() = default;
+    VectorValue(const VectorValue&) noexcept = default;
+    VectorValue(VectorValue&&) noexcept = default;
 
-  struct CachedValue
-  {
-    // FixedValue as it is now
+    VectorValue& operator= (const VectorValue& other) noexcept = default;
+    VectorValue& operator= (VectorValue&& other) noexcept = default;
 
-    // VectorValue doesn't differentiate types, it just stores a BoB.
-    // problem is a vector strings, need the length of string
-    // maybe: [str_len][...string...][str_len][...string...]
-    struct VectorValue
+
+    explicit VectorValue(const allocator_type& alloc) : data(alloc)
     {
-      std::vector<uint8_t> data;
-      FlexType type;
-    };
 
-    std::variant<FixedValue, VectorValue> value;
+    }
+
+    VectorValue(const std::pmr::vector<uint8_t>& d, const allocator_type& alloc) noexcept :
+      data(d, alloc)
+    {
+      
+    }
+
+    VectorValue(std::pmr::vector<uint8_t>&& d, const allocator_type& alloc) noexcept :
+      data(std::move(d), alloc)
+    {
+      
+    }
+
+    VectorValue (const VectorValue& other, const allocator_type& alloc) noexcept :
+      data(other.data, alloc),
+      extract(other.extract),
+      type(other.type) 
+    {    
+    }
+
+    VectorValue (VectorValue&& other, const allocator_type& alloc) noexcept :
+      data(std::move(other.data)),
+      extract(other.extract),
+      type(other.type)
+    {    
+    }
+
+    std::pmr::vector<uint8_t> data;
+    ExtractVectorF extract;
+    FlexType type;
   };
-  */
 
+  
   struct CachedValue
   {
     inline static const std::uint8_t FIXED = 0;
@@ -71,10 +94,11 @@ namespace fc
 
     using allocator_type = std::pmr::polymorphic_allocator<>;
 
+
     CachedValue() = default;
     CachedValue(const CachedValue&) noexcept = default;
     CachedValue(CachedValue&&) noexcept = default;
-    
+
     CachedValue& operator= (const CachedValue& other) noexcept = default;
     CachedValue& operator= (CachedValue&& other) noexcept = default;
 
@@ -83,11 +107,24 @@ namespace fc
     {    
     }
 
-    CachedValue (const FixedValue& v, const std::uint8_t type, const allocator_type& alloc) noexcept : value(v), valueType(FIXED)
+
+    CachedValue (const FixedValue& v, const std::uint8_t type, const allocator_type& alloc) noexcept :
+      value(v),
+      valueType(FIXED)
     {
     }
 
-    CachedValue (const VectorValue& v, const std::uint8_t type, const allocator_type& alloc) noexcept : value(v), valueType(VEC)
+
+    CachedValue (const VectorValue& v, const allocator_type& alloc) noexcept :
+      value(std::in_place_type<VectorValue>, v, alloc),
+      valueType(VEC)
+    {
+    }
+
+
+    CachedValue (VectorValue&& v, const allocator_type& alloc) noexcept :
+      value(std::in_place_type<VectorValue>, std::move(v), alloc),
+      valueType(VEC)
     {
     }
 
@@ -96,29 +133,32 @@ namespace fc
     {    
     }
 
-    CachedValue (CachedValue&& other, const allocator_type& alloc) noexcept : value(std::move(other.value))
+
+    CachedValue (CachedValue&& other, const allocator_type& alloc) noexcept :
+      value(std::move(other.value)),
+      valueType(other.valueType)
     {    
     }
 
     std::variant<FixedValue, VectorValue> value;
     std::uint8_t valueType;
   };
+  
 
-   
-  template<typename ElementT>
-  fc::Vector<ElementT> createFcVectorSized(const std::size_t size)
-  {
-    fc::Vector<ElementT> dest(VectorMemory::getPool());
-    dest.resize(size);
-    return dest;
-  }
+  // template<typename ElementT>
+  // fc::Vector<ElementT> createFcVectorSized(const std::size_t size)
+  // {
+  //   fc::Vector<ElementT> dest(VectorMemory::getPool());
+  //   dest.resize(size);
+  //   return dest;
+  // }
 
 
-  template<typename ElementT>
-  fc::Vector<ElementT> createFcVectorReserved(const std::size_t size)
-  {
-    fc::Vector<ElementT> dest(VectorMemory::getPool());
-    dest.reserve(size);
-    return dest;
-  }
+  // template<typename ElementT>
+  // fc::Vector<ElementT> createFcVectorReserved(const std::size_t size)
+  // {
+  //   fc::Vector<ElementT> dest(VectorMemory::getPool());
+  //   dest.reserve(size);
+  //   return dest;
+  // }
 }

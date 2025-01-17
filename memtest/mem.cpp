@@ -212,7 +212,7 @@ void perfPmr(const int nKeys, const int nValuesPerKey)
   
     for (auto i = 0 ; i < nKeys/10 ; ++i)
     {
-      auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, IntVector{fc::Memory::getPool()});
+      auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, IntVector{fc::VectorMemory::getPool()});
 
       auto& vec = std::get<IntVector>(it->second.value);
       vec.resize(nValuesPerKey);

@@ -157,8 +157,8 @@ async def lists():
 
 
 async def blob():
-  # Requires fcache is started with maxPayload to at least 
-  # size of the cat image which is 11,030 bytes
+  # Requires fcache is started with maxPayload to the size
+  # of the cat image which is (11,030bytes) + extra for flatbuffer
   # ./fcache --maxPayload=16384
   if (client := await connect()) is None:
     return
@@ -182,17 +182,32 @@ async def pmr():
   
   kv = KV(client)
 
-  await kv.set({'k1':[1,2,3,4]})
-  print(await kv.get(key='k1'))
+  # await kv.set({'k1':[1,2,3,4]})
+  # print(await kv.get(key='k1'))
 
-  await kv.set({'k2':['hello', 'world']})
-  print(await kv.get(key='k2'))
+  # await kv.set({'k2':[1.5,2.5]})
+  # print(await kv.get(key='k2'))
+
+  # await kv.set({'k3':[True, False, True, True, False]})
+  # print(await kv.get(key='k3'))
+
+  #await kv.set({'k4':['hello', 'world']})
+  #print(await kv.get(key='k4'))
+
+  await kv.set({'k5':'this is my another stirng'})
+  print(await kv.get(key='k5'))
+
+  # overwrite key
+  #await kv.set({'k1':[4,3,2,1]})
+  #print(await kv.get(key='k1'))
+
   
+
 
 if __name__ == "__main__":
   async def run():
     #for f in [lists, more, test, test2]:
-    for f in [pmr]:
+    for f in [blob]:
       print(f'---- {f.__name__} ----')
       await f()
   

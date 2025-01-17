@@ -140,12 +140,14 @@ namespace fc
       VectorMemory() :  m_fixedResource(1024),
                   m_fixedPrint("Value Mono", &m_fixedResource),
                   m_poolResource(&m_fixedPrint),
-                  m_poolPrint("Value Pool", &m_poolResource)
+                  m_poolPrint("Value Pool", &m_poolResource),
+                  m_alloc(&m_poolResource)
       {
       }
     #else
       VectorMemory() :  m_fixedResource(1024),  // this size is irrelevant: pool determines alloc sizes
-                  m_poolResource(&m_fixedResource)
+                        m_poolResource(&m_fixedResource),
+                        m_alloc(&m_poolResource)
       {
       }
     #endif
@@ -158,6 +160,11 @@ namespace fc
     static std::pmr::memory_resource * getPool() noexcept
     {
       return get().pool();
+    }
+
+    static std::pmr::polymorphic_allocator<>& alloc() noexcept
+    {
+      return get().m_alloc;
     }
 
   private:
@@ -183,11 +190,13 @@ namespace fc
       std::pmr::monotonic_buffer_resource m_fixedResource;
       PrintResource m_fixedPrint;
       std::pmr::unsynchronized_pool_resource m_poolResource;
-      PrintResource m_poolPrint;
+      PrintResource m_poolPrint;     
     #else
       std::pmr::monotonic_buffer_resource m_fixedResource;
       std::pmr::unsynchronized_pool_resource m_poolResource;
     #endif
+
+    std::pmr::polymorphic_allocator<> m_alloc;
   };
 
   

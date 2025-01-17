@@ -3,27 +3,18 @@
 
 namespace fc
 {
-  template<typename V>
-  static void toTypedVector (FlexBuilder& fb, const char * key, const VectorValue& vv)
+  template<typename T>
+  static void toTypedVector(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    const auto& values = std::get<V>(vv.vec);
-
-    if constexpr (std::is_same_v<V, StringVector>)
+    fb.TypedVector(key, [&data = vv.data, &fb]
     {
-      fb.TypedVector(key, [&values, &fb]()
+      for (std::size_t i = 0 ; i < data.size() ; i += sizeof(T))
       {
-        for (const auto& value : values)
-          fb.String(value.data());
-      }); 
-    }
-    else
-    {
-      fb.TypedVector(key, [&values, &fb]
-      {
-        for (const auto val : values)
-          fb.Add(val);
-      });
-    }
+        T v{};
+        std::memcpy(&v, data.data()+i, sizeof(T));
+        fb.Add(v);
+      }
+    });
   }
 
   
@@ -53,44 +44,61 @@ namespace fc
 
   void CacheMap::extractBlob(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    const auto& vec = std::get<BlobVector>(vv.vec);
-    fb.Blob(key, vec.data(), vec.size());
+    const auto buffer = vv.data.data();
+
+    std::uint32_t size{0};
+    std::memcpy(&size, buffer, sizeof(std::uint32_t));
+
+    fb.Blob(key, buffer+sizeof(std::uint32_t), size);
   }
   
   
   void CacheMap::extractString(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    const auto& str = std::get<String>(vv.vec);
-    fb.String(key, str.data());
+    const char * buffer = reinterpret_cast<const char*>(vv.data.data());
+    const std::string_view sv{buffer};
+    fb.String(key, sv.data());
   }
 
 
   void CacheMap::extractStringV(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    toTypedVector<StringVector>(fb, key, vv);
+    const char * buffer = reinterpret_cast<const char*>(vv.data.data());
+
+    fb.TypedVector(key, [&fb, buffer, size = vv.data.size()]() mutable
+    {
+      for (std::size_t i = 0 ; i < size ; )
+      {
+        const std::string_view sv{buffer+i};
+
+        fb.String(sv.data());
+
+        i += sv.size()+1; // length of string, +1 to skip '\0'
+      }
+    });
   }
 
 
   void CacheMap::extractIntV(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    toTypedVector<IntVector>(fb, key, vv);
+    toTypedVector<int64_t>(fb, key, vv);
   }
 
 
   void CacheMap::extractUIntV(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    toTypedVector<UIntVector>(fb, key, vv);
+    toTypedVector<uint64_t>(fb, key, vv);
   }
 
 
   void CacheMap::extractFloatV(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    toTypedVector<FloatVector>(fb, key, vv);
+    toTypedVector<float>(fb, key, vv);
   }
 
 
   void CacheMap::extractBoolV(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    toTypedVector<BoolVector>(fb, key, vv);
+    toTypedVector<bool>(fb, key, vv);
   }
 }

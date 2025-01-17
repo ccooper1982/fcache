@@ -21,7 +21,7 @@ namespace fc
 
     }
 
-    CacheMap& operator=(CacheMap&&) = default; // required by Map::erase()
+    CacheMap& operator=(CacheMap&&) = default;
     CacheMap(CacheMap&&) = default;
 
     CacheMap& operator=(const CacheMap&) = delete;
@@ -48,7 +48,7 @@ namespace fc
 
         const std::pmr::string pmrKey{key, MapMemory::getPool()};
 
-        // set and add both insert if key not exist
+        // set and add commands both emplace if does not exist
         if (const auto it = m_map.find(pmrKey) ; it == m_map.end())
         {
           FixedValue fv {.value = value, .extract = extract};
@@ -80,13 +80,12 @@ namespace fc
         
         if (const auto it = m_map.find(pmrKey) ; it == m_map.end())
         {
-          makeVectorValue<FlexT>(pmrKey, v);
+          storeVectorValue<FlexT>(pmrKey, v);
         }
         else if (IsSet)
         {
-          PLOGE << "TODO";
-          //it->second.value
-          //it->second.valueType = CachedValue::VEC;
+          // key already exists, so only replace value if it's a set command
+          storeVectorValue<FlexT>(it, v);
         }
       }
       catch(const std::exception& e)
@@ -108,18 +107,13 @@ namespace fc
         
         if (const auto it = m_map.find(pmrKey) ; it == m_map.end())
         {
-          m_map.try_emplace(pmrKey,
-                            VectorValue {.vec = String{str, VectorMemory::getPool()}, .extract = extractString},
-                            CachedValue::VEC);
+          auto [itEmplaced, _] = m_map.try_emplace(pmrKey, VectorValue{});
+          stringToMap(itEmplaced, str);
         }
         else if (IsSet)
         {
-          PLOGE << "TODO";
-          //it->second.value
-          //it->second.valueType = CachedValue::VEC;
+          stringToMap(it, str);
         }
-
-        //insertVectorValue<IsSet>(key, makeVectorValue<FlexT>(v));
       }
       catch(const std::exception& e)
       {
@@ -140,20 +134,12 @@ namespace fc
         
         if (const auto it = m_map.find(pmrKey) ; it == m_map.end())
         {
-          auto [itEmplaced, emplaced] = m_map.try_emplace(pmrKey,
-                                                  VectorValue {.vec = BlobVector{VectorMemory::getPool()}, .extract = extractBlob},
-                                                  CachedValue::VEC);
-
-          auto& vv = std::get<VectorValue>(itEmplaced->second.value);
-          auto& dest = std::get<BlobVector>(vv.vec);
-          dest.resize(blob.size());
-          std::memcpy(dest.data(), blob.data(), blob.size());
+          auto [itEmplaced, _] = m_map.try_emplace(pmrKey, VectorValue{});
+          blobToMap(itEmplaced, blob);
         }
         else if (IsSet)
         {
-          PLOGE << "TODO";
-          //it->second.value
-          //it->second.valueType = CachedValue::VEC;
+          blobToMap(it, blob);
         }
       }
       catch(const std::exception& e)
@@ -265,105 +251,116 @@ namespace fc
     static void extractString(FlexBuilder& fb, const char * key, const VectorValue& vv);
     
 
-    VectorValue makeBlobVectorValue (const std::uint8_t * data, const std::size_t size)
+    template<FlexType FlexT>
+    void storeVectorValue (const std::pmr::string& pmrKey, const flexbuffers::TypedVector& v)
     {
-      auto vec = createFcVectorSized<uint8_t>(size);
-      std::memcpy(vec.data(), data, size);
-      return VectorValue {.vec = std::move(vec), .extract = extractBlob};
-    }
-
-
-    template<typename ElementT, typename VectorT>
-    void copyToMap (const flexbuffers::TypedVector& source, VectorValue& vv) 
-    {
-      auto& dest = std::get<VectorT>(vv.vec);
-      dest.resize(source.size());
-
-      for (std::size_t i = 0 ; i < source.size() ; ++i)
-      {
-        if constexpr (std::is_same_v<ElementT, std::pmr::string>)
-          dest[i].assign(source[i].AsString().c_str());
-        else
-          dest[i] = source[i].template As<ElementT>();
-      }
+      // this function is only called if the key is not in the map, so
+      // no need to check second return value of try_emplace()
+      auto [it, _] = m_map.try_emplace(pmrKey, VectorValue{});
+      storeVectorValue<FlexT>(it, v);
     }
 
 
     template<FlexType FlexT>
-    void makeVectorValue (const std::pmr::string& key, const flexbuffers::TypedVector& source)
+    void storeVectorValue (const Map::iterator it, const flexbuffers::TypedVector& v)
     {
-      // TODO this can be tidied
-
       if constexpr (FlexT == FBT_VECTOR_INT)
-      {
-        auto [it, emplaced] = m_map.try_emplace(  key,
-                                                  VectorValue {.vec = IntVector{VectorMemory::getPool()}, .extract = extractIntV},
-                                                  CachedValue::VEC);
-
-        auto& vv = std::get<VectorValue>(it->second.value);
-        copyToMap<int64_t, IntVector>(source, vv);
-      }
+        scalarsToMap<int64_t>(it, v, FlexT, extractIntV) ;
       else if constexpr (FlexT == FBT_VECTOR_UINT)
-      {
-        auto [it, emplaced] = m_map.try_emplace(  key,
-                                                  VectorValue {.vec = UIntVector{VectorMemory::getPool()}, .extract = extractUIntV},
-                                                  CachedValue::VEC);
-
-        auto& vv = std::get<VectorValue>(it->second.value);
-        copyToMap<uint64_t, UIntVector>(source, vv);
-      }
-      else if constexpr (FlexT == FBT_VECTOR_FLOAT)
-      {
-        auto [it, emplaced] = m_map.try_emplace(  key,
-                                                  VectorValue {.vec = FloatVector{VectorMemory::getPool()}, .extract = extractFloatV},
-                                                  CachedValue::VEC);
-
-        auto& vv = std::get<VectorValue>(it->second.value);
-        copyToMap<float, FloatVector>(source, vv);
-      }
+        scalarsToMap<uint64_t>(it, v, FlexT, extractUIntV) ;
       else if constexpr (FlexT == FBT_VECTOR_BOOL)
-      {
-        auto [it, emplaced] = m_map.try_emplace(  key,
-                                                  VectorValue {.vec = BoolVector(VectorMemory::getPool()), .extract = extractBoolV},
-                                                  CachedValue::VEC);
-
-        auto& vv = std::get<VectorValue>(it->second.value);
-        copyToMap<bool, BoolVector>(source, vv);
-      }
+        scalarsToMap<bool>(it, v, FlexT, extractBoolV) ;
+      else if constexpr (FlexT == FBT_VECTOR_FLOAT)
+        scalarsToMap<float>(it, v, FlexT, extractFloatV) ;
       else if constexpr (FlexT == FBT_VECTOR_KEY) // vector of strings
-      {
-        auto [it, emplaced] = m_map.try_emplace(  key,
-                                                  VectorValue {.vec = StringVector{VectorMemory::getPool()}, .extract = extractStringV},
-                                                  CachedValue::VEC);
-
-        auto& vv = std::get<VectorValue>(it->second.value);
-        copyToMap<std::pmr::string, StringVector>(source, vv);
-      }
-      else
-        static_assert(false, "Unsupported vector type");
+        stringsToMap(it, v);
     }
 
 
-    // template<typename ElementT>
-    // fc::Vector<ElementT> toFcVector(const flexbuffers::TypedVector& source)
-    // {
-    //   if constexpr (std::is_same_v<ElementT, std::pmr::string>)
-    //   {
-    //     auto dest = createFcVectorReserved<ElementT>(source.size());
-    //     for (std::size_t i = 0 ; i < source.size() ; ++i)
-    //       dest.emplace_back(source[i].AsString().c_str());
+    template<typename ScalarT>
+    void scalarsToMap (const Map::iterator it, const flexbuffers::TypedVector& v,
+                      const FlexType flexType, const ExtractVectorF extract)
+    {
+      const std::size_t size = sizeof(ScalarT) * v.size();
       
-    //     return dest;
-    //   }
-    //   else
-    //   {
-    //     auto dest = createFcVectorSized<ElementT>(source.size());
-    //     for (std::size_t i = 0 ; i < source.size() ; ++i)
-    //       dest[i] = source[i].template As<ElementT>();
+      auto& vec = std::get<CachedValue::VEC>(it->second.value);
+      vec.type = flexType;
+      vec.extract = extract;
+      vec.data.resize(size);
+
+      for (std::size_t i = 0, j = 0 ; i < v.size() ; ++i)
+      {
+        const auto val = v[i].As<ScalarT>();
+        std::memcpy(vec.data.data()+j, &val, sizeof(ScalarT));
+        j += sizeof(ScalarT);
+      }
+    }
+
+
+    void stringsToMap(const Map::iterator it, const flexbuffers::TypedVector& v)
+    {
+      // strings are appended together, using the null terminator as a delimiter
+
+      // get total length of all strings
+      std::size_t totalLength{0};
+      for (std::size_t s = 0 ; s < v.size() ; ++s)
+        totalLength += v[s].AsString().length();
+
+      auto& vec = std::get<CachedValue::VEC>(it->second.value);
+      vec.type = FBT_VECTOR_KEY;
+      vec.extract = extractStringV;
+      vec.data.resize(totalLength + v.size());
+
+      auto buffer = vec.data.data();
+
+      // for each string
+      std::size_t dest = 0;
+
+      for (std::size_t s = 0 ; s < v.size() ; ++s)
+      {
+        const auto len = v[s].AsString().length();
+        
+        std::memcpy(buffer+dest, v[s].AsString().c_str(), len);
+        dest += len;
+        buffer[dest++] = '\0';        
+      }
+    }
+
+
+    void stringToMap(const Map::iterator it, const std::string_view& str)
+    {
+      const std::size_t totalLength = str.size() + 1; // +1 for '\0'
       
-    //     return dest;
-    //   }
-    // }
+      auto& vec = std::get<CachedValue::VEC>(it->second.value);
+      vec.type = FBT_STRING;
+      vec.extract = extractString;
+      vec.data.resize(totalLength);
+
+      auto buffer = vec.data.data();
+      std::memcpy(buffer, str.data(), str.size());
+      buffer[str.size()] = '\0';
+    }
+
+
+    void blobToMap(const Map::iterator it, const flexbuffers::Blob& blob)
+    {
+      // [blob_len][blob_data]
+      // where blob_len is uint32_t
+
+      const auto blobSize = blob.size();
+      const auto bufferSize = blobSize + sizeof(std::uint32_t);
+      
+      auto& vec = std::get<CachedValue::VEC>(it->second.value);
+      vec.type = FBT_BLOB;
+      vec.extract = extractBlob;
+      vec.data.resize(bufferSize);
+
+      auto buffer = vec.data.data();
+
+      std::memcpy(buffer, &blobSize, sizeof(std::uint32_t));
+      std::memcpy(buffer+sizeof(std::uint32_t), blob.data(), blob.size());
+    }
+
 
   private:
     Map m_map;
