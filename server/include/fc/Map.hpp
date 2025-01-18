@@ -51,13 +51,12 @@ namespace fc
         // set and add commands both emplace if does not exist
         if (const auto it = m_map.find(pmrKey) ; it == m_map.end())
         {
-          FixedValue fv {.value = value, .extract = extract};
-          m_map.try_emplace(pmrKey, fv, CachedValue::FIXED);
+          m_map.try_emplace(pmrKey, FixedValue{value, extract});
         }
         else if constexpr (IsSet)
         {
           // but only set overwrites existing
-          it->second.value = FixedValue {.value = value, .extract = extract};
+          it->second.value = FixedValue {value, extract};
           it->second.valueType = CachedValue::FIXED;
         }
         return true;

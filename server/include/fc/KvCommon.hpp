@@ -18,6 +18,21 @@ namespace fc
 
   struct FixedValue
   {
+    template<typename ScalarT>
+    FixedValue (const ScalarT v, ExtractFixedF extract) noexcept :
+      value(v),
+      extract(std::move(extract))
+    {
+    }
+
+    FixedValue() = default;
+    FixedValue(const FixedValue&) noexcept = default;
+    FixedValue(FixedValue&&) noexcept = default;
+
+    FixedValue& operator= (const FixedValue& other) noexcept = default;
+    FixedValue& operator= (FixedValue&& other) noexcept = default;
+
+
     std::variant<std::int64_t, std::uint64_t, float, bool> value;
     ExtractFixedF extract;
   };
@@ -66,6 +81,7 @@ namespace fc
       type(other.type)
     {    
     }
+    
 
     std::pmr::vector<uint8_t> data;
     ExtractVectorF extract;
@@ -93,13 +109,17 @@ namespace fc
     {    
     }
 
-
-    CachedValue (const FixedValue& v, const std::uint8_t type, const allocator_type& alloc) noexcept :
-      value(v),
+    CachedValue (const FixedValue& v, const allocator_type& alloc) noexcept :
+      value(std::in_place_type<FixedValue>, v),
       valueType(FIXED)
     {
     }
 
+    CachedValue (FixedValue&& v, const allocator_type& alloc) noexcept :
+      value(std::in_place_type<FixedValue>, v),
+      valueType(FIXED)
+    {
+    }
 
     CachedValue (const VectorValue& v, const allocator_type& alloc) noexcept :
       value(std::in_place_type<VectorValue>, v, alloc),
@@ -107,24 +127,22 @@ namespace fc
     {
     }
 
-
     CachedValue (VectorValue&& v, const allocator_type& alloc) noexcept :
       value(std::in_place_type<VectorValue>, std::move(v), alloc),
       valueType(VEC)
     {
     }
 
-
     CachedValue (const CachedValue& other, const allocator_type& alloc) noexcept : value(other.value)
     {    
     }
-
 
     CachedValue (CachedValue&& other, const allocator_type& alloc) noexcept :
       value(std::move(other.value)),
       valueType(other.valueType)
     {    
     }
+
 
     std::variant<FixedValue, VectorValue> value;
     std::uint8_t valueType;
