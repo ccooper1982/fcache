@@ -85,6 +85,8 @@ namespace fc
         else if (IsSet)
         {
           // key already exists, so only replace value if it's a set command
+          it->second.valueType = CachedValue::VEC;
+          it->second.value = VectorValue{};
           storeVectorValue<FlexT>(it, v);
         }
       }
@@ -112,6 +114,9 @@ namespace fc
         }
         else if (IsSet)
         {
+          it->second.valueType = CachedValue::VEC;
+          it->second.value = VectorValue{};
+
           stringToMap(it, str);
         }
       }
@@ -139,6 +144,8 @@ namespace fc
         }
         else if (IsSet)
         {
+          it->second.valueType = CachedValue::VEC;
+          it->second.value = VectorValue{};
           blobToMap(it, blob);
         }
       }
@@ -283,7 +290,7 @@ namespace fc
     {
       const std::size_t size = sizeof(ScalarT) * v.size();
       
-      auto& vec = std::get<CachedValue::VEC>(it->second.value);
+      auto& vec = std::get<CachedValue::VEC>(it->second.value);      
       vec.type = flexType;
       vec.extract = extract;
       vec.data.resize(size);

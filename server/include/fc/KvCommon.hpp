@@ -144,21 +144,4 @@ namespace fc
     std::uint8_t valueType;
   };
   
-
-  // template<typename ElementT>
-  // fc::Vector<ElementT> createFcVectorSized(const std::size_t size)
-  // {
-  //   fc::Vector<ElementT> dest(VectorMemory::getPool());
-  //   dest.resize(size);
-  //   return dest;
-  // }
-
-
-  // template<typename ElementT>
-  // fc::Vector<ElementT> createFcVectorReserved(const std::size_t size)
-  // {
-  //   fc::Vector<ElementT> dest(VectorMemory::getPool());
-  //   dest.reserve(size);
-  //   return dest;
-  // }
 }
