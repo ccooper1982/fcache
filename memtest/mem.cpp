@@ -16,19 +16,6 @@
 static plog::ColorConsoleAppender<fc::FcFormatter> consoleAppender;
 
 
-template<typename T>
-using Vector = std::pmr::vector<T>;
-
-using IntVector = Vector<std::int64_t>;
-using UIntVector = Vector<std::uint64_t>;
-using FloatVector = Vector<float>;
-using BoolVector = Vector<bool>;
-using CharVector = Vector<char>; 
-using StringVector = Vector<std::pmr::string>;  // TODO, perhaps Vector<CharVector>
-using BlobVector = Vector<uint8_t>;
-
-
-
 // not PMR aware
 struct VectorValue
 {
@@ -192,19 +179,6 @@ struct Timer
   std::string name;
 };
 
-
-template<typename M>
-void dump (const M& m)
-{
-  for (const auto& pair : m)
-  {
-    if constexpr (std::is_same_v<M, PmrMap>)
-      PLOGE << pair.first << "=" << std::get<IntVector>(pair.second.value);
-    else
-      PLOGE << pair.first << "=" << std::get<std::vector<int64_t>>(pair.second.value);
-  }
-    
-}
 
 
 void perfPmr(const uint64_t nKeys, const uint64_t nValuesPerKey)
