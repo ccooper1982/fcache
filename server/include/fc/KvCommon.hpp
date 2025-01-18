@@ -10,26 +10,12 @@ namespace fc
   struct FixedValue;
   struct VectorValue;
 
-  static const uint8_t BytesPerStringLength = 3;
-
   using CachedKey = std::string;  // TODO change to std::pmr::string, requires some func signatures changed
   using KeyVector = flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>;  
   using ExtractFixedF = void (*)(FlexBuilder&, const char * key, const FixedValue&);
   using ExtractVectorF = void (*)(FlexBuilder&, const char * key, const VectorValue&);
 
 
-  template<typename T>
-  using Vector = std::pmr::vector<T>;
-
-  using IntVector = Vector<std::int64_t>;
-  using UIntVector = Vector<std::uint64_t>;
-  using FloatVector = Vector<float>;
-  using BoolVector = Vector<bool>;
-  using String = std::pmr::string; 
-  using StringVector = Vector<std::pmr::string>;
-  using BlobVector = Vector<uint8_t>;
-
-  
   struct FixedValue
   {
     std::variant<std::int64_t, std::uint64_t, float, bool> value;

@@ -27,10 +27,9 @@ namespace fc
     class PrintResource : public std::pmr::memory_resource
     {
     public:
-      PrintResource(std::string name, std::pmr::memory_resource* upstream, std::function<void(std::byte *, const std::size_t)> deallocCheck = nullptr)
+      PrintResource(std::string name, std::pmr::memory_resource* upstream)
           : m_name(std::move(name)),
-            m_upstream(upstream),
-            m_deallocCheck(deallocCheck)
+            m_upstream(upstream)
       {
         assert(upstream);
       }
@@ -105,12 +104,9 @@ namespace fc
 
       void do_deallocate(void* p, std::size_t bytes, std::size_t alignment) override
       {
-        // PLOGD << m_name << " DEALLOC: Address: " << p << " Size: " << bytes <<
-        //                    " Data: " << format_destroyed_bytes(static_cast<std::byte*>(p), bytes);
+        PLOGD << m_name << " DEALLOC: Address: " << p << " Size: " << bytes <<
+                           " Data: " << format_destroyed_bytes(static_cast<std::byte*>(p), bytes);
         
-        // if (m_deallocCheck)
-        //   m_deallocCheck(static_cast<std::byte*>(p), bytes);
-
         m_upstream->deallocate(p, bytes, alignment);
       }
 
@@ -124,13 +120,80 @@ namespace fc
       private:
         std::string m_name;
         std::pmr::memory_resource * m_upstream;
-        std::function<void(std::byte *, const std::size_t)> m_deallocCheck;
         std::size_t m_alloc = 0;
         std::size_t m_dealloc = 0;
     };
   #endif
 
   
+
+  // This contains the resources used by the cache map (ankerl::unordered_dense::map).
+  // The key (std::pmr::string) and value (CachedValue) are placed in pooled memory.
+  // If the CachedValue contains a VectorValue, it uses the VectorMemory below.
+  class MapMemory
+  {
+  private:
+    #ifdef FC_DEBUG
+      MapMemory() : //m_mapFixedResource(m_buffer.data(), m_buffer.size(), std::pmr::null_memory_resource()),
+                    m_mapFixedResource(1024),
+                    m_mapFixedPrint("Map Mono", &m_mapFixedResource),
+                    m_mapPoolResource(&m_mapFixedPrint),
+                    m_mapPoolPrint("Map Pool", &m_mapPoolResource)
+      {
+      }
+    #else
+      MapMemory() : //m_mapFixedResource(m_buffer.data(), m_buffer.size()),
+                    m_mapFixedResource(1024),
+                    m_mapPoolResource(&m_mapFixedResource)
+      {
+      }
+    #endif
+
+
+  public:
+    ~MapMemory() = default;
+
+    static std::pmr::memory_resource * getPool() noexcept
+    {
+      return get().pool();
+    }
+
+  private:
+
+    static MapMemory& get()
+    {
+      static MapMemory mem;
+      return mem;
+    }
+    
+
+    std::pmr::memory_resource * pool() noexcept
+    {
+      #ifdef FC_DEBUG
+        return &m_mapPoolPrint; 
+      #else
+        return &m_mapPoolResource;     
+      #endif
+    }
+
+
+  private:
+    #ifdef FC_DEBUG
+      //std::array<std::uint8_t, 32768> m_buffer;
+      std::pmr::monotonic_buffer_resource m_mapFixedResource;
+      PrintResource m_mapFixedPrint;
+      std::pmr::unsynchronized_pool_resource m_mapPoolResource;
+      PrintResource m_mapPoolPrint;
+    #else
+      //std::array<std::uint8_t, 32768> m_buffer;
+      std::pmr::monotonic_buffer_resource m_mapFixedResource;
+      std::pmr::unsynchronized_pool_resource m_mapPoolResource;
+    #endif
+  };
+
+
+  // This pool is used by VectorValue to store vectors of scalars types,
+  // and also strings (treated as a vector chars).
   class VectorMemory
   {
   private:
@@ -138,10 +201,10 @@ namespace fc
     //      particularly with blobs which will likely be a factor larger
     #ifdef FC_DEBUG
       VectorMemory() :  m_fixedResource(1024),
-                  m_fixedPrint("Value Mono", &m_fixedResource),
-                  m_poolResource(&m_fixedPrint),
-                  m_poolPrint("Value Pool", &m_poolResource),
-                  m_alloc(&m_poolResource)
+                        m_fixedPrint("Value Mono", &m_fixedResource),
+                        m_poolResource(&m_fixedPrint),
+                        m_poolPrint("Value Pool", &m_poolResource),
+                        m_alloc(&m_poolResource)
       {
       }
     #else
@@ -197,93 +260,5 @@ namespace fc
     #endif
 
     std::pmr::polymorphic_allocator<> m_alloc;
-  };
-
-  
-  // This contains the resources used by the cache map (ankerl::unordered_dense::map).
-  // This is to ensure the key (std::pmr::string) and value (CachedValue) are placed in
-  // pooled memory.
-  //
-  // This class has some debugging code, which will be removed and tidied. It is used in memtest 
-  // to convince myself data is being stored in memory allocated by the pool.
-  //
-  // The checkF function is called from the PrintResource::do_deallocate(). The checkF() checks through the
-  // pool's memory to find particular data (proving the map's value are infact in the pool's memory as expected).
-  class MapMemory
-  {
-  private:
-    #ifdef FC_DEBUG
-      MapMemory(std::function<void(std::byte *, const std::size_t)> checkF = nullptr) :
-                  //m_mapFixedResource(m_buffer.data(), m_buffer.size(), std::pmr::null_memory_resource()),
-                  m_mapFixedResource(1024),
-                  m_mapFixedPrint("Map Mono", &m_mapFixedResource),
-                  m_mapPoolResource(&m_mapFixedPrint),
-                  m_mapPoolPrint("Map Pool", &m_mapPoolResource, checkF)
-      {
-      }
-    #else
-      MapMemory() : //m_mapFixedResource(m_buffer.data(), m_buffer.size()),
-                    m_mapFixedResource(1024),
-                    m_mapPoolResource(&m_mapFixedResource)
-      {
-      }
-    #endif
-
-
-  public:
-    ~MapMemory() = default;
-
-
-    #ifdef FC_DEBUG
-      static std::pmr::memory_resource * getPool(std::function<void(std::byte *, const std::size_t)> checkF = nullptr) noexcept
-      {
-        return get(checkF).pool();
-      }
-    #else
-      static std::pmr::memory_resource * getPool() noexcept
-      {
-        return get().pool();
-      }
-    #endif
-
-  private:
-
-    #ifdef FC_DEBUG
-      static MapMemory& get(std::function<void(std::byte *, const std::size_t)> checkF)
-      {
-        static MapMemory mem{checkF};
-        return mem;
-      }
-    #else
-      static MapMemory& get()
-      {
-        static MapMemory mem;
-        return mem;
-      }
-    #endif
-    
-
-    std::pmr::memory_resource * pool() noexcept
-    {
-      #ifdef FC_DEBUG
-        return &m_mapPoolPrint; 
-      #else
-        return &m_mapPoolResource;     
-      #endif
-    }
-
-
-  private:
-    #ifdef FC_DEBUG
-      //std::array<std::uint8_t, 32768> m_buffer;
-      std::pmr::monotonic_buffer_resource m_mapFixedResource;
-      PrintResource m_mapFixedPrint;
-      std::pmr::unsynchronized_pool_resource m_mapPoolResource;
-      PrintResource m_mapPoolPrint;
-    #else
-      //std::array<std::uint8_t, 32768> m_buffer;
-      std::pmr::monotonic_buffer_resource m_mapFixedResource;
-      std::pmr::unsynchronized_pool_resource m_mapPoolResource;
-    #endif
   };
 }
