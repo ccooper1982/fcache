@@ -363,14 +363,19 @@ struct KVContains FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_KEYS = 4
   };
-  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *keys() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_KEYS);
+  const ::flatbuffers::Vector<uint8_t> *keys() const {
+    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_KEYS);
+  }
+  flexbuffers::Reference keys_flexbuffer_root() const {
+    const auto _f = keys();
+    return _f ? flexbuffers::GetRoot(_f->Data(), _f->size())
+              : flexbuffers::Reference();
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_KEYS) &&
            verifier.VerifyVector(keys()) &&
-           verifier.VerifyVectorOfStrings(keys()) &&
+           flexbuffers::VerifyNestedFlexBuffer(keys(), verifier) &&
            verifier.EndTable();
   }
 };
@@ -379,7 +384,7 @@ struct KVContainsBuilder {
   typedef KVContains Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_keys(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> keys) {
+  void add_keys(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> keys) {
     fbb_.AddOffset(KVContains::VT_KEYS, keys);
   }
   explicit KVContainsBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
@@ -395,7 +400,7 @@ struct KVContainsBuilder {
 
 inline ::flatbuffers::Offset<KVContains> CreateKVContains(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> keys = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> keys = 0) {
   KVContainsBuilder builder_(_fbb);
   builder_.add_keys(keys);
   return builder_.Finish();
@@ -403,8 +408,8 @@ inline ::flatbuffers::Offset<KVContains> CreateKVContains(
 
 inline ::flatbuffers::Offset<KVContains> CreateKVContainsDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *keys = nullptr) {
-  auto keys__ = keys ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*keys) : 0;
+    const std::vector<uint8_t> *keys = nullptr) {
+  auto keys__ = keys ? _fbb.CreateVector<uint8_t>(*keys) : 0;
   return fc::response::CreateKVContains(
       _fbb,
       keys__);

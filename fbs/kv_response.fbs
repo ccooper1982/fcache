@@ -40,9 +40,8 @@ table KVCount
 
 table KVContains
 {
-  keys:[string];
+  keys:[ubyte] (flexbuffer);
 }
-
 
 table KVClear
 {

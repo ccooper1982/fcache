@@ -106,9 +106,14 @@ namespace fc
       createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVContains);
     else
     {
-      const auto keysOffsets = m_map.contains(fbb, *contains.keys());
-      const auto body = fc::response::CreateKVContains(fbb, keysOffsets);
-      const auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_KVContains, body.Union());
+      FlexBuilder flxb;
+      m_map.contains(flxb, *contains.keys());
+      flxb.Finish();
+
+      const auto vec = fbb.CreateVector(flxb.GetBuffer());
+      const auto body = fc::response::CreateKVContains(fbb, vec);
+        
+      auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_KVContains, body.Union());
       fbb.Finish(rsp);
     }
   }

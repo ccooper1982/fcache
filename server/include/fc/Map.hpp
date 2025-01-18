@@ -212,28 +212,20 @@ namespace fc
       }
     };
 
-    
-    flatbuffers::Offset<KeyVector> contains (FlatBuilder& fb, const KeyVector& keys) const
+
+    void contains (FlexBuilder& fb, const KeyVector& keys) const
     {
-      // TODO change this response to use a flexbuffer, responding with a TypedVector (FBT_VECTOR_KEY)
-
-      // Building a flatbuffer vector, we need to know the length of the vector at construction.
-      // We don't know that until we've checked which keys exist.
-      // There may be a better way of doing this.
-      std::vector<CachedKey> keysExist;
-      keysExist.reserve(keys.size());
-
-      for (const auto& key : keys)
+      fb.TypedVector([&keys, &fb, this]()
       {
-        const auto& stdString = key->str();
-        const std::pmr::string pmrKey{key->str(), MapMemory::getPool()};
+        for (const auto key : keys)
+        {
+          const std::pmr::string pmrKey{key->str(), MapMemory::getPool()};
 
-        if (m_map.contains(pmrKey))
-          keysExist.emplace_back(stdString);
-      }
-      
-      return fb.CreateVectorOfStrings(keysExist.cbegin(), keysExist.cend());
-    };
+          if (m_map.contains(pmrKey))
+            fb.String(key->c_str());
+        }
+      });      
+    }
 
 
     std::size_t count() const noexcept

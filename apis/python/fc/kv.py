@@ -123,12 +123,8 @@ class KV:
       union_body = KVContainsRsp.KVContains()
       union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
       
-      # The API does not return all strings in an iterable, you have to request
-      # each item by index. And each is returned as bytes rather than str
-      exist = set()
-      for i in range(union_body.KeysLength()):
-        exist.add(union_body.Keys(i).decode('utf-8'))
-      return exist
+      result = flatbuffers.flexbuffers.Loads(union_body.KeysAsNumpy().tobytes())
+      return result
     except Exception as e:
       logger.error(e)
 
