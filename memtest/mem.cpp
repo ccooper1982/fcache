@@ -28,15 +28,76 @@ using StringVector = Vector<std::pmr::string>;  // TODO, perhaps Vector<CharVect
 using BlobVector = Vector<uint8_t>;
 
 
-// emulating CachedValue from fcache but PMR aware
+
+// not PMR aware
+struct VectorValue
+{
+  std::vector<uint8_t> data;
+};
+
+struct CV
+{
+  VectorValue value;
+};
+
+
+// PMR aware
+struct VectorValuePmr
+{
+  using allocator_type = std::pmr::polymorphic_allocator<uint8_t>;
+  
+
+  VectorValuePmr() = default;
+  VectorValuePmr(const VectorValuePmr&) noexcept = default;
+  VectorValuePmr(VectorValuePmr&&) noexcept = default;
+
+  VectorValuePmr& operator= (const VectorValuePmr& other) noexcept = default;
+  VectorValuePmr& operator= (VectorValuePmr&& other) noexcept = default;
+
+
+  explicit VectorValuePmr(const allocator_type& alloc) : data(alloc)
+  {
+
+  }
+
+  VectorValuePmr(const std::pmr::vector<uint8_t>& d, const allocator_type& alloc) noexcept :
+    data(d, alloc)
+  {
+    
+  }
+
+  VectorValuePmr(std::pmr::vector<uint8_t>&& d, const allocator_type& alloc) noexcept :
+    data(std::move(d), alloc)
+  {
+    
+  }
+
+  VectorValuePmr (const VectorValuePmr& other, const allocator_type& alloc) noexcept :
+    data(other.data, alloc)
+  {    
+  }
+
+  VectorValuePmr (VectorValuePmr&& other, const allocator_type& alloc) noexcept :
+    data(std::move(other.data))
+  {    
+  }
+
+  std::pmr::vector<uint8_t> data;
+};
+
+  
 struct PmrCV
 {
+  inline static const std::uint8_t FIXED = 0;
+  inline static const std::uint8_t VEC   = 1;
+
   using allocator_type = std::pmr::polymorphic_allocator<>;
 
+
   PmrCV() = default;
-  PmrCV(const PmrCV&) = default;
+  PmrCV(const PmrCV&) noexcept = default;
   PmrCV(PmrCV&&) noexcept = default;
-  
+
   PmrCV& operator= (const PmrCV& other) noexcept = default;
   PmrCV& operator= (PmrCV&& other) noexcept = default;
 
@@ -45,33 +106,32 @@ struct PmrCV
   {    
   }
 
-  PmrCV (const IntVector& v, const allocator_type& alloc) noexcept : value(v)
+
+  PmrCV (const VectorValuePmr& v, const allocator_type& alloc) noexcept :
+    value(v, alloc)
   {
-    //value = IntVector(v, alloc);
-    //PLOGI << "Here";
   }
 
-  PmrCV (const StringVector& v, const allocator_type& alloc) noexcept : value(v)
+
+  PmrCV (VectorValuePmr&& v, const allocator_type& alloc) noexcept :
+    value(std::move(v), alloc)
   {
   }
+
 
   PmrCV (const PmrCV& other, const allocator_type& alloc) noexcept : value(other.value)
   {    
   }
 
-  PmrCV (PmrCV&& other, const allocator_type& alloc) noexcept : value(std::move(other.value))
+
+  PmrCV (PmrCV&& other, const allocator_type& alloc) noexcept :
+    value(std::move(other.value))
   {    
   }
 
-  std::variant<IntVector, StringVector> value;
+  VectorValuePmr value;
 };
-
-
-// not PMR aware
-struct CV
-{
-  std::variant<std::vector<int64_t>, std::vector<std::string>> value;
-};
+  
 
 
 /*
@@ -111,6 +171,7 @@ static void checkMemory (std::byte * buffer, const std::size_t size)
 */
 
 
+
 using clok = std::chrono::steady_clock;
 using PmrMap = ankerl::unordered_dense::pmr::map<std::pmr::string, PmrCV>;
 using Map = ankerl::unordered_dense::map<std::string, CV>;
@@ -146,7 +207,7 @@ void dump (const M& m)
 }
 
 
-void perfPmr(const int nKeys, const int nValuesPerKey)
+void perfPmr(const uint64_t nKeys, const uint64_t nValuesPerKey)
 {
   std::pmr::polymorphic_allocator alloc{fc::MapMemory::getPool()};
   PmrMap map(alloc);
@@ -155,11 +216,11 @@ void perfPmr(const int nKeys, const int nValuesPerKey)
   // warm up the pool: the pool will allocate memory. We can't do this with non-PMR version.
   // we then clear the map, making the pool memory available for subsequent keys, with
   // memory already allocated.
-  for (auto i = 0 ; i < nKeys ; ++i)
+  for (uint64_t i = 0 ; i < nKeys ; ++i)
   {
-    auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, IntVector{fc::VectorMemory::getPool()});
-    auto& vec = std::get<IntVector>(it->second.value);
-    vec.resize(nValuesPerKey);
+    auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, VectorValuePmr{});
+    auto& vec = it->second.value.data;
+    vec.resize(nValuesPerKey*sizeof(uint64_t));
     // don't add anything to the map, we've resized which forces the pool to allocate memory
   }
 
@@ -169,7 +230,7 @@ void perfPmr(const int nKeys, const int nValuesPerKey)
   // loop below to avoid skewing timing.
   std::vector<std::pmr::string> keys;
   keys.reserve(nKeys);
-  for(auto i =0 ; i < nKeys ; ++i)
+  for(uint64_t i =0 ; i < nKeys ; ++i)
     keys.emplace_back(std::pmr::string{std::to_string(i), alloc});
   
 
@@ -178,15 +239,18 @@ void perfPmr(const int nKeys, const int nValuesPerKey)
   {
     Timer t{"PMR Set 1"};
   
-    for (auto i = 0 ; i < nKeys ; ++i)
+    for (uint64_t i = 0 ; i < nKeys ; ++i)
     {
-      auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, IntVector{fc::VectorMemory::getPool()});
+      auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, VectorValuePmr{});
 
-      auto& vec = std::get<IntVector>(it->second.value);
-      vec.resize(nValuesPerKey);
+      auto& vec = it->second.value.data;
+      vec.resize(nValuesPerKey*sizeof(uint64_t));
 
-      int c = 0;
-      std::generate_n(vec.begin(), nValuesPerKey, [&c]{return c++;});
+      for (uint64_t i = 0, j = 0; i < nValuesPerKey ; ++i)
+      {
+        std::memcpy(vec.data()+j, &i, sizeof(uint64_t));
+        j += sizeof(uint64_t);
+      }
     }
   }
 
@@ -197,28 +261,31 @@ void perfPmr(const int nKeys, const int nValuesPerKey)
     {
       if (const auto it = map.find(k); it != map.cend())
       {
-        const auto& values = std::get<IntVector>(it->second.value);
+        const auto& values = it->second.value.data;
         total = std::accumulate(values.cbegin(), values.cend(), 0);
       }
     }
   }
 
   // delete keys then add more
-  for (int i = 0 ; i < nKeys/10 ; ++i)
+  for (uint64_t i = 0 ; i < nKeys/10 ; ++i)
     map.erase(std::pmr::string(std::to_string(i), alloc));
   
   {
     Timer t{"PMR Set 2"};
   
-    for (auto i = 0 ; i < nKeys/10 ; ++i)
+    for (uint64_t i = 0 ; i < nKeys/10 ; ++i)
     {
-      auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, IntVector{fc::VectorMemory::getPool()});
+      auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, VectorValuePmr{});
 
-      auto& vec = std::get<IntVector>(it->second.value);
-      vec.resize(nValuesPerKey);
+      auto& vec = it->second.value.data;
+      vec.resize(nValuesPerKey*sizeof(uint64_t));
 
-      int c = 0;
-      std::generate_n(vec.begin(), nValuesPerKey, [&c]{return c++;});
+      for (uint64_t i = 0, j = 0; i < nValuesPerKey ; ++i)
+      {
+        std::memcpy(vec.data()+j, &i, sizeof(uint64_t));
+        j += sizeof(uint64_t);
+      }
     }
   }
 
@@ -226,10 +293,10 @@ void perfPmr(const int nKeys, const int nValuesPerKey)
 }
 
 
-void perfNormal(const int nKeys, const int nValuesPerKey)
+void perfNormal(const uint64_t nKeys, const uint64_t nValuesPerKey)
 {
   std::vector<std::string> keys(nKeys);
-  for(auto i =0 ; i < nKeys ; ++i)
+  for(uint64_t i =0 ; i < nKeys ; ++i)
     keys[i] = std::to_string(i);
 
   Map map;
@@ -238,46 +305,53 @@ void perfNormal(const int nKeys, const int nValuesPerKey)
   {
     Timer t{"Set 1"};
 
-    for (auto i = 0 ; i < nKeys ; ++i)
+    for (uint64_t i = 0 ; i < nKeys ; ++i)
     {
-      auto [it, emplaced] = map.try_emplace(std::to_string(i), std::vector<int64_t> {});
+      auto [it, emplaced] = map.try_emplace(std::to_string(i), VectorValue{});
 
-      auto& vec = std::get<std::vector<int64_t>>(it->second.value);
-      vec.resize(nValuesPerKey);
+      auto& vec = it->second.value.data;
+      vec.resize(nValuesPerKey*sizeof(uint64_t));
 
-      int c = 0;
-      std::generate_n(vec.begin(), nValuesPerKey, [&c]{return c++;});
+      for (uint64_t i = 0, j = 0; i < nValuesPerKey ; ++i)
+      {
+        std::memcpy(vec.data()+j, &i, sizeof(uint64_t));
+        j += sizeof(uint64_t);
+      }
     }
   }
+
 
   {  
     Timer t{"Get"};
 
     for (const auto& k : keys)
     {
-      const auto& values = std::get<std::vector<int64_t>>(map.at(k).value);
+      const auto& values = map.at(k).value.data;
       total = std::accumulate(values.cbegin(), values.cend(), 0);
     }
   }
 
 
   // delete keys then add more
-  for (int i = 0 ; i < nKeys/10 ; ++i)
+  for (uint64_t i = 0 ; i < nKeys/10 ; ++i)
     map.erase(std::to_string(i));
 
 
   {
     Timer t{"Set 2"};
   
-    for (auto i = 0 ; i < nKeys ; ++i)
+    for (uint64_t i = 0 ; i < nKeys ; ++i)
     {
-      auto [it, emplaced] = map.try_emplace(std::to_string(i), std::vector<int64_t> {});
+      auto [it, emplaced] = map.try_emplace(std::to_string(i), VectorValue {});
 
-      auto& vec = std::get<std::vector<int64_t>>(it->second.value);
-      vec.resize(nValuesPerKey);
+      auto& vec = it->second.value.data;
+      vec.resize(nValuesPerKey*sizeof(uint64_t));
 
-      int c = 0;
-      std::generate_n(vec.begin(), nValuesPerKey, [&c]{return c++;});
+      for (uint64_t i = 0, j = 0; i < nValuesPerKey ; ++i)
+      {
+        std::memcpy(vec.data()+j, &i, sizeof(uint64_t));
+        j += sizeof(uint64_t);
+      }
     }
   }
   
@@ -289,15 +363,17 @@ int main (int argc, char ** argv)
 {
   plog::init(plog::verbose, &consoleAppender);
 
-  // std::pmr::polymorphic_allocator alloc{fc::MapMemory::getPool(checkMemory)};
-  // PmrMap map(alloc);
 
-  // IntVector v{{10,11,12,13}, alloc};
-  // StringVector v2{{"long_string_beats_sso_1"}, alloc};
+  #ifdef FC_DEBUG
+    // std::pmr::polymorphic_allocator alloc{fc::MapMemory::getPool(checkMemory)};
+    // PmrMap map(alloc);
 
-  // map.emplace("k2", v);
-  // map.emplace("k3", v2);
+    // IntVector v{{10,11,12,13}, alloc};
+    // StringVector v2{{"long_string_beats_sso_1"}, alloc};
 
+    // map.emplace("k2", v);
+    // map.emplace("k3", v2);
+  #endif
   
   perfNormal(100000, 10);
   perfPmr(100000, 10);
