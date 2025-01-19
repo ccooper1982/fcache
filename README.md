@@ -59,6 +59,17 @@ if __name__ == "__main__":
 
 <br/>
 
+## KV
+
+- Keys must be a string
+- Values can be:
+  - string, int, unsigned int, float, bool
+  - list/array of the above
+
+A list of values can only contain values of the same type (i.e. a list of integers, a list of strings, but not a list containing different types).
+
+<br/>
+
 ## Build
 
 ```
@@ -73,10 +84,19 @@ Binary is in `server/release`.
 
 ## Run
 
-Start without arguments to use defaults (127.0.0.1 and 1987):
 
-`./fcache`
+|Param|Default|Cmd Line|
+|---|---|---|
+|IP|127.0.0.1|`--ip`|
+|Port|1987|`--port / -p`|
+|Max Payload|2048|`--maxPayload`|
 
-Override IP and/or port with:
+<br/>
+
+Override IP and port:
 
 `./fcache --ip=192.168.0.10 -p 4321`
+
+Override max payload:
+
+`./fcache --maxPayload=16384`

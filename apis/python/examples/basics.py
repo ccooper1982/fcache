@@ -39,7 +39,6 @@ async def kv():
   print(await kv.get(key='perks'))
 
 
-
 async def kv_blob():
   # Requires fcache is started with maxPayload to size of the cat image which is 11,030 bytes
   # ./fcache --maxPayload=16384

@@ -10,9 +10,9 @@ namespace fc
     bool valid = false;
 
     try
-    {
-      const auto& values = set.kv_flexbuffer_root().AsMap().Values();
+    {      
       const auto& keys = set.kv_flexbuffer_root().AsMap().Keys();
+      const auto& values = set.kv_flexbuffer_root().AsMap().Values();
 
       valid = setOrAdd<true>(keys, values);
     }
@@ -30,8 +30,8 @@ namespace fc
     bool valid = false;
     try
     {
-      const auto& values = add.kv_flexbuffer_root().AsMap().Values();
       const auto& keys = add.kv_flexbuffer_root().AsMap().Keys();
+      const auto& values = add.kv_flexbuffer_root().AsMap().Values();
 
       valid = setOrAdd<false>(keys, values);
     }
@@ -106,9 +106,14 @@ namespace fc
       createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVContains);
     else
     {
-      const auto keysOffsets = m_map.contains(fbb, *contains.keys());
-      const auto body = fc::response::CreateKVContains(fbb, keysOffsets);
-      const auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_KVContains, body.Union());
+      FlexBuilder flxb;
+      m_map.contains(flxb, *contains.keys());
+      flxb.Finish();
+
+      const auto vec = fbb.CreateVector(flxb.GetBuffer());
+      const auto body = fc::response::CreateKVContains(fbb, vec);
+        
+      auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_KVContains, body.Union());
       fbb.Finish(rsp);
     }
   }
@@ -136,10 +141,9 @@ namespace fc
     {
       m_map.clear();
 
-      const auto& values = clearSet.kv_flexbuffer_root().AsMap().Values();
       const auto& keys = clearSet.kv_flexbuffer_root().AsMap().Keys();
+      const auto& values = clearSet.kv_flexbuffer_root().AsMap().Values();
 
-      // use as an add here because it lets map use try_emplace, rather than insert_or_assign
       const auto valid = setOrAdd<false>(keys, values);
 
       createEmptyBodyResponse(fbb, valid ? Status_Ok : Status_Fail, ResponseBody_KVClearSet);
