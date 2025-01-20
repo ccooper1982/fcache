@@ -5,6 +5,7 @@
 #include <variant>
 #include <numeric>
 #include <chrono>
+#include <list>
 #include <fc/Memory.hpp>
 #include <fc/LogFormatter.hpp>
 #include <plog/Init.h>
@@ -333,6 +334,80 @@ void perfNormal(const uint64_t nKeys, const uint64_t nValuesPerKey)
 }
 
 
+
+void perfList(uint64_t nNodes)
+{
+  std::list<uint64_t> list1, list2;
+
+  {
+    Timer {"List Create"};
+
+    for (uint64_t i  = 0 ; i < nNodes ; ++i)
+    {
+      list1.emplace_back(i);
+      if (i % 2 == 0)
+        list2.emplace_back(i);
+    }    
+  }
+  
+
+  {
+    Timer {"List Intersect"};
+
+    std::vector<uint64_t> result;
+    result.reserve(nNodes);
+    std::set_intersection(std::cbegin(list1), std::cend(list1),
+                          std::cbegin(list2), std::cend(list2), std::back_inserter(result));
+  
+    PLOGD << "Result size: " << result.size();
+  }  
+}
+
+struct PmrList
+{
+  PmrList () : list(memory.alloc())
+  {
+
+  }
+  
+  fc::ListMemory memory;
+  std::pmr::list<uint64_t> list;
+};
+
+
+void perfListPmr(uint64_t nNodes)
+{
+  PmrList list1, list2;
+
+  {
+    Timer {"PMR List Create"};
+    
+    for (uint64_t i  = 0 ; i < nNodes ; ++i)
+    {
+      list1.list.emplace_back(i);
+      if (i % 2 == 0)
+        list2.list.emplace_back(i);
+    } 
+  }
+
+  {
+    Timer {"PMR List Intersect"};
+
+    // std::array<uint8_t, 32768> buff;
+    // std::pmr::monotonic_buffer_resource buffResource{buff.data(), buff.size()};
+    // std::pmr::polymorphic_allocator alloc{&buffResource};
+
+    // std::pmr::vector<uint64_t> result{alloc};
+    std::vector<uint64_t> result;
+    result.reserve(nNodes);
+    std::set_intersection(std::cbegin(list1.list), std::cend(list1.list),
+                          std::cbegin(list2.list), std::cend(list2.list), std::back_inserter(result));
+  
+    PLOGD << "Result size: " << result.size();
+  }
+}
+
+
 int main (int argc, char ** argv)
 {
   plog::init(plog::verbose, &consoleAppender);
@@ -349,8 +424,11 @@ int main (int argc, char ** argv)
     // map.emplace("k3", v2);
   #endif
   
-  perfNormal(100000, 10);
-  perfPmr(100000, 10);
+  //perfNormal(100000, 10);
+  //perfPmr(100000, 10);
+
+  perfList(10000);
+  perfListPmr(10000);
 
   return 0;
 }

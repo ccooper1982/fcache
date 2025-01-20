@@ -261,4 +261,81 @@ namespace fc
 
     std::pmr::polymorphic_allocator<> m_alloc;
   };
+
+
+  // Resource used by lists. Each list has a dedicated ListMemory allocator.
+  // The idea being although the list is node based, the nodes will be held in
+  // contigious memory.
+  // This resource is initialised with a pre-allocated vector of 32Kb. There after
+  // a new buffer of this size will be created when the pre-allocated is full. 
+  // The pool resource can still reuse freed portions of the buffer. 
+  // 32Kb may be too high for some applications, and others may benefit with more. 
+  // An option is on list creation, have a setting so users can set a known size,
+  // which is pre-allocated, and if this is never exceeded, no further allocations
+  // are required.
+  class ListMemory
+  {
+  private:
+    static const constexpr std::size_t DefaultInitialCapacity = 32768;
+
+
+  public:
+    #ifdef FC_DEBUG
+      ListMemory() :  m_buffer(DefaultInitialCapacity),
+                      m_fixedResource(m_buffer.data(), m_buffer.size()),
+                      m_fixedPrint("List Mono", &m_fixedResource),
+                      m_poolResource(&m_fixedPrint),
+                      m_poolPrint("List Pool", &m_poolResource),
+                      m_alloc(&m_poolResource)
+      {
+      }
+    #else
+      ListMemory() :  m_alloc(&m_poolResource),  
+                      m_buffer(DefaultInitialCapacity),
+                      m_fixedResource(m_buffer.data(), m_buffer.size()),
+                      m_poolResource(&m_fixedResource)
+      {
+      }
+    #endif
+
+
+    ~ListMemory() = default;
+
+
+    std::pmr::memory_resource * getPool() noexcept
+    {
+      return pool();
+    }
+
+    std::pmr::polymorphic_allocator<>& alloc() noexcept
+    {
+      return m_alloc;
+    }
+
+  private:
+
+    std::pmr::memory_resource * pool() noexcept
+    {
+      #ifdef FC_DEBUG
+        return &m_poolPrint; 
+      #else
+        return &m_poolResource;
+      #endif
+    }
+
+
+  private:
+    std::pmr::polymorphic_allocator<> m_alloc;
+
+    #ifdef FC_DEBUG
+      std::pmr::monotonic_buffer_resource m_fixedResource;
+      PrintResource m_fixedPrint;
+      std::pmr::unsynchronized_pool_resource m_poolResource;
+      PrintResource m_poolPrint;     
+    #else
+      std::vector<uint8_t> m_buffer;
+      std::pmr::monotonic_buffer_resource m_fixedResource;
+      std::pmr::unsynchronized_pool_resource m_poolResource;
+    #endif
+  };
 }
