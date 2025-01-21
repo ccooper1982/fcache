@@ -390,7 +390,6 @@ void perfList(uint64_t nNodes)
       list1.emplace_back(i);
   }
 }
-*/
 
 
 struct PmrList
@@ -444,6 +443,7 @@ void perfListPmr(uint64_t nNodes)
       list1.list.emplace_back(i);
   }
 }
+*/
 
 
 int main (int argc, char ** argv)
