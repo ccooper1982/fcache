@@ -2,6 +2,6 @@
 
 # namespace: common
 
-class Ident(object):
-    KV = 0
-    List = 1
+class ListType(object):
+    Int = 0
+    UInt = 1

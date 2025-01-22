@@ -39,6 +39,7 @@ namespace fc
     try
     {
       m_kvHandler = std::make_shared<KvHandler>();
+      m_listHandler = std::make_shared<ListHandler>();
     }
     catch(const std::exception& e)
     {
@@ -170,6 +171,12 @@ namespace fc
             handleKv(ws, fbb, *request);
           }
           break;
+
+          case fc::common::Ident_List:
+          {
+            handleList(ws, fbb, *request);
+          }
+          break;
           
           default:
           {
@@ -241,6 +248,23 @@ namespace fc
     send(ws, fbb);
   }
   
+
+  void Server::handleList(WebSocket * ws, FlatBuilder& fbb, const fc::request::Request& request)
+  {
+    if (request.body_type() == fc::request::RequestBody_ListCreate)
+    {
+      PLOGI << "List create";
+      m_listHandler->handle(fbb, *request.body_as_ListCreate());
+    }
+    else if (request.body_type() == fc::request::RequestBody_ListAdd)
+    {
+      PLOGI << "List add";
+      m_listHandler->handle(fbb, *request.body_as_ListAdd());
+    }
+
+    send(ws, fbb);
+  }
+
 
   void Server::sendFailure (WebSocket * ws, FlatBuilder& fbb, const fc::response::Status status)
   {

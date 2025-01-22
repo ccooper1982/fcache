@@ -7,3 +7,4 @@ class Status(object):
     Ok = 1
     CommandUnknown = 2
     ParseError = 3
+    Duplicate = 4

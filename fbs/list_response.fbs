@@ -1,0 +1,12 @@
+include "common.fbs";
+
+namespace fc.response;
+
+
+table ListCreate
+{
+}
+
+table ListAdd
+{
+}

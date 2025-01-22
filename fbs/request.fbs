@@ -1,50 +1,13 @@
 include "common.fbs";
+include "kv_request.fbs";
+include "list_request.fbs";
 
 namespace fc.request;
 
 
-table KVSet
-{  
-  kv:[ubyte] (flexbuffer);
-}
-
-table KVGet
-{
-  keys:[string];
-}
-
-table KVRmv
-{
-  keys:[string];
-}
-
-table KVAdd
-{
-  kv:[ubyte] (flexbuffer);
-}
-
-table KVCount
-{
-}
-
-table KVContains
-{
-  keys:[string];
-}
-
-table KVClear
-{
-
-}
-
-table KVClearSet
-{
-  kv:[ubyte] (flexbuffer);
-}
-
-
 union RequestBody
 {
+  // KV
   KVSet,
   KVGet,
   KVRmv,
@@ -52,16 +15,18 @@ union RequestBody
   KVCount,
   KVContains,
   KVClear,
-  KVClearSet
+  KVClearSet,
+  // List
+  ListCreate,
+  ListAdd
 }
 
 
 table Request
 {
-  ident:common.Ident = KV;
+  ident:common.Ident;
   body:RequestBody;
 }
-
 
 
 root_type Request;

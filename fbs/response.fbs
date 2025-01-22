@@ -1,0 +1,42 @@
+include "common.fbs";
+include "kv_response.fbs";
+include "list_response.fbs";
+
+namespace fc.response;
+
+
+enum Status : byte
+{
+  Fail = 0, // fail/error condition intentional the zero value
+  Ok = 1,
+  CommandUnknown,
+  ParseError,
+  Duplicate
+}
+
+
+union ResponseBody
+{
+  // KV
+  KVSet,
+  KVGet,
+  KVRmv,
+  KVAdd,
+  KVCount,
+  KVContains,
+  KVClear,
+  KVClearSet,
+  // List
+  ListCreate,
+  ListAdd
+}
+
+
+table Response
+{
+  status:Status;
+  body:ResponseBody;
+}
+
+
+root_type Response;

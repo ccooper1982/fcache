@@ -3,19 +3,33 @@ import flatbuffers.flexbuffers as FlexBuffers
 import array
 
 
+def statusToString(status: Status.Status):
+  match(status):
+    case Status.Status.Ok:
+      return 'OK'
+    case Status.Status.Fail:
+      return 'Fail'
+    case Status.Status.ParseError:
+      return 'Parse Error'
+    case Status.Status.CommandUnknown:
+      return 'Command unknown'
+    case Status.Status.Duplicate:
+      return 'Duplicate'
+
+
 class FcException(Exception):
   def __init__(self, msg):
     super().__init__(msg)
 
 
 class ResponseError(FcException):
-  def __init__(self, *, bodyType=None, fbStatus = None, connectionFail = False):
+  def __init__(self, *, bodyType=None, fbStatus=None, connectionFail=False):
     if connectionFail:
       super().__init__(f'Disconnected')
-    elif fbStatus == None:
-      super().__init__(f'Response Error: Status {fbStatus}')
+    elif fbStatus != Status.Status.Ok:
+      super().__init__(f'Response Error: Status: {statusToString(fbStatus)}')
     else:
-      super().__init__(f'Response Error: Unexpected Body Type {bodyType}')
+      super().__init__(f'Response Error: Unexpected Body Type: {bodyType}')
 
     self.status = fbStatus
     self.bodyType = bodyType
@@ -24,12 +38,12 @@ class ResponseError(FcException):
 
   @classmethod
   def statusError(self, bodyType: ResponseBody.ResponseBody, status: Status.Status):
-    return self(bodyType, status=status)
+    return self(bodyType=bodyType, fbStatus=status)
   
   @classmethod
   def bodyTypeError(self, bodyType: ResponseBody.ResponseBody):
     "If body type is incorrect, status is irrelevant"
-    return self(bodyType)
+    return self(bodyType=bodyType)
   
   @classmethod
   def disconnected(self):
@@ -98,7 +112,6 @@ def _createTypedVector(fb: FlexBuffers.Builder, key: str, items: list):
     fb.TypedVectorFromElements(items)
   
 
-
 # def createIntArray(items: list[int], unsigned=False):
 #   # q: int8, Q: uint8
 #   vec = array.array('Q' if unsigned else 'q')
@@ -112,7 +125,7 @@ def _createTypedVector(fb: FlexBuffers.Builder, key: str, items: list):
 #   return vec
 
 
-def raise_if_fail(rsp: bytes, expectedRspBody: ResponseBody) -> Response.Response:
+def _raise_if_fail(rsp: bytes, expectedRspBody: ResponseBody, status=(Status.Status.Ok)) -> Response.Response:
   """Confirm the response status is successful and the body type is expected.
   
   If status or body type checks fail, raise a ResponseError. Otherwise,
@@ -120,14 +133,26 @@ def raise_if_fail(rsp: bytes, expectedRspBody: ResponseBody) -> Response.Respons
   """
   if rsp:
     response = Response.Response.GetRootAs(rsp)
-    if response.Status() != Status.Status.Ok:
+    if response.Status() not in status:
       raise ResponseError.statusError(response.BodyType(), response.Status())
-    elif response.BodyType() != expectedRspBody:
+    elif response.BodyType() != expectedRspBody:      
       raise ResponseError.bodyTypeError(bodyType=response.BodyType())
     else:
       return response
   else:
     raise ResponseError.disconnected()
+  
+
+def raise_if_fail(rsp: bytes, expectedRspBody: ResponseBody, allowDuplicate=False) -> Response.Response:
+  """Confirm the response status is successful and the body type is expected.
+  
+  If status or body type checks fail, raise a ResponseError. Otherwise,
+  return the deserialised Response object.
+  """
+  if allowDuplicate:
+    return _raise_if_fail(rsp, expectedRspBody, status=(Status.Status.Ok, Status.Status.Duplicate))
+  else:
+    return _raise_if_fail(rsp, expectedRspBody, status=(Status.Status.Ok,))
   
 
 def raise_if_empty (value: str):

@@ -1,0 +1,44 @@
+include "common.fbs";
+
+namespace fc.request;
+
+
+
+table KVSet
+{  
+  kv:[ubyte] (flexbuffer);
+}
+
+table KVGet
+{
+  keys:[string];
+}
+
+table KVRmv
+{
+  keys:[string];
+}
+
+table KVAdd
+{
+  kv:[ubyte] (flexbuffer);
+}
+
+table KVCount
+{
+}
+
+table KVContains
+{
+  keys:[string];
+}
+
+table KVClear
+{
+
+}
+
+table KVClearSet
+{
+  kv:[ubyte] (flexbuffer);
+}

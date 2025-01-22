@@ -4,6 +4,7 @@ from fc.client import Client
 from fc.common import raise_if, createKvMap, ResponseError
 from fc.logging import logger
 from typing import Any
+from fc.fbs.fc.common import Ident
 from fc.fbs.fc.request import (Request, RequestBody,
                                KVSet,
                                KVGet,
@@ -48,7 +49,7 @@ class KV:
       keys = [key]
 
     try:
-      fb = flatbuffers.Builder()
+      fb = flatbuffers.Builder(initialSize=1024)
       keysOff = self._create_strings(fb, keys)
 
       KVGet.Start(fb)
@@ -80,7 +81,7 @@ class KV:
       keys = [key]
 
     try:
-      fb = flatbuffers.Builder()
+      fb = flatbuffers.Builder(initialSize=1024)
       keysOff = self._create_strings(fb, keys)
 
       KVRmv.Start(fb)
@@ -95,7 +96,7 @@ class KV:
 
 
   async def count(self) -> int:
-    fb = flatbuffers.Builder()
+    fb = flatbuffers.Builder(initialSize=1024)
     KVCount.Start(fb)    
     body = KVCount.End(fb)
     self._complete_request(fb, body, RequestBody.RequestBody.KVCount)
@@ -110,7 +111,7 @@ class KV:
     raise_if(len(keys) == 0, 'keys is empty')
 
     try:
-      fb = flatbuffers.Builder()
+      fb = flatbuffers.Builder(initialSize=1024)
       keysOff = self._create_strings(fb, keys)
 
       KVContains.Start(fb)
@@ -130,7 +131,7 @@ class KV:
 
 
   async def clear(self) -> None:
-    fb = flatbuffers.Builder()
+    fb = flatbuffers.Builder(initialSize=1024)
     KVClear.Start(fb)    
     body = KVClear.End(fb)
     self._complete_request(fb, body, RequestBody.RequestBody.KVClear)
@@ -157,6 +158,7 @@ class KV:
   def _complete_request(self, fb: flatbuffers.Builder, body: int, bodyType: RequestBody.RequestBody):
     try:
       Request.RequestStart(fb)
+      Request.AddIdent(fb, Ident.Ident.KV)
       Request.AddBodyType(fb, bodyType)
       Request.AddBody(fb, body)
       req = Request.RequestEnd(fb)
@@ -174,7 +176,7 @@ class KV:
     raise_if(len(kv) == 0, 'keys empty')
 
     try:
-      fb = flatbuffers.Builder()
+      fb = flatbuffers.Builder(initialSize=1024)
       kvVec = fb.CreateByteVector(createKvMap(kv))
 
       if requestType is RequestBody.RequestBody.KVSet:

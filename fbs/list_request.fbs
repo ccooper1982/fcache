@@ -1,0 +1,16 @@
+include "common.fbs";
+
+namespace fc.request;
+
+
+table ListCreate
+{
+  name:string;
+  type:common.ListType;
+} 
+
+table ListAdd
+{
+  name:string;
+  items:[ubyte] (flexbuffer);
+}

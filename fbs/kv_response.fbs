@@ -2,27 +2,14 @@ include "common.fbs";
 
 namespace fc.response;
 
-enum Status : byte
-{
-  Fail = 0, // fail/error condition intentional the zero value
-  Ok = 1,
-  CommandUnknown,
-  ParseError
-}
 
-// Some commands have an empty body because
-// they don't return anything. We can't just return the status because
-// the client requires the command type, which the ResponseBody provides,
-// it's present in the response, but empty.
-// There may be a better way of doing this.
+// Some tables have an empty body because they don't return anything
+// We can't just return the status because the client requires
+// the command type, which the ResponseBody provides, it's present
+// in the response, but empty.
 
 table KVSet
 {
-}
-
-table KVGet
-{
-  kv:[ubyte] (flexbuffer);
 }
 
 table KVRmv
@@ -31,16 +18,6 @@ table KVRmv
 
 table KVAdd
 {
-}
-
-table KVCount
-{
-  count:uint64;
-}
-
-table KVContains
-{
-  keys:[ubyte] (flexbuffer);
 }
 
 table KVClear
@@ -53,22 +30,19 @@ table KVClearSet
   
 }
 
-union ResponseBody
+// these return data in their response
+
+table KVGet
 {
-  KVSet,
-  KVGet,
-  KVRmv,
-  KVAdd,
-  KVCount,
-  KVContains,
-  KVClear,
-  KVClearSet
+  kv:[ubyte] (flexbuffer);
 }
 
-table Response
+table KVContains
 {
-  status:Status;
-  body:ResponseBody;
+  keys:[ubyte] (flexbuffer);
 }
 
-root_type Response;
+table KVCount
+{
+  count:uint64;
+}

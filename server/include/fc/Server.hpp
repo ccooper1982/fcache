@@ -9,6 +9,7 @@
 #include <fc/Common.hpp>
 #include <fc/FlatBuffers.hpp>
 #include <fc/KvHandler.hpp>
+#include <fc/ListHandler.hpp>
 
 
 namespace fc
@@ -38,6 +39,7 @@ namespace fc
     void send (WebSocket * ws, const FlatBuilder& builder);
 
     void handleKv(WebSocket * ws, FlatBuilder& fbb, const fc::request::Request& request);
+    void handleList(WebSocket * ws, FlatBuilder& fbb, const fc::request::Request& request);
 
   private:
     struct TimerData
@@ -54,5 +56,6 @@ namespace fc
     // could be a unique_ptr but when the Timer is used for key expiry,
     // this needs to be in the TimerData struct for the timer callback.
     std::shared_ptr<KvHandler> m_kvHandler;
+    std::shared_ptr<ListHandler> m_listHandler;
   };
 }

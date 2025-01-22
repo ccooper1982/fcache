@@ -1,6 +1,7 @@
 from unittest import IsolatedAsyncioTestCase
 from fc.client import Client, fcache
 from fc.kv import KV
+from fc.list import List
 
 
 class FcTest(IsolatedAsyncioTestCase):
@@ -19,3 +20,10 @@ class KvTest(FcTest):
     await super().asyncSetUp()
     self.kv = KV(self.client)
     await self.kv.clear()
+
+
+class ListTest(FcTest):
+  async def asyncSetUp(self):
+    await super().asyncSetUp()
+    self.list = List(self.client)
+    #await self.list.clear() TODO
