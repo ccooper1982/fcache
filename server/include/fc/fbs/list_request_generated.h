@@ -26,6 +26,36 @@ struct ListCreateBuilder;
 struct ListAdd;
 struct ListAddBuilder;
 
+enum Base : uint8_t {
+  Base_Head = 0,
+  Base_Tail = 1,
+  Base_MIN = Base_Head,
+  Base_MAX = Base_Tail
+};
+
+inline const Base (&EnumValuesBase())[2] {
+  static const Base values[] = {
+    Base_Head,
+    Base_Tail
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesBase() {
+  static const char * const names[3] = {
+    "Head",
+    "Tail",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameBase(Base e) {
+  if (::flatbuffers::IsOutRange(e, Base_Head, Base_Tail)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesBase()[index];
+}
+
 struct ListCreate FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ListCreateBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -93,7 +123,9 @@ struct ListAdd FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ListAddBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
-    VT_ITEMS = 6
+    VT_ITEMS = 6,
+    VT_POSITION = 8,
+    VT_BASE = 10
   };
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
@@ -106,6 +138,12 @@ struct ListAdd FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return _f ? flexbuffers::GetRoot(_f->Data(), _f->size())
               : flexbuffers::Reference();
   }
+  int32_t position() const {
+    return GetField<int32_t>(VT_POSITION, 0);
+  }
+  fc::request::Base base() const {
+    return static_cast<fc::request::Base>(GetField<uint8_t>(VT_BASE, 0));
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NAME) &&
@@ -113,6 +151,8 @@ struct ListAdd FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffset(verifier, VT_ITEMS) &&
            verifier.VerifyVector(items()) &&
            flexbuffers::VerifyNestedFlexBuffer(items(), verifier) &&
+           VerifyField<int32_t>(verifier, VT_POSITION, 4) &&
+           VerifyField<uint8_t>(verifier, VT_BASE, 1) &&
            verifier.EndTable();
   }
 };
@@ -126,6 +166,12 @@ struct ListAddBuilder {
   }
   void add_items(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> items) {
     fbb_.AddOffset(ListAdd::VT_ITEMS, items);
+  }
+  void add_position(int32_t position) {
+    fbb_.AddElement<int32_t>(ListAdd::VT_POSITION, position, 0);
+  }
+  void add_base(fc::request::Base base) {
+    fbb_.AddElement<uint8_t>(ListAdd::VT_BASE, static_cast<uint8_t>(base), 0);
   }
   explicit ListAddBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -141,23 +187,31 @@ struct ListAddBuilder {
 inline ::flatbuffers::Offset<ListAdd> CreateListAdd(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> items = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> items = 0,
+    int32_t position = 0,
+    fc::request::Base base = fc::request::Base_Head) {
   ListAddBuilder builder_(_fbb);
+  builder_.add_position(position);
   builder_.add_items(items);
   builder_.add_name(name);
+  builder_.add_base(base);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<ListAdd> CreateListAddDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    const std::vector<uint8_t> *items = nullptr) {
+    const std::vector<uint8_t> *items = nullptr,
+    int32_t position = 0,
+    fc::request::Base base = fc::request::Base_Head) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto items__ = items ? _fbb.CreateVector<uint8_t>(*items) : 0;
   return fc::request::CreateListAdd(
       _fbb,
       name__,
-      items__);
+      items__,
+      position,
+      base);
 }
 
 }  // namespace request

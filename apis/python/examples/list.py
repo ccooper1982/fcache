@@ -24,7 +24,10 @@ async def create():
 
     await list.create(name='list1', type='int', failOnDuplicate=False)
 
-    await list.add(name='list1', items=[1,2,3,4])
+    #await list.add_head(name='list1', items=[1,2,3,4])
+    #await list.add_head(name='list1', items=[4,3,2,1])
+    #await list.add_head(name='list1', items=[10,11,12])
+    await list.add_tail(name='list1', items=[100,101,102])
 
   except:
     print('Query failed')

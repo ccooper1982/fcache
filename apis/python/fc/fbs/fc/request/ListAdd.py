@@ -58,8 +58,22 @@ class ListAdd(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
+    # ListAdd
+    def Position(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return 0
+
+    # ListAdd
+    def Base(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
+        return 0
+
 def ListAddStart(builder):
-    builder.StartObject(2)
+    builder.StartObject(4)
 
 def Start(builder):
     ListAddStart(builder)
@@ -81,6 +95,18 @@ def ListAddStartItemsVector(builder, numElems):
 
 def StartItemsVector(builder, numElems):
     return ListAddStartItemsVector(builder, numElems)
+
+def ListAddAddPosition(builder, position):
+    builder.PrependInt32Slot(2, position, 0)
+
+def AddPosition(builder, position):
+    ListAddAddPosition(builder, position)
+
+def ListAddAddBase(builder, base):
+    builder.PrependUint8Slot(3, base, 0)
+
+def AddBase(builder, base):
+    ListAddAddBase(builder, base)
 
 def ListAddEnd(builder):
     return builder.EndObject()

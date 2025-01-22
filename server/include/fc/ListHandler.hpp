@@ -13,7 +13,7 @@ namespace fc
   {
     using enum fc::response::Status;
     using enum fc::response::ResponseBody;
-    using Iterator = std::unordered_map<std::string, FcList*>::iterator;
+    using Iterator = std::unordered_map<std::string, std::unique_ptr<FcList>>::iterator;
 
   public:
     ListHandler() = default;
@@ -36,7 +36,7 @@ namespace fc
     }
 
   private:
-    std::unordered_map<std::string, FcList*> m_lists;
+    std::unordered_map<std::string, std::unique_ptr<FcList>> m_lists;
   };
 
 }

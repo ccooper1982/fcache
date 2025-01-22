@@ -7,7 +7,7 @@ from fc.logging import logger
 from typing import Any
 from fc.fbs.fc.common import Ident, ListType
 from fc.fbs.fc.request import (Request, RequestBody,
-                               ListCreate, ListAdd)
+                               ListCreate, ListAdd, Base)
 from fc.fbs.fc.response import (ResponseBody)
 
 
@@ -52,19 +52,23 @@ class List:
       logger.error(e)
 
 
-  async def add(self, *, name: str, items: typing.List[int]):
+  async def add(self, *, name: str, items: typing.List[int], pos: int) -> None:
+    await self._do_add(name, items, pos, Base.Base.Tail if pos < 0 else Base.Base.Head)
+
+
+  async def add_head(self, *, name: str, items: typing.List[int]) -> None:
+    await self._do_add(name, items, 0, Base.Base.Head)
+
+
+  async def add_tail(self, *, name: str, items: typing.List[int]) -> None:
+    await self._do_add(name, items, 0, Base.Base.Tail)
+
+
+  async def _do_add(self, name: str, items: typing.List[int], pos: int, base: Base.Base):
     if len(items) == 0:
       raise ValueError('items cannot be empty')
 
     try:
-      
-      flexType = flatbuffers.flexbuffers.Type.NULL
-
-      if type(items[0]) == int:
-        flexType = flatbuffers.flexbuffers.Type.INT
-      else:
-        raise ValueError('type of item element invalid')
-
       fbb = flatbuffers.flexbuffers.Builder()
       fbb.TypedVectorFromElements(items)
       itemsVector = fbb.Finish()
@@ -74,10 +78,12 @@ class List:
       
       nameOffset = fb.CreateString(name)
       itemOffset = fb.CreateByteVector(itemsVector)
-      
+
       ListAdd.Start(fb)
       ListAdd.AddName(fb, nameOffset)
       ListAdd.AddItems(fb, itemOffset)
+      ListAdd.AddPosition(fb, pos)
+      ListAdd.AddBase(fb, base)
       body = ListAdd.End(fb)
       
       self._complete_request(fb, body, RequestBody.RequestBody.ListAdd)
@@ -92,9 +98,7 @@ class List:
       Request.AddIdent(fb, Ident.Ident.List)
       Request.AddBodyType(fb, bodyType)
       Request.AddBody(fb, body)
-      req = Request.RequestEnd(fb)
-
-      fb.Finish(req)
+      fb.Finish(Request.RequestEnd(fb))
     except Exception as e:
       print(e)
       logger.error(e)
