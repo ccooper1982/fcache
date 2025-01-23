@@ -119,9 +119,7 @@ class List:
 
       # this is how we get a flexbuffer from a flatbuffer
       result = flatbuffers.flexbuffers.Loads(union_body.ItemsAsNumpy().tobytes())
-      print(type(result))
       return result
-      
     except Exception as e:
       print(e)
       raise
@@ -129,33 +127,6 @@ class List:
 
   # async def get_range(self, name: str, *, start=0, stop=1):
   #   return await self._do_get(name, start, stop=stop)
-
-
-  # async def _do_get(self, name: str, start: int, *, stop=None, count=None):
-  #   try:
-  #     raise_if(len(name) == 0, 'name is empty')
-  #     raise_if(stop and count, 'stop and count both set')
-
-  #     fb = flatbuffers.Builder(initialSize=128)
-
-  #     nameOffset = fb.CreateString(name)
-
-  #     Range.Start(fb)
-  #     Range.AddStart(fb, start)
-  #     Range.AddStop(fb, stop if stop else 0)
-  #     rangeOffset = Range.End(fb)
-
-  #     ListGet.Start(fb)
-  #     ListGet.AddName(fb, nameOffset)
-  #     ListGet.AddRange(fb,rangeOffset)
-  #     ListGet.AddCount(fb, count if count else 0)
-  #     body = ListGet.End(fb)
-
-  #     self._complete_request(fb, body, RequestBody.RequestBody.ListGet)
-  #     await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListGet)
-  #   except Exception as e:
-  #     print(e)
-  #     raise
 
 
   async def _do_add(self, name: str, items: typing.List[int], pos: int, base: Base.Base) -> None:

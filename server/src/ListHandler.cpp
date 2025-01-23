@@ -121,38 +121,55 @@ namespace fc
 
   void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListGetN& req) noexcept
   {
-    const auto& name = req.name()->str();
-    const auto start = req.start();
-    const auto count = req.count();
-    
-    if (!((start >= 0 && count >= 0) || (start < 0 && count < 0)))  [[unlikely]]
+    try
     {
-      PLOGE << "ListGet: start/stop must be both positive or both negative";
-      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetN);
-    }
-    else if (const auto listOpt = getList(name); !listOpt)
-    {
-      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetN);
-    }
-    else
-    {
-      const auto& fcList = (*listOpt)->second;
-
-      // TODO estimate this more accurately by using (count * sizeof(int64_t)) + padding for FlexBuffer stuff? Perhaps add a typeSize() to FcList
-      FlexBuilder flxb{2048U}; 
+      const auto& name = req.name()->str();
+      const auto start = req.start();
+      const auto count = req.count();
       
-      if (fcList->type() == FlexType::FBT_VECTOR_INT)
+      if (!((start >= 0 && count >= 0) || (start < 0 && count < 0)))  [[unlikely]]
       {
-        std::visit(GetByCount<int64_t>{start, count, flxb}, fcList->list());
+        PLOGE << "ListGet: start/stop must be both positive or both negative";
+        createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetN);
       }
+      else if (const auto listOpt = getList(name); !listOpt)
+      {
+        createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetN);
+      }
+      else
+      {
+        // TODO estimate this more accurately by using (count * sizeof(int64_t)) + padding?
+        //      Padding is for FlexBuffer stuff. perhaps add a typeSize() to FcList
+        FlexBuilder flxb{2048U}; 
+        const auto& fcList = (*listOpt)->second;
 
-      flxb.Finish();
+        auto get = [start, count, &flxb, &list = fcList->list()]<typename T>()
+        {
+          std::visit(GetByCount<int64_t>{start, count, flxb}, list);
+        };
+        
+        if (fcList->type() == FlexType::FBT_VECTOR_INT)
+        {
+          get.template operator()<std::int64_t>();
+        }
+        else if (fcList->type() == FlexType::FBT_VECTOR_UINT)
+        {
+          get.template operator()<std::uint64_t>();
+        }
 
-      const auto vec = fbb.CreateVector(flxb.GetBuffer());
-      const auto body = fc::response::CreateListGetN(fbb, vec);
-      
-      auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_ListGetN, body.Union());
-      fbb.Finish(rsp);
+        flxb.Finish();
+
+        const auto vec = fbb.CreateVector(flxb.GetBuffer());
+        const auto body = fc::response::CreateListGetN(fbb, vec);
+        
+        auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_ListGetN, body.Union());
+        fbb.Finish(rsp);
+      }
+    }
+    catch(const std::exception& e)
+    {
+      PLOGE << e.what();
+      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetN);
     }
   }
 
