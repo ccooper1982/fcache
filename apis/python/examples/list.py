@@ -48,10 +48,20 @@ async def get():
   try:
     list = List(client)
 
+    await list.delete_all()
+
     await list.create(name='list1', type='int', failOnDuplicate=False)
     await list.add_head(name='list1', items=[1,2,5,6])
     await list.add(name='list1', items=[3,4], pos=2)
-    print(await list.get_n('list1', start=0))
+    
+    print(await list.get_n('list1', start=3))
+    print(await list.get_n('list1', start=2, count=2))
+    print(await list.get_n('list1', start=4))
+    print(await list.get_n('list1', start=4, count=100))
+    
+    print(await list.get_n_reverse('list1', start=2, count=2))
+    print(await list.get_n_reverse('list1', start=2, count=0))
+
 
   except:
     print('Query failed')

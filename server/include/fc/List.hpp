@@ -18,21 +18,36 @@ namespace fc
   template<typename V>
   concept ListValue = std::disjunction_v<std::is_same<V, std::int64_t>, std::is_same<V, std::uint64_t>, std::false_type>;
 
-  
+
+  template<typename Iterator>
+  inline void listToTypedVector(FlexBuilder& fb, Iterator begin, const Iterator end)
+  {
+    fb.TypedVector([&fb, begin, end]() mutable
+    {
+      while (begin != end)
+      {
+        fb.Add(*begin);
+        ++begin;
+      }
+    });
+  }
+
+
   // TODO do we actually need Base? Position is signed may be possible to use to determine base
   template<typename V>
   struct Add
   {
-    Add(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int32_t position) requires (ListValue<V>)
+    Add(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position) requires (ListValue<V>)
       : items(items), base(base), pos(position)
     {
     }
 
+
     template<typename ListT>
     void operator()(ListT& list)  // ListT: either IntList or UIntList, etc
     {
-      const auto size = list.size();
-      const auto shift = std::min<>(static_cast<decltype(size)>(pos), size); // TODO is this a bad idea?
+      const auto size = std::ssize(list);
+      const auto shift = std::min<>(pos, size);
       auto it = list.begin();
 
       if (base == Base_Head)
@@ -56,52 +71,47 @@ namespace fc
   private:
     const flexbuffers::TypedVector& items;
     fc::request::Base base;
-    std::int32_t pos;
+    std::int64_t pos;
   };
 
 
   template<typename V>
   struct GetByCount
   {
-    GetByCount(const std::int32_t start, const std::int32_t count, FlexBuilder& fb) : start(start), count(count), fb(fb)
+    GetByCount(FlexBuilder& fb, const std::int64_t start, const std::uint64_t count, const fc::request::Base base)
+      : fb(fb), start(start), count(count), base(base)
     {
-
     }
+
 
     template<typename ListT>
     void operator()(ListT& list) 
     {
-      const auto size = list.size();
-      const auto shift = std::min<>(static_cast<decltype(size)>(start), size);
-
-      typename ListT::const_iterator itStart;
-      typename ListT::const_iterator itStop;
-
-      if (start < 0)
+      const auto size = std::ssize(list);
+      count = count == 0 ? size : count;
+      start = std::min<>(start, size);
+      
+      if (base == Base_Head)  // forward iterating (head->tail)
       {
-        itStart = std::next(list.crbegin(), shift).base();
+        const auto itStart = std::next(list.cbegin(), start);
+        const auto itEnd = std::next(itStart, std::min<>(std::distance(itStart, list.cend()), count));
+
+        listToTypedVector(fb, itStart, itEnd);
       }
-      else
+      else // reverse iterating (tail->head)
       {
-        itStart = std::next(list.cbegin(), shift);
+        const auto itStart = std::next(list.crbegin(), start);
+        const auto itEnd = std::next(itStart, std::min<>(std::distance(itStart, list.crend()), count));
+
+        listToTypedVector(fb, itStart, itEnd);
       }
-
-      fb.TypedVector([this, size, itNode = itStart]() mutable
-      {
-        const int32_t last = count == 0 ? static_cast<int32_t>(size) : count;
-
-        for (int32_t i = 0 ; i < last ; ++i)
-        {
-          fb.Add(*itNode);
-          ++itNode;
-        } 
-      });
     }
 
 
   private:
-    std::int32_t start, count;
     FlexBuilder& fb;
+    std::int64_t start, count;    
+    const fc::request::Base base;
   };
 
 

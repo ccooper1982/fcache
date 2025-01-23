@@ -253,22 +253,18 @@ namespace fc
   {
     if (request.body_type() == fc::request::RequestBody_ListCreate)
     {
-      PLOGI << "List create";
       m_listHandler->handle(fbb, *request.body_as_ListCreate());
     }
     else if (request.body_type() == fc::request::RequestBody_ListAdd)
     {
-      PLOGI << "List add";
       m_listHandler->handle(fbb, *request.body_as_ListAdd());
     }
     else if (request.body_type() == fc::request::RequestBody_ListDelete)
     {
-      PLOGI << "List clear";
       m_listHandler->handle(fbb, *request.body_as_ListDelete());
     }
     else if (request.body_type() == fc::request::RequestBody_ListGetN)
     {
-      PLOGI << "List get";
       m_listHandler->handle(fbb, *request.body_as_ListGetN());
     }
 

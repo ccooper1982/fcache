@@ -127,12 +127,7 @@ namespace fc
       const auto start = req.start();
       const auto count = req.count();
       
-      if (!((start >= 0 && count >= 0) || (start < 0 && count < 0)))  [[unlikely]]
-      {
-        PLOGE << "ListGet: start/stop must be both positive or both negative";
-        createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetN);
-      }
-      else if (const auto listOpt = getList(name); !listOpt)
+      if (const auto listOpt = getList(name); !listOpt)
       {
         createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetN);
       }
@@ -143,9 +138,9 @@ namespace fc
         FlexBuilder flxb{2048U}; 
         const auto& fcList = (*listOpt)->second;
 
-        auto get = [start, count, &flxb, &list = fcList->list()]<typename T>()
+        auto get = [start, count, base=req.base(), &flxb, &list=fcList->list()]<typename T>()
         {
-          std::visit(GetByCount<int64_t>{start, count, flxb}, list);
+          std::visit(GetByCount<int64_t>{flxb, start, count, base}, list);
         };
         
         if (fcList->type() == FlexType::FBT_VECTOR_INT)

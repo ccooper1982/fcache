@@ -97,7 +97,14 @@ class List:
   
 
   async def get_n(self, name: str, *, start: int = 0, count: int = 0):
-    "If count is 0, returns all items from start"
+    return await self._do_get_n(name, True, start, count)
+  
+
+  async def get_n_reverse(self, name: str, *, start: int = 0, count: int = 0):
+    return await self._do_get_n(name, False, start, count)
+  
+
+  async def _do_get_n(self, name: str, forwards: bool, start: int, count: int):
     try:
       raise_if(len(name) == 0, 'name is empty')
 
@@ -109,6 +116,7 @@ class List:
       ListGetN.AddName(fb, nameOffset)
       ListGetN.AddStart(fb, start)
       ListGetN.AddCount(fb, count)
+      ListGetN.AddBase(fb, Base.Base.Head if forwards else Base.Base.Tail)
       body = ListGetN.End(fb)
 
       self._complete_request(fb, body, RequestBody.RequestBody.ListGetN)
@@ -124,7 +132,7 @@ class List:
       print(e)
       raise
   
-
+  
   # async def get_range(self, name: str, *, start=0, stop=1):
   #   return await self._do_get(name, start, stop=stop)
 

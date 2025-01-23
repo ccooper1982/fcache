@@ -42,11 +42,18 @@ class ListGetN(object):
     def Count(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+            return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
+        return 0
+
+    # ListGetN
+    def Base(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
 def ListGetNStart(builder):
-    builder.StartObject(3)
+    builder.StartObject(4)
 
 def Start(builder):
     ListGetNStart(builder)
@@ -64,10 +71,16 @@ def AddStart(builder, start):
     ListGetNAddStart(builder, start)
 
 def ListGetNAddCount(builder, count):
-    builder.PrependInt32Slot(2, count, 0)
+    builder.PrependUint32Slot(2, count, 0)
 
 def AddCount(builder, count):
     ListGetNAddCount(builder, count)
+
+def ListGetNAddBase(builder, base):
+    builder.PrependUint8Slot(3, base, 0)
+
+def AddBase(builder, base):
+    ListGetNAddBase(builder, base)
 
 def ListGetNEnd(builder):
     return builder.EndObject()

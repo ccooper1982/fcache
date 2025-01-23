@@ -331,7 +331,8 @@ struct ListGetN FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_START = 6,
-    VT_COUNT = 8
+    VT_COUNT = 8,
+    VT_BASE = 10
   };
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
@@ -339,15 +340,19 @@ struct ListGetN FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t start() const {
     return GetField<int32_t>(VT_START, 0);
   }
-  int32_t count() const {
-    return GetField<int32_t>(VT_COUNT, 0);
+  uint32_t count() const {
+    return GetField<uint32_t>(VT_COUNT, 0);
+  }
+  fc::request::Base base() const {
+    return static_cast<fc::request::Base>(GetField<uint8_t>(VT_BASE, 0));
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
            VerifyField<int32_t>(verifier, VT_START, 4) &&
-           VerifyField<int32_t>(verifier, VT_COUNT, 4) &&
+           VerifyField<uint32_t>(verifier, VT_COUNT, 4) &&
+           VerifyField<uint8_t>(verifier, VT_BASE, 1) &&
            verifier.EndTable();
   }
 };
@@ -362,8 +367,11 @@ struct ListGetNBuilder {
   void add_start(int32_t start) {
     fbb_.AddElement<int32_t>(ListGetN::VT_START, start, 0);
   }
-  void add_count(int32_t count) {
-    fbb_.AddElement<int32_t>(ListGetN::VT_COUNT, count, 0);
+  void add_count(uint32_t count) {
+    fbb_.AddElement<uint32_t>(ListGetN::VT_COUNT, count, 0);
+  }
+  void add_base(fc::request::Base base) {
+    fbb_.AddElement<uint8_t>(ListGetN::VT_BASE, static_cast<uint8_t>(base), 0);
   }
   explicit ListGetNBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -380,11 +388,13 @@ inline ::flatbuffers::Offset<ListGetN> CreateListGetN(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     int32_t start = 0,
-    int32_t count = 0) {
+    uint32_t count = 0,
+    fc::request::Base base = fc::request::Base_Head) {
   ListGetNBuilder builder_(_fbb);
   builder_.add_count(count);
   builder_.add_start(start);
   builder_.add_name(name);
+  builder_.add_base(base);
   return builder_.Finish();
 }
 
@@ -392,13 +402,15 @@ inline ::flatbuffers::Offset<ListGetN> CreateListGetNDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     int32_t start = 0,
-    int32_t count = 0) {
+    uint32_t count = 0,
+    fc::request::Base base = fc::request::Base_Head) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return fc::request::CreateListGetN(
       _fbb,
       name__,
       start,
-      count);
+      count,
+      base);
 }
 
 }  // namespace request
