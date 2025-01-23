@@ -18,45 +18,8 @@ namespace fc
   template<typename V>
   concept ListValue = std::disjunction_v<std::is_same<V, std::int64_t>, std::is_same<V, std::uint64_t>, std::false_type>;
 
-
-  /*
-  template<typename V>
-  struct Add
-  {
-    Add(const V& v, const fc::request::Base base, const std::int32_t position) requires (ListValue<V>)
-      : val(v), base(base), pos(position)
-    {
-    }
-
-    template<typename ListT>
-    void operator()(ListT& list)  // ListT: either IntList or UIntList, etc
-    {
-      PLOGD << "Add: " << val;
-
-      const auto size = list.size();
-      const auto shift = std::min<>(static_cast<decltype(size)>(pos), size); // TODO is this a bad idea?
-
-      if (base == Base_Head)
-      {
-        const auto it = std::next(list.begin(), shift);
-        list.insert(it, val);
-      }
-      else if (base == Base_Tail)
-      {
-        const auto it = std::next(list.rbegin(), shift);
-        list.insert(it.base(), val);
-      }
-    }
-    
-  private:
-    const V& val;
-    fc::request::Base base;
-    std::int32_t pos;
-  };
-  */
-
-
   
+  // TODO do we actually need Base? Position is signed may be possible to use to determine base
   template<typename V>
   struct Add
   {
@@ -94,6 +57,51 @@ namespace fc
     const flexbuffers::TypedVector& items;
     fc::request::Base base;
     std::int32_t pos;
+  };
+
+
+  template<typename V>
+  struct GetByCount
+  {
+    GetByCount(const std::int32_t start, const std::int32_t count, FlexBuilder& fb) : start(start), count(count), fb(fb)
+    {
+
+    }
+
+    template<typename ListT>
+    void operator()(ListT& list) 
+    {
+      const auto size = list.size();
+      const auto shift = std::min<>(static_cast<decltype(size)>(start), size);
+
+      typename ListT::const_iterator itStart;
+      typename ListT::const_iterator itStop;
+
+      if (start < 0)
+      {
+        itStart = std::next(list.crbegin(), shift).base();
+      }
+      else
+      {
+        itStart = std::next(list.cbegin(), shift);
+      }
+
+      fb.TypedVector([this, size, itNode = itStart]() mutable
+      {
+        const int32_t last = count == 0 ? static_cast<int32_t>(size) : count;
+
+        for (int32_t i = 0 ; i < last ; ++i)
+        {
+          fb.Add(*itNode);
+          ++itNode;
+        } 
+      });
+    }
+
+
+  private:
+    std::int32_t start, count;
+    FlexBuilder& fb;
   };
 
 

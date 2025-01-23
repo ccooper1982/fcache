@@ -9,16 +9,18 @@ namespace fc
   using enum fc::response::Status;
 
 
-  #ifdef FC_DEBUG
+  
   template<typename T>
   static void dumpList(List& list)
   {
-    const auto& l = std::get<T>(list);
+    #ifdef FC_DEBUG
+      const auto& l = std::get<T>(list);
 
-    for (const auto n : l)
-      PLOGD << n;
+      for (const auto n : l)
+        PLOGD << n;
+    #endif
   }
-  #endif
+  
 
 
   void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListCreate& req) noexcept
@@ -52,7 +54,7 @@ namespace fc
     fc::response::Status status = Status_Ok;
     const auto& name = req.name()->str();
 
-    if (const auto listOpt = getList(name); !listOpt)
+    if (const auto listOpt = getList(name); !listOpt) [[unlikely]]
     {
       status = Status_Fail;
     }
@@ -88,6 +90,70 @@ namespace fc
     }
 
     createEmptyBodyResponse(fbb, status, fc::response::ResponseBody_ListAdd);
+  }
+
+
+  void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListDelete& req) noexcept
+  {
+    fc::response::Status status = Status_Ok;
+
+    try
+    {
+      if (req.name()->empty())
+      {
+        m_lists.clear();
+      }
+      else
+      {
+        for (const auto name : *req.name())
+          m_lists.erase(name->str());
+      }    
+    }
+    catch(const std::exception& e)
+    {
+      PLOGE << e.what();
+      status = Status_Fail;
+    }
+    
+    createEmptyBodyResponse(fbb, status, fc::response::ResponseBody_ListDelete);
+  }
+
+
+  void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListGetN& req) noexcept
+  {
+    const auto& name = req.name()->str();
+    const auto start = req.start();
+    const auto count = req.count();
+    
+    if (!((start >= 0 && count >= 0) || (start < 0 && count < 0)))  [[unlikely]]
+    {
+      PLOGE << "ListGet: start/stop must be both positive or both negative";
+      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetN);
+    }
+    else if (const auto listOpt = getList(name); !listOpt)
+    {
+      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetN);
+    }
+    else
+    {
+      const auto& fcList = (*listOpt)->second;
+
+      // TODO estimate this more accurately by using (count * sizeof(int64_t)) + padding for FlexBuffer stuff? Perhaps add a typeSize() to FcList
+      FlexBuilder flxb{2048U}; 
+      
+      if (fcList->type() == FlexType::FBT_VECTOR_INT)
+      {
+        std::visit(GetByCount<int64_t>{start, count, flxb}, fcList->list());
+      }
+
+      flxb.Finish();
+
+      const auto vec = fbb.CreateVector(flxb.GetBuffer());
+      const auto body = fc::response::CreateListGetN(fbb, vec);
+      
+      auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_ListGetN, body.Union());
+      fbb.Finish(rsp);
+    }
   }
 
 

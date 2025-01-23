@@ -8,12 +8,22 @@ enum Base : ubyte
   Tail
 }
 
+table Range
+{
+  start:int32 = 0;
+  stop:int32 = 0;
+}
 
 table ListCreate
 {
   name:string;
   type:common.ListType;
-} 
+}
+
+table ListDelete
+{
+  name:[string];
+}
 
 table ListAdd
 {
@@ -21,4 +31,11 @@ table ListAdd
   items:[ubyte] (flexbuffer);
   position:int32;  // unlikely to have a list that requires higher range than int32
   base: Base;
+}
+
+table ListGetN
+{
+  name:string;
+  start:int32;
+  count:int32;
 }

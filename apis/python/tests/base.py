@@ -26,4 +26,4 @@ class ListTest(FcTest):
   async def asyncSetUp(self):
     await super().asyncSetUp()
     self.list = List(self.client)
-    #await self.list.clear() TODO
+    await self.list.delete_all()

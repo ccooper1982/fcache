@@ -76,11 +76,13 @@ enum ResponseBody : uint8_t {
   ResponseBody_KVClearSet = 8,
   ResponseBody_ListCreate = 9,
   ResponseBody_ListAdd = 10,
+  ResponseBody_ListDelete = 11,
+  ResponseBody_ListGetN = 12,
   ResponseBody_MIN = ResponseBody_NONE,
-  ResponseBody_MAX = ResponseBody_ListAdd
+  ResponseBody_MAX = ResponseBody_ListGetN
 };
 
-inline const ResponseBody (&EnumValuesResponseBody())[11] {
+inline const ResponseBody (&EnumValuesResponseBody())[13] {
   static const ResponseBody values[] = {
     ResponseBody_NONE,
     ResponseBody_KVSet,
@@ -92,13 +94,15 @@ inline const ResponseBody (&EnumValuesResponseBody())[11] {
     ResponseBody_KVClear,
     ResponseBody_KVClearSet,
     ResponseBody_ListCreate,
-    ResponseBody_ListAdd
+    ResponseBody_ListAdd,
+    ResponseBody_ListDelete,
+    ResponseBody_ListGetN
   };
   return values;
 }
 
 inline const char * const *EnumNamesResponseBody() {
-  static const char * const names[12] = {
+  static const char * const names[14] = {
     "NONE",
     "KVSet",
     "KVGet",
@@ -110,13 +114,15 @@ inline const char * const *EnumNamesResponseBody() {
     "KVClearSet",
     "ListCreate",
     "ListAdd",
+    "ListDelete",
+    "ListGetN",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameResponseBody(ResponseBody e) {
-  if (::flatbuffers::IsOutRange(e, ResponseBody_NONE, ResponseBody_ListAdd)) return "";
+  if (::flatbuffers::IsOutRange(e, ResponseBody_NONE, ResponseBody_ListGetN)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesResponseBody()[index];
 }
@@ -163,6 +169,14 @@ template<> struct ResponseBodyTraits<fc::response::ListCreate> {
 
 template<> struct ResponseBodyTraits<fc::response::ListAdd> {
   static const ResponseBody enum_value = ResponseBody_ListAdd;
+};
+
+template<> struct ResponseBodyTraits<fc::response::ListDelete> {
+  static const ResponseBody enum_value = ResponseBody_ListDelete;
+};
+
+template<> struct ResponseBodyTraits<fc::response::ListGetN> {
+  static const ResponseBody enum_value = ResponseBody_ListGetN;
 };
 
 bool VerifyResponseBody(::flatbuffers::Verifier &verifier, const void *obj, ResponseBody type);
@@ -215,6 +229,12 @@ struct Response FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const fc::response::ListAdd *body_as_ListAdd() const {
     return body_type() == fc::response::ResponseBody_ListAdd ? static_cast<const fc::response::ListAdd *>(body()) : nullptr;
   }
+  const fc::response::ListDelete *body_as_ListDelete() const {
+    return body_type() == fc::response::ResponseBody_ListDelete ? static_cast<const fc::response::ListDelete *>(body()) : nullptr;
+  }
+  const fc::response::ListGetN *body_as_ListGetN() const {
+    return body_type() == fc::response::ResponseBody_ListGetN ? static_cast<const fc::response::ListGetN *>(body()) : nullptr;
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_STATUS, 1) &&
@@ -263,6 +283,14 @@ template<> inline const fc::response::ListCreate *Response::body_as<fc::response
 
 template<> inline const fc::response::ListAdd *Response::body_as<fc::response::ListAdd>() const {
   return body_as_ListAdd();
+}
+
+template<> inline const fc::response::ListDelete *Response::body_as<fc::response::ListDelete>() const {
+  return body_as_ListDelete();
+}
+
+template<> inline const fc::response::ListGetN *Response::body_as<fc::response::ListGetN>() const {
+  return body_as_ListGetN();
 }
 
 struct ResponseBuilder {
@@ -344,6 +372,14 @@ inline bool VerifyResponseBody(::flatbuffers::Verifier &verifier, const void *ob
     }
     case ResponseBody_ListAdd: {
       auto ptr = reinterpret_cast<const fc::response::ListAdd *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case ResponseBody_ListDelete: {
+      auto ptr = reinterpret_cast<const fc::response::ListDelete *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case ResponseBody_ListGetN: {
+      auto ptr = reinterpret_cast<const fc::response::ListGetN *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;

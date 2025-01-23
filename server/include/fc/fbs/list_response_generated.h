@@ -5,6 +5,8 @@
 #define FLATBUFFERS_GENERATED_LISTRESPONSE_FC_RESPONSE_H_
 
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/flexbuffers.h"
+#include "flatbuffers/flex_flat_util.h"
 
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
@@ -23,6 +25,12 @@ struct ListCreateBuilder;
 
 struct ListAdd;
 struct ListAddBuilder;
+
+struct ListDelete;
+struct ListDeleteBuilder;
+
+struct ListGetN;
+struct ListGetNBuilder;
 
 struct ListCreate FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ListCreateBuilder Builder;
@@ -80,6 +88,104 @@ inline ::flatbuffers::Offset<ListAdd> CreateListAdd(
     ::flatbuffers::FlatBufferBuilder &_fbb) {
   ListAddBuilder builder_(_fbb);
   return builder_.Finish();
+}
+
+struct ListDelete FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ListDeleteBuilder Builder;
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct ListDeleteBuilder {
+  typedef ListDelete Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  explicit ListDeleteBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<ListDelete> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<ListDelete>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<ListDelete> CreateListDelete(
+    ::flatbuffers::FlatBufferBuilder &_fbb) {
+  ListDeleteBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
+struct ListGetN FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ListGetNBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_ITEMS = 4,
+    VT_TYPE = 6
+  };
+  const ::flatbuffers::Vector<uint8_t> *items() const {
+    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_ITEMS);
+  }
+  flexbuffers::Reference items_flexbuffer_root() const {
+    const auto _f = items();
+    return _f ? flexbuffers::GetRoot(_f->Data(), _f->size())
+              : flexbuffers::Reference();
+  }
+  fc::common::ListType type() const {
+    return static_cast<fc::common::ListType>(GetField<int8_t>(VT_TYPE, 0));
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_ITEMS) &&
+           verifier.VerifyVector(items()) &&
+           flexbuffers::VerifyNestedFlexBuffer(items(), verifier) &&
+           VerifyField<int8_t>(verifier, VT_TYPE, 1) &&
+           verifier.EndTable();
+  }
+};
+
+struct ListGetNBuilder {
+  typedef ListGetN Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_items(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> items) {
+    fbb_.AddOffset(ListGetN::VT_ITEMS, items);
+  }
+  void add_type(fc::common::ListType type) {
+    fbb_.AddElement<int8_t>(ListGetN::VT_TYPE, static_cast<int8_t>(type), 0);
+  }
+  explicit ListGetNBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<ListGetN> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<ListGetN>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<ListGetN> CreateListGetN(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> items = 0,
+    fc::common::ListType type = fc::common::ListType_Int) {
+  ListGetNBuilder builder_(_fbb);
+  builder_.add_items(items);
+  builder_.add_type(type);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<ListGetN> CreateListGetNDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<uint8_t> *items = nullptr,
+    fc::common::ListType type = fc::common::ListType_Int) {
+  auto items__ = items ? _fbb.CreateVector<uint8_t>(*items) : 0;
+  return fc::response::CreateListGetN(
+      _fbb,
+      items__,
+      type);
 }
 
 }  // namespace response

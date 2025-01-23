@@ -14,3 +14,5 @@ class ResponseBody(object):
     KVClearSet = 8
     ListCreate = 9
     ListAdd = 10
+    ListDelete = 11
+    ListGetN = 12

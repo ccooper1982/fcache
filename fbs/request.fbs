@@ -18,7 +18,9 @@ union RequestBody
   KVClearSet,
   // List
   ListCreate,
-  ListAdd
+  ListAdd,
+  ListDelete,
+  ListGetN
 }
 
 
