@@ -124,34 +124,30 @@ namespace fc
     try
     {
       const auto& name = req.name()->str();
-      const auto start = req.start();
-      const auto count = req.count();
-      
+            
       if (const auto listOpt = getList(name); !listOpt)
       {
         createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetN);
       }
       else
       {
+        const auto start = req.start();
+        const auto count = req.count();
+        const auto base = req.base();
+        const auto& fcList = (*listOpt)->second;
+
         // TODO estimate this more accurately by using (count * sizeof(int64_t)) + padding?
         //      Padding is for FlexBuffer stuff. perhaps add a typeSize() to FcList
         FlexBuilder flxb{2048U}; 
-        const auto& fcList = (*listOpt)->second;
-
-        auto get = [start, count, base=req.base(), &flxb, &list=fcList->list()]<typename T>()
-        {
-          std::visit(GetByCount<int64_t>{flxb, start, count, base}, list);
-        };
-        
+        /*
         if (fcList->type() == FlexType::FBT_VECTOR_INT)
-        {
-          get.template operator()<std::int64_t>();
-        }
+          get();
         else if (fcList->type() == FlexType::FBT_VECTOR_UINT)
-        {
-          get.template operator()<std::uint64_t>();
-        }
+          get();
+        */
 
+        std::visit(GetByCount{flxb, start, count, base}, fcList->list());
+        
         flxb.Finish();
 
         const auto vec = fbb.CreateVector(flxb.GetBuffer());
@@ -165,6 +161,57 @@ namespace fc
     {
       PLOGE << e.what();
       createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetN);
+    }
+  }
+
+
+  void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListGetRange& req) noexcept
+  {
+    // auto isRangeValid = [](const int32_t start, const int32_t end) -> bool
+    // {
+
+    // };
+
+    try
+    {
+      const auto& name = req.name()->str();
+      const int32_t start = req.range()->start();
+      const int32_t stop = req.range()->stop();
+      const bool hasStop = req.range()->has_stop();
+
+      if (const auto listOpt = getList(name); !listOpt)
+      {
+        createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetRange);
+      }
+      /*else if ((std::abs(stop) - std::abs(start) < 0) || (std::abs(start) > std::abs(stop)))
+      {
+        PLOGD << "GetListRng: range invalid";
+        createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetRange);
+      }*/
+      else
+      {
+        const auto& fcList = (*listOpt)->second;
+
+        FlexBuilder flxb{2048U}; 
+
+        if (hasStop)
+          std::visit(GetByRange{flxb, start, stop}, fcList->list());
+        else
+          std::visit(GetByRange{flxb, start}, fcList->list());
+
+        flxb.Finish();
+
+        const auto vec = fbb.CreateVector(flxb.GetBuffer());
+        const auto body = fc::response::CreateListGetRange(fbb, vec);
+        
+        auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_ListGetRange, body.Union());
+        fbb.Finish(rsp);
+      }
+    }
+    catch(const std::exception& e)
+    {
+      PLOGE << e.what();
+      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetRange);
     }
   }
 

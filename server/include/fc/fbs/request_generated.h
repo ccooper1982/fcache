@@ -39,11 +39,12 @@ enum RequestBody : uint8_t {
   RequestBody_ListAdd = 10,
   RequestBody_ListDelete = 11,
   RequestBody_ListGetN = 12,
+  RequestBody_ListGetRange = 13,
   RequestBody_MIN = RequestBody_NONE,
-  RequestBody_MAX = RequestBody_ListGetN
+  RequestBody_MAX = RequestBody_ListGetRange
 };
 
-inline const RequestBody (&EnumValuesRequestBody())[13] {
+inline const RequestBody (&EnumValuesRequestBody())[14] {
   static const RequestBody values[] = {
     RequestBody_NONE,
     RequestBody_KVSet,
@@ -57,13 +58,14 @@ inline const RequestBody (&EnumValuesRequestBody())[13] {
     RequestBody_ListCreate,
     RequestBody_ListAdd,
     RequestBody_ListDelete,
-    RequestBody_ListGetN
+    RequestBody_ListGetN,
+    RequestBody_ListGetRange
   };
   return values;
 }
 
 inline const char * const *EnumNamesRequestBody() {
-  static const char * const names[14] = {
+  static const char * const names[15] = {
     "NONE",
     "KVSet",
     "KVGet",
@@ -77,13 +79,14 @@ inline const char * const *EnumNamesRequestBody() {
     "ListAdd",
     "ListDelete",
     "ListGetN",
+    "ListGetRange",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameRequestBody(RequestBody e) {
-  if (::flatbuffers::IsOutRange(e, RequestBody_NONE, RequestBody_ListGetN)) return "";
+  if (::flatbuffers::IsOutRange(e, RequestBody_NONE, RequestBody_ListGetRange)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesRequestBody()[index];
 }
@@ -138,6 +141,10 @@ template<> struct RequestBodyTraits<fc::request::ListDelete> {
 
 template<> struct RequestBodyTraits<fc::request::ListGetN> {
   static const RequestBody enum_value = RequestBody_ListGetN;
+};
+
+template<> struct RequestBodyTraits<fc::request::ListGetRange> {
+  static const RequestBody enum_value = RequestBody_ListGetRange;
 };
 
 bool VerifyRequestBody(::flatbuffers::Verifier &verifier, const void *obj, RequestBody type);
@@ -196,6 +203,9 @@ struct Request FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const fc::request::ListGetN *body_as_ListGetN() const {
     return body_type() == fc::request::RequestBody_ListGetN ? static_cast<const fc::request::ListGetN *>(body()) : nullptr;
   }
+  const fc::request::ListGetRange *body_as_ListGetRange() const {
+    return body_type() == fc::request::RequestBody_ListGetRange ? static_cast<const fc::request::ListGetRange *>(body()) : nullptr;
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_IDENT, 1) &&
@@ -252,6 +262,10 @@ template<> inline const fc::request::ListDelete *Request::body_as<fc::request::L
 
 template<> inline const fc::request::ListGetN *Request::body_as<fc::request::ListGetN>() const {
   return body_as_ListGetN();
+}
+
+template<> inline const fc::request::ListGetRange *Request::body_as<fc::request::ListGetRange>() const {
+  return body_as_ListGetRange();
 }
 
 struct RequestBuilder {
@@ -341,6 +355,10 @@ inline bool VerifyRequestBody(::flatbuffers::Verifier &verifier, const void *obj
     }
     case RequestBody_ListGetN: {
       auto ptr = reinterpret_cast<const fc::request::ListGetN *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case RequestBody_ListGetRange: {
+      auto ptr = reinterpret_cast<const fc::request::ListGetRange *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;

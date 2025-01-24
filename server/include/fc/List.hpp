@@ -33,7 +33,7 @@ namespace fc
   }
 
 
-  // TODO do we actually need Base? Position is signed may be possible to use to determine base
+  // TODO do we actually need Base? It may be possible to use position to determine base
   template<typename V>
   struct Add
   {
@@ -74,12 +74,11 @@ namespace fc
     std::int64_t pos;
   };
 
-
-  template<typename V>
+  
   struct GetByCount
   {
-    GetByCount(FlexBuilder& fb, const std::int64_t start, const std::uint64_t count, const fc::request::Base base)
-      : fb(fb), start(start), count(count), base(base)
+    GetByCount(FlexBuilder& flxb, const std::int64_t start, const std::uint64_t count, const fc::request::Base base)
+      : flxb(flxb), start(start), count(count), base(base)
     {
     }
 
@@ -96,25 +95,75 @@ namespace fc
         const auto itStart = std::next(list.cbegin(), start);
         const auto itEnd = std::next(itStart, std::min<>(std::distance(itStart, list.cend()), count));
 
-        listToTypedVector(fb, itStart, itEnd);
+        listToTypedVector(flxb, itStart, itEnd);
       }
       else // reverse iterating (tail->head)
       {
         const auto itStart = std::next(list.crbegin(), start);
         const auto itEnd = std::next(itStart, std::min<>(std::distance(itStart, list.crend()), count));
 
-        listToTypedVector(fb, itStart, itEnd);
+        listToTypedVector(flxb, itStart, itEnd);
       }
     }
 
 
   private:
-    FlexBuilder& fb;
-    std::int64_t start, count;    
+    FlexBuilder& flxb;
+    std::int64_t start, count;
     const fc::request::Base base;
   };
 
 
+  struct GetByRange
+  {
+    GetByRange(FlexBuilder& flxb, const int64_t start, const int64_t end)
+      : flxb(flxb), start(start), end(end), hasStop(true)
+    {
+
+    }
+
+    GetByRange(FlexBuilder& flxb, const int64_t start)
+      : flxb(flxb), start(start), end(0), hasStop(false)
+    {
+
+    }
+
+    template<typename ListT>
+    void operator()(ListT& list)
+    {
+      const auto size = std::ssize(list);      
+      const bool isReverse = start > end;
+      end = hasStop ? end : size;
+
+      if (start < 0)
+        start = size + start;
+      if (end < 0)
+        end = size + end;
+           
+      if (isReverse)
+      {
+        const auto itStart = std::next(list.crbegin(), start);
+        const auto itEnd = std::next(itStart, std::min<>(std::distance(itStart, list.crend()), end));
+
+        listToTypedVector(flxb, itStart, itEnd);
+      }
+      else
+      {
+        const auto itStart = std::next(list.cbegin(), start);
+        const auto itEnd = std::next(itStart, std::min<>(std::distance(itStart, list.cend()), end));
+
+        listToTypedVector(flxb, itStart, itEnd);
+      }
+    }
+
+  private:
+    FlexBuilder& flxb;
+    std::int64_t start;
+    std::int64_t end;
+    bool hasStop;
+  };
+
+  
   class FcList
   {
   public:

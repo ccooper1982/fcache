@@ -35,6 +35,9 @@ struct ListAddBuilder;
 struct ListGetN;
 struct ListGetNBuilder;
 
+struct ListGetRange;
+struct ListGetRangeBuilder;
+
 enum Base : uint8_t {
   Base_Head = 0,
   Base_Tail = 1,
@@ -69,7 +72,8 @@ struct Range FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef RangeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_START = 4,
-    VT_STOP = 6
+    VT_STOP = 6,
+    VT_HAS_STOP = 8
   };
   int32_t start() const {
     return GetField<int32_t>(VT_START, 0);
@@ -77,10 +81,14 @@ struct Range FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t stop() const {
     return GetField<int32_t>(VT_STOP, 0);
   }
+  bool has_stop() const {
+    return GetField<uint8_t>(VT_HAS_STOP, 1) != 0;
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_START, 4) &&
            VerifyField<int32_t>(verifier, VT_STOP, 4) &&
+           VerifyField<uint8_t>(verifier, VT_HAS_STOP, 1) &&
            verifier.EndTable();
   }
 };
@@ -94,6 +102,9 @@ struct RangeBuilder {
   }
   void add_stop(int32_t stop) {
     fbb_.AddElement<int32_t>(Range::VT_STOP, stop, 0);
+  }
+  void add_has_stop(bool has_stop) {
+    fbb_.AddElement<uint8_t>(Range::VT_HAS_STOP, static_cast<uint8_t>(has_stop), 1);
   }
   explicit RangeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -109,10 +120,12 @@ struct RangeBuilder {
 inline ::flatbuffers::Offset<Range> CreateRange(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t start = 0,
-    int32_t stop = 0) {
+    int32_t stop = 0,
+    bool has_stop = true) {
   RangeBuilder builder_(_fbb);
   builder_.add_stop(stop);
   builder_.add_start(start);
+  builder_.add_has_stop(has_stop);
   return builder_.Finish();
 }
 
@@ -411,6 +424,70 @@ inline ::flatbuffers::Offset<ListGetN> CreateListGetNDirect(
       start,
       count,
       base);
+}
+
+struct ListGetRange FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ListGetRangeBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_RANGE = 6
+  };
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
+  }
+  const fc::request::Range *range() const {
+    return GetPointer<const fc::request::Range *>(VT_RANGE);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyOffset(verifier, VT_RANGE) &&
+           verifier.VerifyTable(range()) &&
+           verifier.EndTable();
+  }
+};
+
+struct ListGetRangeBuilder {
+  typedef ListGetRange Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
+    fbb_.AddOffset(ListGetRange::VT_NAME, name);
+  }
+  void add_range(::flatbuffers::Offset<fc::request::Range> range) {
+    fbb_.AddOffset(ListGetRange::VT_RANGE, range);
+  }
+  explicit ListGetRangeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<ListGetRange> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<ListGetRange>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<ListGetRange> CreateListGetRange(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    ::flatbuffers::Offset<fc::request::Range> range = 0) {
+  ListGetRangeBuilder builder_(_fbb);
+  builder_.add_range(range);
+  builder_.add_name(name);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<ListGetRange> CreateListGetRangeDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    ::flatbuffers::Offset<fc::request::Range> range = 0) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  return fc::request::CreateListGetRange(
+      _fbb,
+      name__,
+      range);
 }
 
 }  // namespace request

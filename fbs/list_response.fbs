@@ -20,3 +20,9 @@ table ListGetN
   items:[ubyte] (flexbuffer);
   type:common.ListType;
 }
+
+table ListGetRange
+{
+  items:[ubyte] (flexbuffer);
+  type:common.ListType;
+}

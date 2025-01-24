@@ -7,8 +7,8 @@ from fc.logging import logger
 from typing import Any
 from fc.fbs.fc.common import Ident, ListType
 from fc.fbs.fc.request import (Request, RequestBody,
-                               ListCreate, ListAdd, ListDelete, ListGetN, Range, Base)
-from fc.fbs.fc.response import (ResponseBody, ListGetN as ListGetNRsp)
+                               ListCreate, ListAdd, ListDelete, ListGetN, ListGetRange, Range, Base)
+from fc.fbs.fc.response import (ResponseBody, ListGetN as ListGetNRsp, ListGetRange as ListGetRangeRsp)
 
 
 class List:
@@ -104,6 +104,42 @@ class List:
     return await self._do_get_n(name, False, start, count)
   
 
+  async def get_range(self, name: str, *, start:int, stop: int = None):
+    try:
+      raise_if(len(name) == 0, 'name is empty')
+
+      if stop is not None:
+        if (start > 0 and stop > 0) or (start < 0 and stop < 0):
+          raise_if(stop < start, 'stop < start')
+
+      fb = flatbuffers.Builder(initialSize=128)
+
+      nameOffset = fb.CreateString(name)
+
+      Range.Start(fb)
+      Range.AddStart(fb, start)
+      Range.AddStop(fb, stop if stop is not None else 0)
+      Range.AddHasStop(fb, stop is not None)
+      rangeOffset = Range.End(fb)
+
+      ListGetRange.Start(fb)
+      ListGetRange.AddName(fb, nameOffset)
+      ListGetRange.AddRange(fb, rangeOffset)
+      body = ListGetRange.End(fb)
+
+      self._complete_request(fb, body, RequestBody.RequestBody.ListGetRange)
+      rsp = await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListGetRange)
+
+      union_body = ListGetRangeRsp.ListGetRange()
+      union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
+      result = flatbuffers.flexbuffers.Loads(union_body.ItemsAsNumpy().tobytes())
+      return result
+    except Exception as e:
+      logger.error(e)
+      print(e)
+      raise
+
+
   async def _do_get_n(self, name: str, forwards: bool, start: int, count: int):
     try:
       raise_if(len(name) == 0, 'name is empty')
@@ -124,19 +160,13 @@ class List:
 
       union_body = ListGetNRsp.ListGetN()
       union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
-
-      # this is how we get a flexbuffer from a flatbuffer
       result = flatbuffers.flexbuffers.Loads(union_body.ItemsAsNumpy().tobytes())
       return result
     except Exception as e:
-      print(e)
+      logger.error(e)
       raise
   
   
-  # async def get_range(self, name: str, *, start=0, stop=1):
-  #   return await self._do_get(name, start, stop=stop)
-
-
   async def _do_add(self, name: str, items: typing.List[int], pos: int, base: Base.Base) -> None:
     if len(items) == 0:
       raise ValueError('items cannot be empty')

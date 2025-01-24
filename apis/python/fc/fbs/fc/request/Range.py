@@ -38,8 +38,15 @@ class Range(object):
             return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
         return 0
 
+    # Range
+    def HasStop(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
+        return True
+
 def RangeStart(builder):
-    builder.StartObject(2)
+    builder.StartObject(3)
 
 def Start(builder):
     RangeStart(builder)
@@ -55,6 +62,12 @@ def RangeAddStop(builder, stop):
 
 def AddStop(builder, stop):
     RangeAddStop(builder, stop)
+
+def RangeAddHasStop(builder, hasStop):
+    builder.PrependBoolSlot(2, hasStop, 1)
+
+def AddHasStop(builder, hasStop):
+    RangeAddHasStop(builder, hasStop)
 
 def RangeEnd(builder):
     return builder.EndObject()

@@ -20,7 +20,8 @@ union RequestBody
   ListCreate,
   ListAdd,
   ListDelete,
-  ListGetN
+  ListGetN,
+  ListGetRange
 }
 
 

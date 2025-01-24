@@ -41,7 +41,7 @@ async def create():
     print('Query failed')
         
 
-async def get():
+async def get_count():
   if (client := await connect()) is None:
     return
 
@@ -51,8 +51,7 @@ async def get():
     await list.delete_all()
 
     await list.create(name='list1', type='int', failOnDuplicate=False)
-    await list.add_head(name='list1', items=[1,2,5,6])
-    await list.add(name='list1', items=[3,4], pos=2)
+    await list.add_head(name='list1', items=[1,2,3,4,5,6])
     
     print(await list.get_n('list1', start=3))
     print(await list.get_n('list1', start=2, count=2))
@@ -61,16 +60,34 @@ async def get():
     
     print(await list.get_n_reverse('list1', start=2, count=2))
     print(await list.get_n_reverse('list1', start=2, count=0))
+  except Exception as e:
+    print(f'Query failed: {e}')
 
 
-  except:
-    print('Query failed')
 
+async def get_range():
+  if (client := await connect()) is None:
+    return
+
+  try:
+    list = List(client)
+
+    await list.delete_all()
+
+    await list.create(name='list1', type='int', failOnDuplicate=False)
+    await list.add_head(name='list1', items=[1,2,3,4,5,6])
+
+    print(await list.get_range('list1', start=0, stop=2))
+    print(await list.get_range('list1', start=0))
+    print(await list.get_range('list1', start=-6))
+    print(await list.get_range('list1', start=-6, stop=-3))
+  except Exception as e:
+    print(f'Query failed: {e}')
 
 
 if __name__ == "__main__":
   async def run():
-    for f in [get]:
+    for f in [get_range]:
       print(f'---- {f.__name__} ----')
       await f()
   

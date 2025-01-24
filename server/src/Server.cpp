@@ -267,6 +267,10 @@ namespace fc
     {
       m_listHandler->handle(fbb, *request.body_as_ListGetN());
     }
+    else if (request.body_type() == fc::request::RequestBody_ListGetRange)
+    {
+      m_listHandler->handle(fbb, *request.body_as_ListGetRange());
+    }
 
     send(ws, fbb);
   }
