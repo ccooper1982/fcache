@@ -48,3 +48,5 @@ nav:
       - clear_set: 'api_py/kv/clear_set.md'
       - contains: 'api_py/kv/contains.md'
       - count: 'api_py/kv/count.md'
+    - List:
+      - create: 'api_py/list/create.md'

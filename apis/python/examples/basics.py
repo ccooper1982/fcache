@@ -3,6 +3,7 @@ import sys
 sys.path.append('../')
 import fc
 from fc.kv import KV
+from fc.list import List
 
 
 async def connect() -> fc.Client:
@@ -19,7 +20,7 @@ async def kv():
   if (client := await connect()) is None:
     return
   
-  # create API object for KV commands
+  # create API object for KV functions
   kv = KV(client)
 
   await kv.set({'player':'Monster',
@@ -60,9 +61,41 @@ async def kv_blob():
       print('Image written')
 
 
+async def lists():
+  if (client := await connect()) is None:
+    return
+  
+  # create API object for list functions
+  list = List(client)
+
+  await list.delete_all()
+
+  # create list, don't raise error if it already exists
+  await list.create(name='scores', type='int', failOnDuplicate=False)
+  # add these items to head
+  await list.add_head('scores', items=[25,35,45,55])
+  # insert in between 35 and 45 (at position 2)
+  await list.add('scores', items=[40], pos=2)
+  # add two more to the tail
+  await list.add_tail('scores', items=[60, 65])
+  
+  # get everything
+  print(f"a. {await list.get_n('scores', start=0)}")
+  # get everything in reverse
+  print(f"b. {await list.get_n_reverse('scores', start=0)}")
+  # # get the first 3 
+  print(f"c. {await list.get_n('scores', count=3)}")
+  # # get the last 2
+  print(f"d. {await list.get_n('scores', start=5)}")
+  # get middle 3 with range (could also use get_n())
+  print(f"e. {await list.get_range('scores', start=2, stop=5)}")
+  # get middle 5 in reverse, using negative index
+  print(f"f. {await list.get_range_reverse('scores', start=1, stop=-1)}")
+
+
 if __name__ == "__main__":
   async def run():
-    for f in [kv, kv_blob]:
+    for f in [kv, kv_blob, lists]:
       print(f'---- {f.__name__} ----')
       await f()
   

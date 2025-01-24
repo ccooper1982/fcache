@@ -84,7 +84,7 @@ class List:
     await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListDelete)
 
 
-  async def delete_all(self):
+  async def delete_all(self) -> None:
     await self.delete(names=[])
 
 
@@ -96,18 +96,18 @@ class List:
     return await self.get_n(name, start=-1, count=1)
   
 
-  async def get_n(self, name: str, *, start: int = 0, count: int = 0):
+  async def get_n(self, name: str, *, start: int = 0, count: int = 0) -> list:
     """
     Get items, beginning at `start` for `count` items. 
     `count` being `0` means get remaining items from `start` to end"""
     return await self._do_get_n(name, True, start, count)
   
 
-  async def get_n_reverse(self, name: str, *, start: int = 0, count: int = 0):
+  async def get_n_reverse(self, name: str, *, start: int = 0, count: int = 0) -> list:
     return await self._do_get_n(name, False, start, count)
   
 
-  async def get_range(self, name: str, *, start:int, stop: int = None):
+  async def get_range(self, name: str, *, start:int, stop: int = None) -> list:
     if stop is not None:
       if start == stop:
         return []
@@ -117,7 +117,7 @@ class List:
     return await self._do_get_range(name, Base.Base.Head, start, stop)
 
 
-  async def get_range_reverse(self, name: str, *, start:int, stop: int = None):
+  async def get_range_reverse(self, name: str, *, start:int, stop: int = None) -> list:
     if stop is not None:
       if start == stop:
         return []
@@ -125,7 +125,7 @@ class List:
     return await self._do_get_range(name, Base.Base.Tail, start, stop)
 
 
-  async def _do_get_range(self, name: str, base: Base.Base, start:int, stop: int = None):    
+  async def _do_get_range(self, name: str, base: Base.Base, start:int, stop: int = None) -> list:    
     try:
       raise_if(len(name) == 0, 'name is empty')
 
