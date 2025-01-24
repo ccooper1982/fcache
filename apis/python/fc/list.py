@@ -52,15 +52,15 @@ class List:
       raise
 
 
-  async def add(self, *, name: str, items: typing.List[int], pos: int) -> None:
+  async def add(self, name: str, *, items: typing.List[int], pos: int) -> None:
     await self._do_add(name, items, pos, Base.Base.Tail if pos < 0 else Base.Base.Head)
 
 
-  async def add_head(self, *, name: str, items: typing.List[int]) -> None:
+  async def add_head(self, name: str, *, items: typing.List[int]) -> None:
     await self._do_add(name, items, 0, Base.Base.Head)
 
 
-  async def add_tail(self, *, name: str, items: typing.List[int]) -> None:
+  async def add_tail(self, name: str, *, items: typing.List[int]) -> None:
     await self._do_add(name, items, 0, Base.Base.Tail)
 
 
@@ -97,6 +97,9 @@ class List:
   
 
   async def get_n(self, name: str, *, start: int = 0, count: int = 0):
+    """
+    Get items, beginning at `start` for `count` items. 
+    `count` being `0` means get remaining items from `start` to end"""
     return await self._do_get_n(name, True, start, count)
   
 
@@ -108,9 +111,11 @@ class List:
     try:
       raise_if(len(name) == 0, 'name is empty')
 
-      if stop is not None:
-        if (start > 0 and stop > 0) or (start < 0 and stop < 0):
-          raise_if(stop < start, 'stop < start')
+      # if stop is not None:
+      #   if start > 0 and stop > 0:
+      #     raise_if(stop < start, 'stop < start')
+      #   elif start < 0 and stop < 0:
+      #     raise_if(stop > start, 'stop < start')
 
       fb = flatbuffers.Builder(initialSize=128)
 

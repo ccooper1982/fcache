@@ -194,18 +194,26 @@ namespace fc
 
         FlexBuilder flxb{2048U}; 
 
+        bool createdBuffer;
+
         if (hasStop)
-          std::visit(GetByRange{flxb, start, stop}, fcList->list());
+          createdBuffer = std::visit(GetByRange{flxb, start, stop}, fcList->list());
         else
-          std::visit(GetByRange{flxb, start}, fcList->list());
+          createdBuffer = std::visit(GetByRange{flxb, start}, fcList->list());
 
-        flxb.Finish();
-
-        const auto vec = fbb.CreateVector(flxb.GetBuffer());
-        const auto body = fc::response::CreateListGetRange(fbb, vec);
-        
-        auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_ListGetRange, body.Union());
-        fbb.Finish(rsp);
+        if (createdBuffer)
+        {
+          flxb.Finish();
+          const auto vec = fbb.CreateVector(flxb.GetBuffer());
+          const auto body = fc::response::CreateListGetRange(fbb, vec);
+          
+          auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_ListGetRange, body.Union());
+          fbb.Finish(rsp);
+        }
+        else
+        {
+          createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetRange);
+        }
       }
     }
     catch(const std::exception& e)

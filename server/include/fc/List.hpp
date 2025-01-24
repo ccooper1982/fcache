@@ -74,7 +74,13 @@ namespace fc
     std::int64_t pos;
   };
 
-  
+
+  // Get by count, always beginning from 'start'.
+  //  - Can get from start, going forwards to tail
+  //  - Can get from start, going backwards to head (i.e. reverse)
+  //  - If count is 0, it means get everything from start to end (which is either cend() or crend())
+  // Easiest/clearest way of doing this was to use Base enum which signals forwards or backwards
+  // rather than trying to use 'count'.
   struct GetByCount
   {
     GetByCount(FlexBuilder& flxb, const std::int64_t start, const std::uint64_t count, const fc::request::Base base)
@@ -114,46 +120,78 @@ namespace fc
   };
 
 
+  // Get from index range: [start, end).
+  // - Either/both start and end can be negative
   struct GetByRange
   {
-    GetByRange(FlexBuilder& flxb, const int64_t start, const int64_t end)
+    GetByRange(FlexBuilder& flxb, const int64_t start, const int64_t end) noexcept
       : flxb(flxb), start(start), end(end), hasStop(true)
     {
 
     }
 
-    GetByRange(FlexBuilder& flxb, const int64_t start)
+    GetByRange(FlexBuilder& flxb, const int64_t start) noexcept
       : flxb(flxb), start(start), end(0), hasStop(false)
     {
 
     }
 
     template<typename ListT>
-    void operator()(ListT& list)
+    bool operator()(ListT& list)
     {
-      const auto size = std::ssize(list);      
-      const bool isReverse = start > end;
-      end = hasStop ? end : size;
+      const auto size = std::ssize(list);
+
+      // start must be inbounds (but end will be capped to list::end())
+      if (start > size || ((start < 0) && size+start < 0))
+        return false;
+
+      if (!hasStop)
+        end = size;
+
+      std::int64_t  fbegin  = start < 0 ? size+start : start,
+                    flast   = end < 0 ? std::max<>(0L, size+end) : std::min<>(size, end),
+                    rbegin  = start < 0 ? std::labs(start+1) : size-start-1,
+                    rlast   = end < 0 ? std::min<>(size, std::labs(end+1)) : size - std::min<>(size,end)-1;
 
       if (start < 0)
-        start = size + start;
+        start = size+start+1;
       if (end < 0)
-        end = size + end;
-           
-      if (isReverse)
-      {
-        const auto itStart = std::next(list.crbegin(), start);
-        const auto itEnd = std::next(itStart, std::min<>(std::distance(itStart, list.crend()), end));
+        end = size+end;
 
-        listToTypedVector(flxb, itStart, itEnd);
+      if (end < start)
+      {
+        const auto itStart = std::next(list.crbegin(), rbegin);
+        auto count = rlast-rbegin;
+
+        PLOGD << "Reverse for " << count << " from " << *itStart;
+
+        flxb.TypedVector([this, it=itStart, count]() mutable
+        {
+          for (int64_t i = 0 ; i < count ; ++i)
+          {
+            flxb.Add(*it);
+            ++it;
+          }
+        });
       }
       else
-      {
-        const auto itStart = std::next(list.cbegin(), start);
-        const auto itEnd = std::next(itStart, std::min<>(std::distance(itStart, list.cend()), end));
+      {        
+        const auto itStart = std::next(list.cbegin(), fbegin);
+        auto count = flast-fbegin;
+        
+        PLOGD << "Forward for " << count << " from " << *itStart;
 
-        listToTypedVector(flxb, itStart, itEnd);
+        flxb.TypedVector([this, it=itStart, count]() mutable
+        {
+          for (int64_t i = 0 ; i < count ; ++i)
+          {
+            flxb.Add(*it);
+            ++it;
+          }
+        });
       }
+
+      return true;
     }
 
   private:
@@ -167,7 +205,7 @@ namespace fc
   class FcList
   {
   public:
-    FcList(const FlexType ft, List&& list) : m_flexType(ft), m_list(std::move(list))
+    FcList(const FlexType ft, List&& list) noexcept : m_flexType(ft), m_list(std::move(list))
     {
     }
 
