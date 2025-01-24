@@ -46,4 +46,5 @@ table ListGetRange
 {
   name:string;
   range:Range;
+  base:Base;
 }

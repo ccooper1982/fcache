@@ -42,8 +42,15 @@ class ListGetRange(object):
             return obj
         return None
 
+    # ListGetRange
+    def Base(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
+        return 0
+
 def ListGetRangeStart(builder):
-    builder.StartObject(2)
+    builder.StartObject(3)
 
 def Start(builder):
     ListGetRangeStart(builder)
@@ -59,6 +66,12 @@ def ListGetRangeAddRange(builder, range):
 
 def AddRange(builder, range):
     ListGetRangeAddRange(builder, range)
+
+def ListGetRangeAddBase(builder, base):
+    builder.PrependUint8Slot(2, base, 0)
+
+def AddBase(builder, base):
+    ListGetRangeAddBase(builder, base)
 
 def ListGetRangeEnd(builder):
     return builder.EndObject()

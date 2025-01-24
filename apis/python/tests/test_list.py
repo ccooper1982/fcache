@@ -118,4 +118,30 @@ class KV(ListTest):
     await self.list.add_head('l', items=[1,2,3,4,5,6,7,8,9,10])
 
     # everything from tail
-    self.assertListEqual (await self.list.get_range('l',start=-1, stop=0), [10,9,8,7,6,5,4,3,2])
+    self.assertListEqual (await self.list.get_range_reverse('l', start=0), [10,9,8,7,6,5,4,3,2,1])
+    # everything from mid
+    self.assertListEqual (await self.list.get_range_reverse('l', start=7), [3,2,1])
+    # everything from head
+    self.assertListEqual (await self.list.get_range_reverse('l', start=9), [1])
+
+    # positive positions
+    self.assertListEqual (await self.list.get_range_reverse('l', start=3, stop=5), [7,6])
+    # stop negative
+    self.assertListEqual (await self.list.get_range_reverse('l', start=3, stop=-2), [7,6,5,4,3])
+    # start negative
+    self.assertListEqual (await self.list.get_range_reverse('l', start=-8, stop=4), [8,7])
+    # both negative
+    self.assertListEqual (await self.list.get_range_reverse('l', start=-8, stop=-5), [8,7,6])
+
+
+  async def test_get_range_bounds(self):
+    await self.list.create(name='l', type='int') 
+    await self.list.add_head('l', items=[1,2,3,4,5])
+
+    # start bounds: no error, just empty result
+    self.assertListEqual (await self.list.get_range('l', start=20), [])
+    self.assertListEqual (await self.list.get_range_reverse('l', start=20), [])
+    
+    # end bounds: gets to end
+    self.assertListEqual (await self.list.get_range('l', start=0, stop=20), [1,2,3,4,5])
+    self.assertListEqual (await self.list.get_range_reverse('l', start=0, stop=20), [5,4,3,2,1])

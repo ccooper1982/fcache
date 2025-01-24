@@ -108,14 +108,26 @@ class List:
   
 
   async def get_range(self, name: str, *, start:int, stop: int = None):
+    if stop is not None:
+      if start == stop:
+        return []
+      if (start < 0 and stop < 0) or (start > 0 and stop > 0):
+        raise_if(start > stop, 'invalid range')
+
+    return await self._do_get_range(name, Base.Base.Head, start, stop)
+
+
+  async def get_range_reverse(self, name: str, *, start:int, stop: int = None):
+    if stop is not None:
+      if start == stop:
+        return []
+      
+    return await self._do_get_range(name, Base.Base.Tail, start, stop)
+
+
+  async def _do_get_range(self, name: str, base: Base.Base, start:int, stop: int = None):    
     try:
       raise_if(len(name) == 0, 'name is empty')
-
-      # if stop is not None:
-      #   if start > 0 and stop > 0:
-      #     raise_if(stop < start, 'stop < start')
-      #   elif start < 0 and stop < 0:
-      #     raise_if(stop > start, 'stop < start')
 
       fb = flatbuffers.Builder(initialSize=128)
 
@@ -130,6 +142,7 @@ class List:
       ListGetRange.Start(fb)
       ListGetRange.AddName(fb, nameOffset)
       ListGetRange.AddRange(fb, rangeOffset)
+      ListGetRange.AddBase(fb, base)
       body = ListGetRange.End(fb)
 
       self._complete_request(fb, body, RequestBody.RequestBody.ListGetRange)

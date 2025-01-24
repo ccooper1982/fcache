@@ -430,7 +430,8 @@ struct ListGetRange FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ListGetRangeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
-    VT_RANGE = 6
+    VT_RANGE = 6,
+    VT_BASE = 8
   };
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
@@ -438,12 +439,16 @@ struct ListGetRange FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const fc::request::Range *range() const {
     return GetPointer<const fc::request::Range *>(VT_RANGE);
   }
+  fc::request::Base base() const {
+    return static_cast<fc::request::Base>(GetField<uint8_t>(VT_BASE, 0));
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
            VerifyOffset(verifier, VT_RANGE) &&
            verifier.VerifyTable(range()) &&
+           VerifyField<uint8_t>(verifier, VT_BASE, 1) &&
            verifier.EndTable();
   }
 };
@@ -457,6 +462,9 @@ struct ListGetRangeBuilder {
   }
   void add_range(::flatbuffers::Offset<fc::request::Range> range) {
     fbb_.AddOffset(ListGetRange::VT_RANGE, range);
+  }
+  void add_base(fc::request::Base base) {
+    fbb_.AddElement<uint8_t>(ListGetRange::VT_BASE, static_cast<uint8_t>(base), 0);
   }
   explicit ListGetRangeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -472,22 +480,26 @@ struct ListGetRangeBuilder {
 inline ::flatbuffers::Offset<ListGetRange> CreateListGetRange(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
-    ::flatbuffers::Offset<fc::request::Range> range = 0) {
+    ::flatbuffers::Offset<fc::request::Range> range = 0,
+    fc::request::Base base = fc::request::Base_Head) {
   ListGetRangeBuilder builder_(_fbb);
   builder_.add_range(range);
   builder_.add_name(name);
+  builder_.add_base(base);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<ListGetRange> CreateListGetRangeDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    ::flatbuffers::Offset<fc::request::Range> range = 0) {
+    ::flatbuffers::Offset<fc::request::Range> range = 0,
+    fc::request::Base base = fc::request::Base_Head) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return fc::request::CreateListGetRange(
       _fbb,
       name__,
-      range);
+      range,
+      base);
 }
 
 }  // namespace request

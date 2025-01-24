@@ -127,6 +127,7 @@ namespace fc
             
       if (const auto listOpt = getList(name); !listOpt)
       {
+        // TODO Status_NotExist for when a List doesn't exist? Or an empty vector? A FAIL seems a bit unnecessary
         createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetN);
       }
       else
@@ -167,53 +168,37 @@ namespace fc
 
   void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListGetRange& req) noexcept
   {
-    // auto isRangeValid = [](const int32_t start, const int32_t end) -> bool
-    // {
-
-    // };
-
     try
     {
       const auto& name = req.name()->str();
       const int32_t start = req.range()->start();
       const int32_t stop = req.range()->stop();
       const bool hasStop = req.range()->has_stop();
+      const auto base = req.base();
 
       if (const auto listOpt = getList(name); !listOpt)
       {
-        createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetRange);
+        // TODO Status_NotExist for when a List doesn't exist? Or an empty vector? A FAIL seems a bit unnecessary
+        createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetRange); 
       }
-      /*else if ((std::abs(stop) - std::abs(start) < 0) || (std::abs(start) > std::abs(stop)))
-      {
-        PLOGD << "GetListRng: range invalid";
-        createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetRange);
-      }*/
       else
       {
         const auto& fcList = (*listOpt)->second;
 
         FlexBuilder flxb{2048U}; 
 
-        bool createdBuffer;
+        const bool createdBuffer = hasStop ?  std::visit(GetByRange{flxb, start, stop, base}, fcList->list()) :
+                                              std::visit(GetByRange{flxb, start, base}, fcList->list());
+        
+        if (!createdBuffer)
+          flxb.TypedVector([]{});
 
-        if (hasStop)
-          createdBuffer = std::visit(GetByRange{flxb, start, stop}, fcList->list());
-        else
-          createdBuffer = std::visit(GetByRange{flxb, start}, fcList->list());
-
-        if (createdBuffer)
-        {
-          flxb.Finish();
-          const auto vec = fbb.CreateVector(flxb.GetBuffer());
-          const auto body = fc::response::CreateListGetRange(fbb, vec);
-          
-          auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_ListGetRange, body.Union());
-          fbb.Finish(rsp);
-        }
-        else
-        {
-          createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetRange);
-        }
+        flxb.Finish();
+        const auto vec = fbb.CreateVector(flxb.GetBuffer());
+        const auto body = fc::response::CreateListGetRange(fbb, vec);
+        
+        auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_ListGetRange, body.Union());
+        fbb.Finish(rsp);
       }
     }
     catch(const std::exception& e)

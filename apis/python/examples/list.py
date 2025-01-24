@@ -77,23 +77,47 @@ async def get_range():
     await list.create(name='list1', type='int', failOnDuplicate=False)
     await list.add_head('list1', items=[1,2,3,4,5,6,7,8,9,10])
 
-    # print(await list.get_range('list1', start=0, stop=2))
-    # print(await list.get_range('list1', start=0))
-    # print(await list.get_range('list1',start=3, stop=5))
-    # print(await list.get_range('list1',start=3))
-    # print(await list.get_range('list1',start=-1, stop=5))
-    # print(await list.get_range('list1', start=-6))
-    # print(await list.get_range('list1', start=-6, stop=-3))
-    # print(await list.get_range('list1',start=-3, stop=-5))
-    # print(await list.get_range('list1',start=-3, stop=-15))
+    print(await list.get_range('list1', start=0, stop=2))
+    print(await list.get_range('list1', start=0))
+    print(await list.get_range('list1', start=3, stop=5))
+    print(await list.get_range('list1', start=3))
+    print(await list.get_range('list1', start=-1, stop=5)) # intentionally testing no results
+    print(await list.get_range('list1', start=-6))
+    print(await list.get_range('list1', start=-6, stop=-3))
 
+  except Exception as e:
+    print(f'Query failed: {e}')
+
+
+async def get_range_reverse():
+  if (client := await connect()) is None:
+    return
+
+  try:
+    list = List(client)
+
+    await list.delete_all()
+
+    await list.create(name='list1', type='int', failOnDuplicate=False)
+    await list.add_head('list1', items=[1,2,3,4,5,6,7,8,9,10])
+
+    print(await list.get_range_reverse('list1', start=0, stop=2))
+    print(await list.get_range_reverse('list1', start=0))
+    print(await list.get_range_reverse('list1', start=3, stop=5))
+    print(await list.get_range_reverse('list1', start=3))
+    print(await list.get_range_reverse('list1', start=5, stop=-1))
+    print(await list.get_range_reverse('list1', start=-6))
+    print(await list.get_range_reverse('list1', start=-6, stop=-3))
+
+    print(await list.get_range('list1', start=-1, stop=5)) # intentionally testing no results
+    
   except Exception as e:
     print(f'Query failed: {e}')
 
 
 if __name__ == "__main__":
   async def run():
-    for f in [get_range]:
+    for f in [get_range_reverse]:
       print(f'---- {f.__name__} ----')
       await f()
   
