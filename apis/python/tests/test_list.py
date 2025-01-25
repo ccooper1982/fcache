@@ -64,6 +64,14 @@ class KV(ListTest):
     self.assertListEqual(out, [-1,0,1,2,3,4,5,6,7,8,9])
 
 
+  async def test_get_head_tail(self):
+    await self.list.create('l', type='int') 
+    await self.list.add_head('l', [1,2,3,4,5,6,7,8,9,10])
+
+    self.assertEqual(await self.list.get_head('l'), 1)
+    self.assertEqual(await self.list.get_tail('l'), 10)
+
+
   async def test_get_n(self):
     await self.list.create('l', type='int') 
     await self.list.add_head('l', [1,2,3,4,5,6,7,8,9,10])

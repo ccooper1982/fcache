@@ -92,11 +92,13 @@ class List:
 
 
   async def get_head(self, name: str):
-    return await self.get_n(name, start=0, count=1)
+    items = await self.get_n(name, start=0, count=1)
+    return items[0] if len(items) > 0 else None
   
   
   async def get_tail(self, name: str):
-    return await self.get_n(name, start=-1, count=1)
+    items  = await self.get_n_reverse(name, start=0, count=1)
+    return items[0] if len(items) > 0 else None
   
 
   async def get_n(self, name: str, *, start: int = 0, count: int = 0) -> list:
