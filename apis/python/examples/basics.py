@@ -144,11 +144,13 @@ async def lists():
   print(await list.get_range('list', start=1, stop=-2))
   print(await list.get_range('list', start=-4, stop=-1))
   
-  print(await list.get_range('list', start=-2, stop=1)) # invalid range
-  print(await list.get_range('list', start=3, stop=-3)) # invalid range
-
-  await list.add_tail('list', ['F','G'])
-  print(await list.get_range('list', start=3, stop=-3)) # now ok
+  print('get_range_reverse')
+  print(await list.get_range_reverse('list', start=0))
+  print(await list.get_range_reverse('list', start=2))
+  print(await list.get_range_reverse('list', start=-2))
+  print(await list.get_range_reverse('list', start=1, stop=-2))
+  print(await list.get_range_reverse('list', start=-4, stop=-1))
+  
 
 
 if __name__ == "__main__":

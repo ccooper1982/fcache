@@ -58,3 +58,4 @@ nav:
       - get_n: 'api_py/list/get_n.md'
       - get_n_reverse: 'api_py/list/get_n_reverse.md'
       - get_range: 'api_py/list/get_range.md'
+      - get_range_reverse: 'api_py/list/get_range_reverse.md'
