@@ -70,8 +70,8 @@ async def lists():
 
   await list.delete_all()
 
-  # create list, don't raise error if it already exists
-  await list.create('scores', type='int', failOnDuplicate=False)
+  # create list for integers
+  await list.create('scores', type='int')
   # add these items to head
   await list.add_head('scores', [25,35,45,55])
   # insert in between 35 and 45 (at position 2)
@@ -93,14 +93,31 @@ async def lists():
   print(f"f. {await list.get_range_reverse('scores', start=1, stop=-1)}")
 
 
+  # add tail
+  await list.create('numbers', type='int')
+  await list.add_tail('numbers', [60, 65])
+  print(await list.get_n('numbers'))
+
+
   # list of strings
-  await list.create('names', type='str', failOnDuplicate=False)
+  await list.create('names', type='str')
   
   await list.add_head('names', ['Adam','Charlie'])
   print(await list.get_n('names'))
 
   await list.add('names', ['Bob'], pos=1)
   print(await list.get_n('names'))
+
+
+  # floats
+  await list.create('prices', type='float')
+  
+  await list.add_head('prices', [123.5, 88.5])
+  print(await list.get_n('prices'))
+
+  await list.add('prices', [100.0], pos=1)
+  print(await list.get_n('prices'))
+
 
 
 if __name__ == "__main__":

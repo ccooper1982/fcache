@@ -50,3 +50,6 @@ nav:
       - count: 'api_py/kv/count.md'
     - List:
       - create: 'api_py/list/create.md'
+      - add_head: 'api_py/list/add_head.md'
+      - add_tail: 'api_py/list/add_tail.md'
+      - add: 'api_py/list/add.md'      

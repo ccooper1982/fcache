@@ -10,7 +10,7 @@ Creates a new list with the given name and type.
 |:---|:---|
 |name|Name of the list, used in subsequent list functions|
 |type|Must be one of: `int`, `float` or `str`|
-|failOnDuplicate|`True`: a ResponseError will raise if a list with this name already exists<br/>`False`: and this name already exists, no changes are made to the list and a ResponseError is not raised|
+|failOnDuplicate|`True`: a ResponseError is raised if a list with this name already exists<br/>`False`: if the name already exists, no changes are made to the list and a ResponseError is not raised|
 
 ## Examples
 
