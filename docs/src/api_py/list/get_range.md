@@ -33,9 +33,9 @@ print(await list.get_range('list', start=-2))   # all from 'D'
 print(await list.get_range('list', start=1, stop=-2))   # 2nd item to 'D' exclusive
 print(await list.get_range('list', start=-4, stop=-1))  # 'B' to tail exclusive
 
-# invalid: [3,1]
+# invalid: [3,1)
 print(await list.get_range('list', start=-2, stop=1))
-# invalid: [3,2]
+# invalid: [3,2)
 print(await list.get_range('list', start=3, stop=-3))
 ```
 
@@ -63,7 +63,7 @@ But add two items and try again:
 
 ```py
 await list.add_tail('list', ['F','G'])
-# now [3,4]
+# now [3,4)
 print(await list.get_range('list', start=3, stop=-3)) 
 ```
 
