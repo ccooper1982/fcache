@@ -11,12 +11,18 @@ namespace fc
 { 
   using IntList = std::list<std::int64_t>;
   using UIntList = std::list<std::uint64_t>;
-  using List = std::variant<IntList, UIntList>;
+  using FloatList = std::list<float>;
+  using StringList = std::list<std::string>;
+  using List = std::variant<IntList, UIntList, StringList, FloatList>;
   using enum fc::request::Base;
 
 
   template<typename V>
-  concept ListValue = std::disjunction_v<std::is_same<V, std::int64_t>, std::is_same<V, std::uint64_t>, std::false_type>;
+  concept ListValue = std::disjunction_v< std::is_same<V, std::int64_t>,
+                                          std::is_same<V, std::uint64_t>,
+                                          std::is_same<V, float>,
+                                          std::is_same<V, std::string>,
+                                          std::false_type>;
 
 
   template<typename Iterator>
@@ -48,36 +54,49 @@ namespace fc
 
 
   // TODO do we actually need Base? It may be possible to use position to determine base
-  template<typename V>
   struct Add
   {
-    Add(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position) requires (ListValue<V>)
+    Add(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position) //requires (ListValue<V>)
       : items(items), base(base), pos(position)
     {
     }
 
+    void operator()(IntList& list)
+    {
+      doAdd<std::int64_t>(list);
+    }
 
-    template<typename ListT>
-    void operator()(ListT& list)  // ListT: either IntList or UIntList, etc
+    void operator()(UIntList& list) 
+    {
+      doAdd<std::uint64_t>(list);
+    }
+
+    void operator()(FloatList& list) 
+    {
+      doAdd<float>(list);
+    }
+
+    void operator()(StringList& list)
+    {
+      doAdd<std::string>(list);
+    }
+
+  private:
+    template<typename ItemT, typename ListT>
+    void doAdd(ListT& list)
     {
       const auto size = std::ssize(list);
       const auto shift = std::min<>(pos, size);
       auto it = list.begin();
 
       if (base == Base_Head)
-      {
-        PLOGD << "Base: Head, shift: " << shift;
         std::advance(it, shift);
-      }
       else if (base == Base_Tail)
-      {
-        PLOGD << "Base: Tail, shift: " << shift;
         it = std::next(list.rbegin(), shift).base();
-      }
 
       for (std::size_t i = 0 ; i < items.size() ; ++i)
       {
-        it = list.insert(it, items[i].As<V>()); 
+        it = list.insert(it, items[i].As<ItemT>()); 
         ++it;
       }
     }
@@ -203,10 +222,23 @@ namespace fc
   class FcList
   {
   public:
-    FcList(const FlexType ft, List&& list) noexcept : m_flexType(ft), m_list(std::move(list))
+    // FcList(List&& list, const FlexType type) noexcept : m_flexType(type), m_list(std::move(list))
+    // {
+    // }
+
+    FcList(IntList&& list) noexcept : m_flexType(FlexType::FBT_VECTOR_INT), m_list(std::move(list))
     {
     }
-
+    FcList(UIntList&& list) noexcept : m_flexType(FlexType::FBT_VECTOR_UINT), m_list(std::move(list))
+    {
+    }
+    FcList(FloatList&& list) noexcept : m_flexType(FlexType::FBT_VECTOR_FLOAT), m_list(std::move(list))
+    {
+    }
+    FcList(StringList&& list) noexcept : m_flexType(FlexType::FBT_VECTOR_KEY), m_list(std::move(list))
+    {
+    }
+    
     FlexType type() const { return m_flexType; }
     List& list() { return m_list; }
     const List& list() const { return m_list; }

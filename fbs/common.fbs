@@ -10,5 +10,7 @@ enum Ident : byte
 enum ListType : byte
 {
   Int,
-  UInt
+  UInt,
+  Float,
+  String
 }

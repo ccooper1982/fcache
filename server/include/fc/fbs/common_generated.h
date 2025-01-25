@@ -49,29 +49,35 @@ inline const char *EnumNameIdent(Ident e) {
 enum ListType : int8_t {
   ListType_Int = 0,
   ListType_UInt = 1,
+  ListType_Float = 2,
+  ListType_String = 3,
   ListType_MIN = ListType_Int,
-  ListType_MAX = ListType_UInt
+  ListType_MAX = ListType_String
 };
 
-inline const ListType (&EnumValuesListType())[2] {
+inline const ListType (&EnumValuesListType())[4] {
   static const ListType values[] = {
     ListType_Int,
-    ListType_UInt
+    ListType_UInt,
+    ListType_Float,
+    ListType_String
   };
   return values;
 }
 
 inline const char * const *EnumNamesListType() {
-  static const char * const names[3] = {
+  static const char * const names[5] = {
     "Int",
     "UInt",
+    "Float",
+    "String",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameListType(ListType e) {
-  if (::flatbuffers::IsOutRange(e, ListType_Int, ListType_UInt)) return "";
+  if (::flatbuffers::IsOutRange(e, ListType_Int, ListType_String)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesListType()[index];
 }

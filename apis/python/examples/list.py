@@ -22,20 +22,11 @@ async def create():
   try:
     list = List(client)
 
-    await list.create(name='list1', type='int', failOnDuplicate=True)
-    await list.create(name='list2', type='int', failOnDuplicate=True)
-    await list.create(name='list3', type='int', failOnDuplicate=True)
+    await list.create('list1', type='int')
+    await list.create('list2', type='int')
+    await list.create('list3', type='int')
 
     await list.delete_all()
-    # await list.delete(names=['list1'])
-
-    #await list.add_head(name='list1', items=[1,2,5,6])
-    #await list.add(name='list1', items=[3,4], pos=2)
-    #await list.add(name='list1', items=[7,8,9,10], pos=8)
-
-    #await list.add_head(name='list1', items=[4,3,2,1])
-    #await list.add_head(name='list1', items=[10,11,12])
-    #await list.add_tail(name='list1', items=[100,101,102])
 
   except:
     print('Query failed')
@@ -50,7 +41,7 @@ async def get_count():
 
     await list.delete_all()
 
-    await list.create(name='list1', type='int', failOnDuplicate=False)
+    await list.create('list1', type='int', failOnDuplicate=False)
     await list.add_head(name='list1', items=[1,2,3,4,5,6])
     
     print(await list.get_n('list1', start=3))
@@ -74,7 +65,7 @@ async def get_range():
 
     await list.delete_all()
 
-    await list.create(name='list1', type='int', failOnDuplicate=False)
+    await list.create('list1', type='int', failOnDuplicate=False)
     await list.add_head('list1', items=[1,2,3,4,5,6,7,8,9,10])
 
     print(await list.get_range('list1', start=0, stop=2))
@@ -98,7 +89,7 @@ async def get_range_reverse():
 
     await list.delete_all()
 
-    await list.create(name='list1', type='int', failOnDuplicate=False)
+    await list.create('list1', type='int', failOnDuplicate=False)
     await list.add_head('list1', items=[1,2,3,4,5,6,7,8,9,10])
 
     print(await list.get_range_reverse('list1', start=0, stop=2))

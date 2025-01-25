@@ -71,18 +71,18 @@ async def lists():
   await list.delete_all()
 
   # create list, don't raise error if it already exists
-  await list.create(name='scores', type='int', failOnDuplicate=False)
+  await list.create('scores', type='int', failOnDuplicate=False)
   # add these items to head
-  await list.add_head('scores', items=[25,35,45,55])
+  await list.add_head('scores', [25,35,45,55])
   # insert in between 35 and 45 (at position 2)
-  await list.add('scores', items=[40], pos=2)
+  await list.add('scores', [40], pos=2)
   # add two more to the tail
-  await list.add_tail('scores', items=[60, 65])
+  await list.add_tail('scores', [60, 65])
   
-  # get everything
-  print(f"a. {await list.get_n('scores', start=0)}")
+  # get everything from the first item
+  print(f"a. {await list.get_n('scores')}")
   # get everything in reverse
-  print(f"b. {await list.get_n_reverse('scores', start=0)}")
+  print(f"b. {await list.get_n_reverse('scores')}")
   # # get the first 3 
   print(f"c. {await list.get_n('scores', count=3)}")
   # # get the last 2
@@ -91,6 +91,16 @@ async def lists():
   print(f"e. {await list.get_range('scores', start=2, stop=5)}")
   # get middle 5 in reverse, using negative index
   print(f"f. {await list.get_range_reverse('scores', start=1, stop=-1)}")
+
+
+  # list of strings
+  await list.create('names', type='str', failOnDuplicate=False)
+  
+  await list.add_head('names', ['Adam','Charlie'])
+  print(await list.get_n('names'))
+
+  await list.add('names', ['Bob'], pos=1)
+  print(await list.get_n('names'))
 
 
 if __name__ == "__main__":

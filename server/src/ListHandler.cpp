@@ -25,24 +25,37 @@ namespace fc
 
   void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListCreate& req) noexcept
   {
-    fc::response::Status status = Status_Ok;
+    auto create = [this](auto&& list, const std::string& name) -> fc::response::Status
+    {
+      const auto [_, created] = m_lists.try_emplace(name, std::make_unique<FcList>(std::forward<decltype(list)>(list)));
+      return created ? Status_Ok : Status_Duplicate;      
+    };
+
+    fc::response::Status status = Status_Fail;
 
     if (req.type() == ListType_Int)
     {
-      PLOGD << "ListCreate: creating Int list";
-      if (const auto [_, created] = m_lists.try_emplace(req.name()->str(), std::make_unique<FcList>(FlexType::FBT_VECTOR_INT, IntList{})); !created)
-        status = Status_Duplicate;
+      PLOGD << "ListCreate: Int list";
+      status = create(IntList{}, req.name()->str());
     }
     else if (req.type() == ListType_UInt)
     {
-      PLOGD << "ListCreate: creating UInt list";
-      if (const auto [_, created] = m_lists.try_emplace(req.name()->str(), std::make_unique<FcList>(FlexType::FBT_VECTOR_UINT, UIntList{})); !created)
-        status = Status_Duplicate;
+      PLOGD << "ListCreate: UInt list";
+      status = create(UIntList{}, req.name()->str());
     }
+    else if (req.type() == ListType_Float)
+    {
+      PLOGD << "ListCreate: float list";
+      status = create(FloatList{}, req.name()->str());
+    }
+    else if (req.type() == ListType_String)
+    {
+      PLOGD << "ListCreate: string list";
+      status = create(StringList{}, req.name()->str());
+    }    
     else
     {
       PLOGE << "ListCreate: unknown list type";
-      status = Status_Fail;
     }
 
     createEmptyBodyResponse(fbb, status, ResponseBody_ListCreate);
@@ -63,30 +76,19 @@ namespace fc
       const auto& itemsVector = req.items_flexbuffer_root().AsTypedVector();
       const auto& fcList = (*listOpt)->second;
 
-      auto add = [pos = req.position(), base=req.base(), &itemsVector, &list = fcList->list()]<typename T>()
-      {
-        std::visit(Add<T>{itemsVector, base, std::abs(pos)}, list);
-      };
-
       switch (fcList->type())
       {
         case FlexType::FBT_VECTOR_INT:
-          add.template operator()<std::int64_t>();
-          dumpList<IntList>(fcList->list());
-        break;
-
         case FlexType::FBT_VECTOR_UINT:
-          add.template operator()<std::uint64_t>();
-          dumpList<UIntList>(fcList->list());
+        case FlexType::FBT_VECTOR_FLOAT:
+        case FlexType::FBT_VECTOR_KEY:
+          std::visit(Add{itemsVector, req.base(), std::abs(req.position())}, fcList->list());
         break;
 
         default:
-          PLOGE << "Unknown list type";
-          status = Status_Fail;
+          PLOGE << "Unknown type for list: " << fcList->type();
         break;
-      }
-
-      
+      }      
     }
 
     createEmptyBodyResponse(fbb, status, fc::response::ResponseBody_ListAdd);

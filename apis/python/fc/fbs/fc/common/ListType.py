@@ -5,3 +5,5 @@
 class ListType(object):
     Int = 0
     UInt = 1
+    Float = 2
+    String = 3

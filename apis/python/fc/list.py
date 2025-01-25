@@ -2,9 +2,8 @@ import flatbuffers
 import flatbuffers.flexbuffers
 import typing
 from fc.client import Client
-from fc.common import raise_if, createKvMap, ResponseError
+from fc.common import raise_if
 from fc.logging import logger
-from typing import Any
 from fc.fbs.fc.common import Ident, ListType
 from fc.fbs.fc.request import (Request, RequestBody,
                                ListCreate, ListAdd, ListDelete, ListGetN, ListGetRange, Range, Base)
@@ -12,14 +11,14 @@ from fc.fbs.fc.response import (ResponseBody, ListGetN as ListGetNRsp, ListGetRa
 
 
 class List:
-  "List API. If a response returns a fail, a ResponseError is raised."
+  "List API. If a request fails a ResponseError is raised."
 
 
   def __init__(self, client: Client):
     self.client = client
 
 
-  async def create(self, *, name: str, type: str, failOnDuplicate=True) -> None:
+  async def create(self, name: str, *, type: str, failOnDuplicate=True) -> None:
     """
     Create a list with the given name. 
     
@@ -30,8 +29,12 @@ class List:
     try:      
       if type.lower() == 'int':
         listType = ListType.ListType.Int
-      elif type.lower() == 'uint':
-        listType = ListType.ListType.UInt
+      # elif type.lower() == 'uint':
+      #   listType = ListType.ListType.UInt
+      elif type.lower() == 'float':
+        listType = ListType.ListType.Float
+      elif type.lower() == 'str':
+        listType = ListType.ListType.String
       else:
         raise ValueError('listType invalid')
 
@@ -52,15 +55,15 @@ class List:
       raise
 
 
-  async def add(self, name: str, *, items: typing.List[int], pos: int) -> None:
+  async def add(self, name: str, items: typing.List[int], *, pos: int) -> None:
     await self._do_add(name, items, pos, Base.Base.Tail if pos < 0 else Base.Base.Head)
 
 
-  async def add_head(self, name: str, *, items: typing.List[int]) -> None:
+  async def add_head(self, name: str, items: typing.List[int]) -> None:
     await self._do_add(name, items, 0, Base.Base.Head)
 
 
-  async def add_tail(self, name: str, *, items: typing.List[int]) -> None:
+  async def add_tail(self, name: str, items: typing.List[int]) -> None:
     await self._do_add(name, items, 0, Base.Base.Tail)
 
 
