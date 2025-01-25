@@ -46,6 +46,7 @@ print(await list.get_range('list', start=3, stop=-3))
 ['B', 'C']
 ['B', 'C', 'D']
 []
+[]
 ```
 
 ## Notes
