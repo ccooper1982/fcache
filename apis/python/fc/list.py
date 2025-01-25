@@ -113,20 +113,14 @@ class List:
   
 
   async def get_range(self, name: str, *, start:int, stop: int = None) -> list:
-    if stop is not None:
-      if start == stop:
-        return []
-      if (start < 0 and stop < 0) or (start > 0 and stop > 0):
-        raise_if(start > stop, 'invalid range')
-
+    if not self._is_range_valid(start, stop):
+      return []
     return await self._do_get_range(name, Base.Base.Head, start, stop)
 
 
   async def get_range_reverse(self, name: str, *, start:int, stop: int = None) -> list:
-    if stop is not None:
-      if start == stop:
-        return []
-      
+    if not self._is_range_valid(start, stop):
+      return []
     return await self._do_get_range(name, Base.Base.Tail, start, stop)
 
 
@@ -166,6 +160,8 @@ class List:
   async def _do_get_n(self, name: str, forwards: bool, start: int, count: int):
     try:
       raise_if(len(name) == 0, 'name is empty')
+      raise_if(count < 0, 'count is negative')
+      raise_if(start < 0, 'start is negative')
 
       fb = flatbuffers.Builder(initialSize=128)
 
@@ -219,7 +215,19 @@ class List:
       raise
 
 
-  def _complete_request(self, fb: flatbuffers.Builder, body: int, bodyType: RequestBody.RequestBody):
+  def _is_range_valid(self, start:int, stop:int):
+    # easy checks we can do without knowing the list's size
+    if stop is None:
+      return True    
+    elif start == stop:
+      return False
+    elif (start < 0 and stop < 0) or (start > 0 and stop > 0):
+      if start > stop:
+        return False
+    return True
+
+
+  def _complete_request(self, fb: flatbuffers.Builder, body: int, bodyType: RequestBody.RequestBody):    
     try:
       Request.RequestStart(fb)
       Request.AddIdent(fb, Ident.Ident.List)

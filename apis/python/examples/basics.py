@@ -119,6 +119,36 @@ async def lists():
   print(await list.get_n('prices'))
 
 
+  # get_n
+  await list.create('list', type='str')
+  await list.add_head('list', ['A', 'B', 'C', 'D', 'E'])
+  
+  print('get_n()')
+  print(await list.get_n('list'))
+  print(await list.get_n('list', start=3))
+  print(await list.get_n('list', start=1, count=2))
+  print(await list.get_n('list', count=3))
+
+  print('get_n_reverse()')
+  print(await list.get_n_reverse('list'))
+  print(await list.get_n_reverse('list', start=3))
+  print(await list.get_n_reverse('list', start=1, count=2))
+  print(await list.get_n_reverse('list', count=3))
+
+
+  # get_range
+  print('get_range')
+  print(await list.get_range('list', start=0))
+  print(await list.get_range('list', start=2))
+  print(await list.get_range('list', start=-2))
+  print(await list.get_range('list', start=1, stop=-2))
+  print(await list.get_range('list', start=-4, stop=-1))
+  
+  print(await list.get_range('list', start=-2, stop=1)) # invalid range
+  print(await list.get_range('list', start=3, stop=-3)) # invalid range
+
+  await list.add_tail('list', ['F','G'])
+  print(await list.get_range('list', start=3, stop=-3)) # now ok
 
 if __name__ == "__main__":
   async def run():
