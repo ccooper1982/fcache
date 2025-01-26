@@ -1,7 +1,7 @@
 # remove
 
 ```py
-async def remove(self, name:str, *, start: int = 0, stop: int = None) -> None
+async def remove(name:str, *, start: int = 0, stop: int = None) -> None
 ```
 Remove items from a list using the range: `[start, stop)`.
 

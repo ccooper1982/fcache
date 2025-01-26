@@ -156,7 +156,8 @@ class List:
     """ Remove if nodes in range [start,stop) equals val """
     
     raise_if_not(self._is_range_valid(start, stop), 'range invalid')
-    
+    raise_if(val is None, 'val cannot be none')
+
     fb = flatbuffers.Builder(256)
 
     nameOffset = fb.CreateString(name)

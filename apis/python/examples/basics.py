@@ -180,7 +180,7 @@ async def lists():
   print(await list.get_n('rmv_if'))
 
   # [0,1,2,6,7,8,9,7,7,10]
-  await list.remove_if_eq('rmv_if', start=7, stop=9, val=7)
+  await list.remove_if_eq('rmv_if', start=-3, val=7)
   print(await list.get_n('rmv_if'))
 
 

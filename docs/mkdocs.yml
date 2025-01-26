@@ -60,5 +60,6 @@ nav:
       - get_range: 'api_py/list/get_range.md'
       - get_range_reverse: 'api_py/list/get_range_reverse.md'
       - remove: 'api_py/list/remove.md'
+      - remove_if_eq: 'api_py/list/remove_if_eq.md'
       - delete: 'api_py/list/delete.md'
       - delete_all: 'api_py/list/delete_all.md'
