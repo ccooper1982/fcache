@@ -4,9 +4,7 @@
 async def get_range(name: str, *, start:int, stop: int = None) -> list:
 ```
 
-Returns items based on a range defined by `start` and `stop` positions.
-
-The range is `[start, stop)`, i.e. `stop` is exclusive.
+Get items using the range: `[start, stop)`.
 
 If `stop` is `None`, returns all remaining.
 

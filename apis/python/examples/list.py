@@ -55,7 +55,6 @@ async def get_count():
     print(f'Query failed: {e}')
 
 
-
 async def get_range():
   if (client := await connect()) is None:
     return
@@ -104,6 +103,9 @@ async def get_range_reverse():
     
   except Exception as e:
     print(f'Query failed: {e}')
+
+
+
 
 
 if __name__ == "__main__":

@@ -154,4 +154,18 @@ class KV(ListTest):
     self.assertListEqual (await self.list.get_range_reverse('l', start=0, stop=20), [5,4,3,2,1])
 
 
+  async def test_remove(self):
+    await self.list.create('rmv', type='int')
+    await self.list.add_head('rmv', [0,1,2,3,4,5,6,7,8,9,10])
+    
+    await self.list.remove('rmv', start=0, stop=3)
+    self.assertListEqual(await self.list.get_n('rmv'), [3,4,5,6,7,8,9,10])
+
+    await self.list.remove('rmv', start=2, stop=-2)
+    self.assertListEqual(await self.list.get_n('rmv'), [3,4,9,10])
+
+    await self.list.remove('rmv', start=-4, stop=3)
+    self.assertListEqual(await self.list.get_n('rmv'), [10])
+
+
   # TODO delete, delete_all when exists() implemented

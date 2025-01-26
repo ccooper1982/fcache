@@ -267,6 +267,10 @@ namespace fc
     {
       m_listHandler->handle(fbb, *request.body_as_ListGetRange());
     }
+    else if (request.body_type() == fc::request::RequestBody_ListRemove)
+    {
+      m_listHandler->handle(fbb, *request.body_as_ListRemove());
+    }
 
     send(ws, fbb);
   }

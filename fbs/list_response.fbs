@@ -15,6 +15,10 @@ table ListDelete
 {
 }
 
+table ListRemove
+{
+}
+
 table ListGetRange
 {
   items:[ubyte] (flexbuffer);

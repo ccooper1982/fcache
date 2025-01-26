@@ -30,7 +30,8 @@ union ResponseBody
   ListCreate,
   ListAdd,
   ListDelete,
-  ListGetRange
+  ListGetRange,
+  ListRemove
 }
 
 

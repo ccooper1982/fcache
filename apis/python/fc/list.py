@@ -6,7 +6,7 @@ from fc.common import raise_if
 from fc.logging import logger
 from fc.fbs.fc.common import Ident, ListType
 from fc.fbs.fc.request import (Request, RequestBody,
-                               ListCreate, ListAdd, ListDelete, ListGetRange, Range, Base)
+                               ListCreate, ListAdd, ListDelete, ListGetRange, ListRemove, Range, Base)
 from fc.fbs.fc.response import (ResponseBody, ListGetRange as ListGetRangeRsp)
 
 
@@ -128,6 +128,33 @@ class List:
     return await self._do_get_range(name, Base.Base.Tail, start, stop)
 
 
+  async def remove(self, name:str, *, start: int = 0, stop: int = None) -> None:
+    fb = flatbuffers.Builder(128)
+
+    nameOffset = fb.CreateString(name)
+
+    Range.Start(fb)
+    Range.AddStart(fb, start)
+    Range.AddStop(fb, stop if stop is not None else 0)
+    Range.AddHasStop(fb, stop is not None)
+    rangeOffset = Range.End(fb)
+
+    ListRemove.Start(fb)
+    ListRemove.AddName(fb, nameOffset)
+    ListRemove.AddRange(fb, rangeOffset)
+    ListRemove.AddBase(fb, Base.Base.Head)
+    body = ListRemove.End(fb)
+
+    self._complete_request(fb, body, RequestBody.RequestBody.ListRemove)
+    await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListRemove)
+  
+
+  async def remove_if_eq(self, name:str, *, start: int = 0, stop: int = None, val):
+    # remove if nodes in range [start,stop) equals val
+    pass
+
+
+  ### helpers
   async def _do_get_range(self, name: str, base: Base.Base, start:int, stop: int = None) -> list:    
     try:
       raise_if(len(name) == 0, 'name is empty')

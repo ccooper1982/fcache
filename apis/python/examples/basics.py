@@ -151,6 +151,22 @@ async def lists():
   print(await list.get_range_reverse('list', start=1, stop=-2))
   print(await list.get_range_reverse('list', start=-4, stop=-1))
   
+  print('remove')
+  await list.create('rmv', type='int')
+  await list.add_head('rmv', [0,1,2,3,4,5,6,7,8,9,10])
+  print(await list.get_n('rmv'))
+  
+  await list.remove('rmv', start=0, stop=3)
+  print(await list.get_n('rmv'))
+
+  await list.remove('rmv', start=1, stop=-1)
+  print(await list.get_n('rmv'))
+
+  await list.remove('rmv')
+  print(await list.get_n('rmv'))
+
+  await list.add_head('rmv', [0,1,2,3,4,5,6,7,8,9,10])
+  print(await list.get_n('rmv'))
 
 
 if __name__ == "__main__":

@@ -131,7 +131,10 @@ namespace fc
       const auto size = std::ssize(list);
 
       // start must be inbounds (but end will be capped to cend() or crend())
-      if (std::labs(start) >= size)
+      // need this because if start is negative, it is offset by 1, so can be same as size:
+      //  [A,B,C,D]
+      // start=-4, to start from A
+      if ((start >= 0 && start >= size) || std::labs(start) > size)
         return false;
 
       if (!hasStop)
@@ -174,6 +177,64 @@ namespace fc
   };
 
   
+  struct Remove
+  {
+    Remove(const int64_t start, const int64_t end) noexcept
+      : start(start), end(end), hasStop(true)
+    {
+    }
+
+    Remove(const int64_t start) noexcept
+      : start(start), end(0), hasStop(false)
+    {
+    }
+
+    
+    template<typename ListT>
+    void operator()(ListT& list)
+    {
+      const auto size = std::ssize(list);
+
+      // need this because if start is negative, it is offset by 1, so can be same as size:
+      //  [A,B,C,D]
+      // start=-4, to start from A
+      if ((start >= 0 && start >= size) || std::labs(start) > size)
+        return;
+
+      if (!hasStop)
+        end = size;
+      
+      const std::int64_t begin  = start < 0 ? size+start : start,
+                         last   = end < 0 ? std::min<>(size, std::labs(size+end)) : std::min<>(size, end);
+
+      PLOGD << "begin: " << begin << ", last: " << last;
+
+      if (begin < last)
+      {
+        if (begin == 0 && last == size)
+        {
+          PLOGD << "Clearing";
+          list.clear();
+        }
+        else
+        {
+          PLOGD << "Removing: " << begin << " to " << last;
+
+          const auto itStart = std::next(list.begin(), begin);
+          const auto itEnd = std::next(list.begin(), last);
+          list.erase(itStart, itEnd);
+        }
+      }
+    }
+
+
+  private:
+    std::int64_t start;
+    std::int64_t end;
+    const bool hasStop;
+  };
+
+
   class FcList
   {
   public:

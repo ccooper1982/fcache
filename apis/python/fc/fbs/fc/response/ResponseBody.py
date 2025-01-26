@@ -16,3 +16,4 @@ class ResponseBody(object):
     ListAdd = 10
     ListDelete = 11
     ListGetRange = 12
+    ListRemove = 13

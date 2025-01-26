@@ -20,9 +20,9 @@ union RequestBody
   ListCreate,
   ListAdd,
   ListDelete,
-  ListGetRange
+  ListGetRange,
+  ListRemove
 }
-
 
 table Request
 {

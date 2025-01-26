@@ -3,7 +3,7 @@
 ```py
 async def get_range_reverse(name: str, *, start:int, stop: int = None) -> list:
 ```
-Returns items based on a range defined by `start` and `stop` positions.
+Get items using the range `[start, stop)`, but in reverse (tail to head).
 
 This is the same as [get_range()](./get_range.md) but it iterates the list from tail to head:
 
@@ -11,9 +11,6 @@ This is the same as [get_range()](./get_range.md) but it iterates the list from 
     - `start=0` is the tail    
 - negative indices are relative to the head
     - `stop=-1` is the head
-
-
-The range is `[start, stop)`, i.e. `stop` is exclusive.
 
 If `stop` is `None`, returns all remaining.
 

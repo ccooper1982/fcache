@@ -40,3 +40,10 @@ table ListGetRange
   range:Range;
   base:Base;
 }
+
+table ListRemove
+{
+  name:string;
+  range:Range;
+  base:Base; // not used yet
+}

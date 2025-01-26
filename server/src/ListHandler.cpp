@@ -164,6 +164,43 @@ namespace fc
   }
 
 
+  void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListRemove& req) noexcept
+  {
+    fc::response::Status status = Status_Ok;
+
+    try
+    {
+      const auto& name = req.name()->str();
+      const int32_t start = req.range()->start();
+      const int32_t stop = req.range()->stop();
+      const bool hasStop = req.range()->has_stop();
+
+      if (const auto listOpt = getList(name); !listOpt)
+      {
+        // TODO Status_NotExist for when a List doesn't exist? Or an empty vector? A FAIL seems a bit unnecessary
+        status = Status_Fail;
+      }
+      else
+      {
+        const auto& fcList = (*listOpt)->second;
+
+        if (hasStop)
+          std::visit(Remove{start, stop}, fcList->list());
+        else
+          std::visit(Remove{start}, fcList->list());
+      }
+    }
+    catch(const std::exception& e)
+    {
+      PLOGE << e.what();
+      status = Status_Fail;
+    }
+
+    createEmptyBodyResponse(fbb, status, ResponseBody_ListRemove);
+    
+  }
+
+
   void ListHandler::createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept
   {
     // TODO this function is also in KvHandler. Move to Common.hpp or create Handler base class

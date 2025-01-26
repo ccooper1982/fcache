@@ -78,11 +78,12 @@ enum ResponseBody : uint8_t {
   ResponseBody_ListAdd = 10,
   ResponseBody_ListDelete = 11,
   ResponseBody_ListGetRange = 12,
+  ResponseBody_ListRemove = 13,
   ResponseBody_MIN = ResponseBody_NONE,
-  ResponseBody_MAX = ResponseBody_ListGetRange
+  ResponseBody_MAX = ResponseBody_ListRemove
 };
 
-inline const ResponseBody (&EnumValuesResponseBody())[13] {
+inline const ResponseBody (&EnumValuesResponseBody())[14] {
   static const ResponseBody values[] = {
     ResponseBody_NONE,
     ResponseBody_KVSet,
@@ -96,13 +97,14 @@ inline const ResponseBody (&EnumValuesResponseBody())[13] {
     ResponseBody_ListCreate,
     ResponseBody_ListAdd,
     ResponseBody_ListDelete,
-    ResponseBody_ListGetRange
+    ResponseBody_ListGetRange,
+    ResponseBody_ListRemove
   };
   return values;
 }
 
 inline const char * const *EnumNamesResponseBody() {
-  static const char * const names[14] = {
+  static const char * const names[15] = {
     "NONE",
     "KVSet",
     "KVGet",
@@ -116,13 +118,14 @@ inline const char * const *EnumNamesResponseBody() {
     "ListAdd",
     "ListDelete",
     "ListGetRange",
+    "ListRemove",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameResponseBody(ResponseBody e) {
-  if (::flatbuffers::IsOutRange(e, ResponseBody_NONE, ResponseBody_ListGetRange)) return "";
+  if (::flatbuffers::IsOutRange(e, ResponseBody_NONE, ResponseBody_ListRemove)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesResponseBody()[index];
 }
@@ -177,6 +180,10 @@ template<> struct ResponseBodyTraits<fc::response::ListDelete> {
 
 template<> struct ResponseBodyTraits<fc::response::ListGetRange> {
   static const ResponseBody enum_value = ResponseBody_ListGetRange;
+};
+
+template<> struct ResponseBodyTraits<fc::response::ListRemove> {
+  static const ResponseBody enum_value = ResponseBody_ListRemove;
 };
 
 bool VerifyResponseBody(::flatbuffers::Verifier &verifier, const void *obj, ResponseBody type);
@@ -235,6 +242,9 @@ struct Response FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const fc::response::ListGetRange *body_as_ListGetRange() const {
     return body_type() == fc::response::ResponseBody_ListGetRange ? static_cast<const fc::response::ListGetRange *>(body()) : nullptr;
   }
+  const fc::response::ListRemove *body_as_ListRemove() const {
+    return body_type() == fc::response::ResponseBody_ListRemove ? static_cast<const fc::response::ListRemove *>(body()) : nullptr;
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_STATUS, 1) &&
@@ -291,6 +301,10 @@ template<> inline const fc::response::ListDelete *Response::body_as<fc::response
 
 template<> inline const fc::response::ListGetRange *Response::body_as<fc::response::ListGetRange>() const {
   return body_as_ListGetRange();
+}
+
+template<> inline const fc::response::ListRemove *Response::body_as<fc::response::ListRemove>() const {
+  return body_as_ListRemove();
 }
 
 struct ResponseBuilder {
@@ -380,6 +394,10 @@ inline bool VerifyResponseBody(::flatbuffers::Verifier &verifier, const void *ob
     }
     case ResponseBody_ListGetRange: {
       auto ptr = reinterpret_cast<const fc::response::ListGetRange *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case ResponseBody_ListRemove: {
+      auto ptr = reinterpret_cast<const fc::response::ListRemove *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;
