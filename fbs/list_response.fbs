@@ -1,0 +1,31 @@
+include "common.fbs";
+
+namespace fc.response;
+
+
+table ListCreate
+{
+}
+
+table ListAdd
+{
+}
+
+table ListDelete
+{
+}
+
+table ListRemove
+{
+}
+
+table ListRemoveIf
+{
+}
+
+
+table ListGetRange
+{
+  items:[ubyte] (flexbuffer);
+  type:common.ListType;
+}

@@ -1,7 +1,6 @@
-import json
 import asyncio as asio
 from asyncio import CancelledError
-from websockets.asyncio.client import connect
+from websockets.client import connect
 from websockets import ConnectionClosed
 
 
@@ -69,7 +68,8 @@ class Connection:
 
 
   async def _query(self, buffer: bytearray) -> bytes:
-    await self.ws.send(buffer, text=False)    
+    #await self.ws.send(buffer, text=False)    
+    await self.ws.send(buffer)
     await self.rspEvt.wait()
     msg = self.message    
     self.rspEvt.clear()

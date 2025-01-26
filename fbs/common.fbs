@@ -3,5 +3,14 @@ namespace fc.common;
 
 enum Ident : byte
 {
-  KV
+  KV,
+  List
+}
+
+enum ListType : byte
+{
+  Int,
+  UInt,
+  Float,
+  String
 }

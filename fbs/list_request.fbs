@@ -1,0 +1,100 @@
+include "common.fbs";
+
+namespace fc.request;
+
+enum Base : ubyte
+{
+  Head,
+  Tail
+}
+
+
+enum Condition : ubyte
+{
+  Equals
+}
+
+// unions can't contain scalrs.
+// And Python (and perhaps others) doesn't like a union
+// with a string, so wrap in a table
+//table TheValue
+//{
+  //i:int64;
+  //ui:uint64;
+  //f:float;
+  //s:string;
+//}
+
+table IntValue
+{
+  v:int64;
+}
+table UIntValue
+{
+  v:uint64;
+}
+table FloatValue
+{
+  v:float;
+}
+table StringValue
+{
+  v:string;
+}
+
+union Value
+{ 
+  IntValue,
+  UIntValue,
+  FloatValue,
+  StringValue
+}
+
+
+table Range
+{
+  start:int32 = 0;
+  stop:int32 = 0;
+  has_stop:bool = true;
+}
+
+table ListCreate
+{
+  name:string;
+  type:common.ListType;
+}
+
+table ListDelete
+{
+  name:[string];
+}
+
+table ListAdd
+{
+  name:string;
+  items:[ubyte] (flexbuffer);
+  position:int32;  // unlikely to have a list that requires higher range than int32
+  base: Base;
+}
+
+table ListGetRange
+{
+  name:string;
+  range:Range;
+  base:Base;
+}
+
+table ListRemove
+{
+  name:string;
+  range:Range;
+  base:Base; // not used yet
+}
+
+table ListRemoveIf
+{
+  name:string;
+  range:Range;
+  value:Value;
+  condition:Condition;
+}

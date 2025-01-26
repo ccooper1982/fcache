@@ -18,6 +18,14 @@ async def connect() -> fc.Client:
   return client
 ```
 
+
+## Exceptions
+
+- `ResponseError` : raised when a failed response is received
+- `ValueError` : raised by the API before a request is sent
+- `OSError` : if opening the connection fails
+
+
 ## KV
 
 !!! warning "List Values"
@@ -57,20 +65,14 @@ async def kv():
   print(await kv.get(key='perks'))
 ```
 
-```
+
+```bash title='Output'
 Age: 25
 Player: Monster, Active: True
 ['Armour', 'Kilt']
 ```
 
-## Exceptions
-
-- `ResponseError` : raised when a failed response is received
-- `ValueError` : raised by the API before a request is sent
-- `OSError` : if opening the connection fails
-
-
-## Types
+### Types
 
 |Python|FlatBuffers/FlexBuffers|Server|
 |---|---|---|
@@ -81,11 +83,71 @@ Player: Monster, Active: True
 |bytes|BLOB|`std::vector<uint8_t>`|
 |list[int]|TypedVector: VECTOR_INT|`std::vector<int64>`|
 |list[float]|TypedVector: VECTOR_FLOAT|`std::vector<float>`|
-|list[str]|TypedVector: VECTOR_KEY|`std::vector<std::string>`|
+|list[str]|TypedVector: VECTOR_KEY|`std::vector<uint8_t>`|
 |list[bool]|TypedVector: VECTOR_BOOL|`std::vector<bool>`|
 
 !!! note
-    A `TypedVector` is a vector (contigious array) where each element
-    is the same type.
+    A `TypedVector` is a type of FlexBuffer vector, where each element is the same type.
+    
 
 
+
+## Lists
+
+Lists are node based doubly linked lists. It's not yet possible to sort the list or create a sorted list.
+
+```py
+from fc.list import List
+
+async def lists():
+  if (client := await connect()) is None:
+    return
+  
+  # create API object for list functions
+  list = List(client)
+
+  await list.delete_all()
+
+  # create list for integers
+  await list.create('scores', type='int')
+  # add these items to head
+  await list.add_head('scores', [25,35,45,55])
+  # insert in between 35 and 45 (at position 2)
+  await list.add('scores', [40], pos=2)
+  # add two more to the tail
+  await list.add_tail('scores', [60, 65])
+  
+  # get everything from the first item
+  print(f"a. {await list.get_n('scores')}")
+  # get everything in reverse
+  print(f"b. {await list.get_n_reverse('scores')}")
+  # # get the first 3 
+  print(f"c. {await list.get_n('scores', count=3)}")
+  # # get the last 2
+  print(f"d. {await list.get_n('scores', start=5)}")
+  # get middle 3 with range (could also use get_n())
+  print(f"e. {await list.get_range('scores', start=2, stop=5)}")
+  # get middle 5 in reverse, using negative index
+  print(f"f. {await list.get_range_reverse('scores', start=1, stop=-1)}")
+
+
+  # list of strings
+  await list.create('names', type='str')
+  
+  await list.add_head('names', ['Adam','Charlie'])
+  print(await list.get_n('names'))
+
+  await list.add('names', ['Bob'], pos=1)
+  print(await list.get_n('names'))
+```
+
+```bash title='Output'
+a. [25, 35, 40, 45, 55, 60, 65]
+b. [65, 60, 55, 45, 40, 35, 25]
+c. [25, 35, 40]
+d. [60, 65]
+e. [40, 45, 55]
+f. [60, 55, 45, 40, 35]
+['Adam', 'Charlie']
+['Adam', 'Bob', 'Charlie']
+```

@@ -2,7 +2,7 @@
 
 fcache is a FlatBuffers cache over WebSockets.
 
-There is support for key-values, with containers (Arrays, Lists) coming soon.
+There is support for key-values, and unsorted lists with more coming soon.
 
 FlatBuffers offer zero-copy deserialising: when the server receives data, it can deserialise without an intermediate step which requires allocating memory (as with ProtoBuf), and is considerably more compact than JSON.
 
@@ -17,6 +17,7 @@ The client API hides the FlatBuffer details:
 ```py
 import fc
 from fc.kv import KV
+from fc.list import List
 
 
 async def connect() -> fc.Client:
@@ -41,7 +42,7 @@ async def kv():
                 'active':True,
                 'perks':['Armour','Kilt']})
 
-  # get single key, returns the value (or None if key not found)
+  # get single key, returns the value
   age = await kv.get(key='level')
   print(f'Age: {age}')
 
@@ -49,8 +50,17 @@ async def kv():
   rsp = await kv.get(keys=['player', 'active'])
   print(f"Player: {rsp['player']}, Active: {rsp['active']}")
 
-  # get list
   print(await kv.get(key='perks'))
+
+
+  # create API object for List commands
+  lst = List(client)
+
+  await lst.create('scores', type='int')
+  await lst.add_head('scores', [1,2,3,5,5,6,8])
+  await lst.get_n('scores', start=3, count=2) # [5,5]
+  await lst.get_range('scores', start=1, stop=-2)  # [2,3,5,5]
+  await lst.remove_if_eq('scores', val=5)  # [2,3]
 
 
 if __name__ == "__main__":

@@ -23,9 +23,9 @@ class Client:
     await self.ws.close()
  
 
-  async def sendCmd(self, data:bytearray, expectedRspBody: ResponseBody) -> Response.Response:
+  async def sendCmd(self, data:bytearray, expectedRspBody: ResponseBody, allowDuplicate=False) -> Response.Response:
     rsp = await self.ws.query(data)
-    return raise_if_fail(rsp, expectedRspBody)
+    return raise_if_fail(rsp, expectedRspBody, allowDuplicate)
     
   
   

@@ -1,0 +1,35 @@
+include "common.fbs";
+include "kv_request.fbs";
+include "list_request.fbs";
+
+namespace fc.request;
+
+
+union RequestBody
+{
+  // KV
+  KVSet,
+  KVGet,
+  KVRmv,
+  KVAdd,
+  KVCount,
+  KVContains,
+  KVClear,
+  KVClearSet,
+  // List
+  ListCreate,
+  ListAdd,
+  ListDelete,
+  ListGetRange,
+  ListRemove,
+  ListRemoveIf
+}
+
+table Request
+{
+  ident:common.Ident;
+  body:RequestBody;
+}
+
+
+root_type Request;

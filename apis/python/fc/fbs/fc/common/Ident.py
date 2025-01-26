@@ -2,4 +2,6 @@
 
 # namespace: common
 
-# NOTE Ident.py does not declare any structs or enums
+class Ident(object):
+    KV = 0
+    List = 1

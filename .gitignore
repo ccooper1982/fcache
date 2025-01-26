@@ -11,3 +11,4 @@ docs/site/*
 apis/python/examples/cat_rsp.jpg
 memtest/debug/*
 memtest/release/*
+apis/python/fc/fbs/fc/common/__pycache__/*

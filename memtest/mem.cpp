@@ -5,6 +5,7 @@
 #include <variant>
 #include <numeric>
 #include <chrono>
+#include <list>
 #include <fc/Memory.hpp>
 #include <fc/LogFormatter.hpp>
 #include <plog/Init.h>
@@ -160,7 +161,8 @@ static void checkMemory (std::byte * buffer, const std::size_t size)
 
 
 using clok = std::chrono::steady_clock;
-using PmrMap = ankerl::unordered_dense::pmr::map<std::pmr::string, PmrCV>;
+//using PmrMap = ankerl::unordered_dense::pmr::map<std::pmr::string, PmrCV>;
+using PmrMap = ankerl::unordered_dense::pmr::map<std::string, PmrCV>;
 using Map = ankerl::unordered_dense::map<std::string, CV>;
 
 
@@ -192,7 +194,8 @@ void perfPmr(const uint64_t nKeys, const uint64_t nValuesPerKey)
   // memory already allocated.
   for (uint64_t i = 0 ; i < nKeys ; ++i)
   {
-    auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, VectorValuePmr{});
+    //auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, VectorValuePmr{});
+    auto [it, emplaced] = map.try_emplace(std::to_string(i), VectorValuePmr{});
     auto& vec = it->second.value.data;
     vec.resize(nValuesPerKey*sizeof(uint64_t));
     // don't add anything to the map, we've resized which forces the pool to allocate memory
@@ -202,10 +205,11 @@ void perfPmr(const uint64_t nKeys, const uint64_t nValuesPerKey)
 
   // bunch of keys we'll later retrieve. build here rather than in the
   // loop below to avoid skewing timing.
-  std::vector<std::pmr::string> keys;
+  std::vector<std::string> keys;
   keys.reserve(nKeys);
   for(uint64_t i =0 ; i < nKeys ; ++i)
-    keys.emplace_back(std::pmr::string{std::to_string(i), alloc});
+    //keys.emplace_back(std::pmr::string{std::to_string(i), alloc});
+    keys.emplace_back(std::to_string(i));
   
 
   int total = 0;
@@ -215,8 +219,8 @@ void perfPmr(const uint64_t nKeys, const uint64_t nValuesPerKey)
   
     for (uint64_t i = 0 ; i < nKeys ; ++i)
     {
-      auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, VectorValuePmr{});
-
+      //auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, VectorValuePmr{});
+      auto [it, emplaced] = map.try_emplace(std::to_string(i), VectorValuePmr{});
       auto& vec = it->second.value.data;
       vec.resize(nValuesPerKey*sizeof(uint64_t));
 
@@ -243,14 +247,16 @@ void perfPmr(const uint64_t nKeys, const uint64_t nValuesPerKey)
 
   // delete keys then add more
   for (uint64_t i = 0 ; i < nKeys/10 ; ++i)
-    map.erase(std::pmr::string(std::to_string(i), alloc));
+    //map.erase(std::pmr::string(std::to_string(i), alloc));
+    map.erase(std::to_string(i));
   
   {
     Timer t{"PMR Set 2"};
   
     for (uint64_t i = 0 ; i < nKeys/10 ; ++i)
     {
-      auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, VectorValuePmr{});
+      //auto [it, emplaced] = map.try_emplace(std::pmr::string{std::to_string(i), alloc}, VectorValuePmr{});
+      auto [it, emplaced] = map.try_emplace(std::to_string(i), VectorValuePmr{});
 
       auto& vec = it->second.value.data;
       vec.resize(nValuesPerKey*sizeof(uint64_t));
@@ -266,6 +272,18 @@ void perfPmr(const uint64_t nKeys, const uint64_t nValuesPerKey)
   PLOGI << total;
 }
 
+/*  Commented because ListMemory resource removed:
+
+// https://quick-bench.com/q/GEtDNQybceEUt1cGsxRBDzwF22c
+//  Suggests that using PMR for list isn't beneficial, perhaps:
+//  - The pool creates blocks of various sizes
+//  - But with a list of scalar type, the size will be the same for fixed types (list<int>, list<float>, etc)
+//  - A custom pool allocator may be worthwhile: similar to std library pool but all blocks can have the same
+//    chunk size on a per list basis: the chunk size is 
+//      - node * prev
+//      - node * next
+//      - T val;
+//   plus any padding for alignment.
 
 void perfNormal(const uint64_t nKeys, const uint64_t nValuesPerKey)
 {
@@ -333,6 +351,101 @@ void perfNormal(const uint64_t nKeys, const uint64_t nValuesPerKey)
 }
 
 
+void perfList(uint64_t nNodes)
+{
+  std::list<uint64_t> list1, list2;
+
+  {
+    Timer {"List Create"};
+
+    for (uint64_t i  = 0 ; i < nNodes ; ++i)
+    {
+      list1.emplace_back(i);
+      if (i % 2 == 0)
+        list2.emplace_back(i);
+    }    
+  }
+  
+
+  {
+    Timer {"List Intersect"};
+
+    std::vector<uint64_t> result;
+    result.reserve(nNodes);
+    std::set_intersection(std::cbegin(list1), std::cend(list1),
+                          std::cbegin(list2), std::cend(list2), std::back_inserter(result));
+  }
+
+  // remove half
+  {
+    for (uint64_t i = 0 ; i  < nNodes/2 ; ++i)
+      list1.erase(list1.cbegin());
+  }
+
+  // add back
+  {
+    Timer {"List Add"};
+    
+    for (uint64_t i  = 0 ; i < nNodes/2 ; ++i)
+      list1.emplace_back(i);
+  }
+}
+
+
+struct PmrList
+{
+  PmrList () : list(memory.alloc())
+  {
+
+  }
+  
+  fc::ListMemory memory;
+  std::pmr::list<uint64_t> list;
+};
+
+
+void perfListPmr(uint64_t nNodes)
+{
+  PmrList list1, list2;
+
+  
+  {
+    Timer {"PMR List Create"};
+    
+    for (uint64_t i  = 0 ; i < nNodes ; ++i)
+    {
+      list1.list.emplace_back(i);
+      if (i % 2 == 0)
+        list2.list.emplace_back(i);
+    } 
+  }
+
+  {
+    Timer {"PMR List Intersect"};
+    
+    std::vector<uint64_t> result;
+    result.reserve(nNodes);
+    std::set_intersection(std::cbegin(list1.list), std::cend(list1.list),
+                          std::cbegin(list2.list), std::cend(list2.list), std::back_inserter(result));  
+  }
+  
+  // remove half
+  {
+    for (uint64_t i = 0 ; i  < nNodes/2 ; ++i)
+      list1.list.erase(list1.list.cbegin());
+  }
+
+  // add back
+  {
+    Timer {"PMR List Add"};
+
+    for (uint64_t i  = 0 ; i < nNodes/2 ; ++i)
+      list1.list.emplace_back(i);
+  }
+}
+*/
+
+
 int main (int argc, char ** argv)
 {
   plog::init(plog::verbose, &consoleAppender);
@@ -349,8 +462,11 @@ int main (int argc, char ** argv)
     // map.emplace("k3", v2);
   #endif
   
-  perfNormal(100000, 10);
-  perfPmr(100000, 10);
+  // perfNormal(100000, 10);
+  // perfPmr(100000, 10);
+  
+  //perfList(10000);
+  //perfListPmr(10);
 
   return 0;
 }
