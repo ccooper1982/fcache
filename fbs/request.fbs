@@ -21,7 +21,8 @@ union RequestBody
   ListAdd,
   ListDelete,
   ListGetRange,
-  ListRemove
+  ListRemove,
+  ListRemoveIf
 }
 
 table Request

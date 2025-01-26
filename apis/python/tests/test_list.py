@@ -168,4 +168,15 @@ class KV(ListTest):
     self.assertListEqual(await self.list.get_n('rmv'), [10])
 
 
+  async def test_remove_if(self):
+    await self.list.create('rmv', type='int')
+    await self.list.add_head('rmv', [0,1,2,5,5,5,6,7,8,9,7,7,10])
+    
+    await self.list.remove_if_eq('rmv', start=0, stop=7, val=5)
+    self.assertListEqual(await self.list.get_n('rmv'), [0,1,2,6,7,8,9,7,7,10])
+
+    await self.list.remove_if_eq('rmv', start=-7, val=7)
+    self.assertListEqual(await self.list.get_n('rmv'), [0,1,2,6,8,9,10])
+
+
   # TODO delete, delete_all when exists() implemented

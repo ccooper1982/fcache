@@ -176,7 +176,7 @@ def raise_if (condition, msg:str, errorType = ValueError):
 
 
 def raise_if_not (condition, msg:str, errorType = ValueError):
-  if not raise_if(condition, msg, errorType):
+  if not condition:
     raise errorType(msg)
   
 

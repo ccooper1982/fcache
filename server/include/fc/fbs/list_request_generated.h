@@ -20,6 +20,18 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
 namespace fc {
 namespace request {
 
+struct IntValue;
+struct IntValueBuilder;
+
+struct UIntValue;
+struct UIntValueBuilder;
+
+struct FloatValue;
+struct FloatValueBuilder;
+
+struct StringValue;
+struct StringValueBuilder;
+
 struct Range;
 struct RangeBuilder;
 
@@ -37,6 +49,9 @@ struct ListGetRangeBuilder;
 
 struct ListRemove;
 struct ListRemoveBuilder;
+
+struct ListRemoveIf;
+struct ListRemoveIfBuilder;
 
 enum Base : uint8_t {
   Base_Head = 0,
@@ -66,6 +81,269 @@ inline const char *EnumNameBase(Base e) {
   if (::flatbuffers::IsOutRange(e, Base_Head, Base_Tail)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesBase()[index];
+}
+
+enum Condition : uint8_t {
+  Condition_Equals = 0,
+  Condition_MIN = Condition_Equals,
+  Condition_MAX = Condition_Equals
+};
+
+inline const Condition (&EnumValuesCondition())[1] {
+  static const Condition values[] = {
+    Condition_Equals
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesCondition() {
+  static const char * const names[2] = {
+    "Equals",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameCondition(Condition e) {
+  if (::flatbuffers::IsOutRange(e, Condition_Equals, Condition_Equals)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesCondition()[index];
+}
+
+enum Value : uint8_t {
+  Value_NONE = 0,
+  Value_IntValue = 1,
+  Value_UIntValue = 2,
+  Value_FloatValue = 3,
+  Value_StringValue = 4,
+  Value_MIN = Value_NONE,
+  Value_MAX = Value_StringValue
+};
+
+inline const Value (&EnumValuesValue())[5] {
+  static const Value values[] = {
+    Value_NONE,
+    Value_IntValue,
+    Value_UIntValue,
+    Value_FloatValue,
+    Value_StringValue
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesValue() {
+  static const char * const names[6] = {
+    "NONE",
+    "IntValue",
+    "UIntValue",
+    "FloatValue",
+    "StringValue",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameValue(Value e) {
+  if (::flatbuffers::IsOutRange(e, Value_NONE, Value_StringValue)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesValue()[index];
+}
+
+template<typename T> struct ValueTraits {
+  static const Value enum_value = Value_NONE;
+};
+
+template<> struct ValueTraits<fc::request::IntValue> {
+  static const Value enum_value = Value_IntValue;
+};
+
+template<> struct ValueTraits<fc::request::UIntValue> {
+  static const Value enum_value = Value_UIntValue;
+};
+
+template<> struct ValueTraits<fc::request::FloatValue> {
+  static const Value enum_value = Value_FloatValue;
+};
+
+template<> struct ValueTraits<fc::request::StringValue> {
+  static const Value enum_value = Value_StringValue;
+};
+
+bool VerifyValue(::flatbuffers::Verifier &verifier, const void *obj, Value type);
+bool VerifyValueVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types);
+
+struct IntValue FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef IntValueBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_V = 4
+  };
+  int64_t v() const {
+    return GetField<int64_t>(VT_V, 0);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int64_t>(verifier, VT_V, 8) &&
+           verifier.EndTable();
+  }
+};
+
+struct IntValueBuilder {
+  typedef IntValue Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_v(int64_t v) {
+    fbb_.AddElement<int64_t>(IntValue::VT_V, v, 0);
+  }
+  explicit IntValueBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<IntValue> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<IntValue>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<IntValue> CreateIntValue(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    int64_t v = 0) {
+  IntValueBuilder builder_(_fbb);
+  builder_.add_v(v);
+  return builder_.Finish();
+}
+
+struct UIntValue FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef UIntValueBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_V = 4
+  };
+  uint64_t v() const {
+    return GetField<uint64_t>(VT_V, 0);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint64_t>(verifier, VT_V, 8) &&
+           verifier.EndTable();
+  }
+};
+
+struct UIntValueBuilder {
+  typedef UIntValue Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_v(uint64_t v) {
+    fbb_.AddElement<uint64_t>(UIntValue::VT_V, v, 0);
+  }
+  explicit UIntValueBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<UIntValue> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<UIntValue>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<UIntValue> CreateUIntValue(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    uint64_t v = 0) {
+  UIntValueBuilder builder_(_fbb);
+  builder_.add_v(v);
+  return builder_.Finish();
+}
+
+struct FloatValue FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef FloatValueBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_V = 4
+  };
+  float v() const {
+    return GetField<float>(VT_V, 0.0f);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<float>(verifier, VT_V, 4) &&
+           verifier.EndTable();
+  }
+};
+
+struct FloatValueBuilder {
+  typedef FloatValue Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_v(float v) {
+    fbb_.AddElement<float>(FloatValue::VT_V, v, 0.0f);
+  }
+  explicit FloatValueBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<FloatValue> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<FloatValue>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<FloatValue> CreateFloatValue(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    float v = 0.0f) {
+  FloatValueBuilder builder_(_fbb);
+  builder_.add_v(v);
+  return builder_.Finish();
+}
+
+struct StringValue FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef StringValueBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_V = 4
+  };
+  const ::flatbuffers::String *v() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_V);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_V) &&
+           verifier.VerifyString(v()) &&
+           verifier.EndTable();
+  }
+};
+
+struct StringValueBuilder {
+  typedef StringValue Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_v(::flatbuffers::Offset<::flatbuffers::String> v) {
+    fbb_.AddOffset(StringValue::VT_V, v);
+  }
+  explicit StringValueBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<StringValue> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<StringValue>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<StringValue> CreateStringValue(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> v = 0) {
+  StringValueBuilder builder_(_fbb);
+  builder_.add_v(v);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<StringValue> CreateStringValueDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *v = nullptr) {
+  auto v__ = v ? _fbb.CreateString(v) : 0;
+  return fc::request::CreateStringValue(
+      _fbb,
+      v__);
 }
 
 struct Range FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -489,6 +767,173 @@ inline ::flatbuffers::Offset<ListRemove> CreateListRemoveDirect(
       name__,
       range,
       base);
+}
+
+struct ListRemoveIf FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ListRemoveIfBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_RANGE = 6,
+    VT_VALUE_TYPE = 8,
+    VT_VALUE = 10,
+    VT_CONDITION = 12
+  };
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
+  }
+  const fc::request::Range *range() const {
+    return GetPointer<const fc::request::Range *>(VT_RANGE);
+  }
+  fc::request::Value value_type() const {
+    return static_cast<fc::request::Value>(GetField<uint8_t>(VT_VALUE_TYPE, 0));
+  }
+  const void *value() const {
+    return GetPointer<const void *>(VT_VALUE);
+  }
+  template<typename T> const T *value_as() const;
+  const fc::request::IntValue *value_as_IntValue() const {
+    return value_type() == fc::request::Value_IntValue ? static_cast<const fc::request::IntValue *>(value()) : nullptr;
+  }
+  const fc::request::UIntValue *value_as_UIntValue() const {
+    return value_type() == fc::request::Value_UIntValue ? static_cast<const fc::request::UIntValue *>(value()) : nullptr;
+  }
+  const fc::request::FloatValue *value_as_FloatValue() const {
+    return value_type() == fc::request::Value_FloatValue ? static_cast<const fc::request::FloatValue *>(value()) : nullptr;
+  }
+  const fc::request::StringValue *value_as_StringValue() const {
+    return value_type() == fc::request::Value_StringValue ? static_cast<const fc::request::StringValue *>(value()) : nullptr;
+  }
+  fc::request::Condition condition() const {
+    return static_cast<fc::request::Condition>(GetField<uint8_t>(VT_CONDITION, 0));
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyOffset(verifier, VT_RANGE) &&
+           verifier.VerifyTable(range()) &&
+           VerifyField<uint8_t>(verifier, VT_VALUE_TYPE, 1) &&
+           VerifyOffset(verifier, VT_VALUE) &&
+           VerifyValue(verifier, value(), value_type()) &&
+           VerifyField<uint8_t>(verifier, VT_CONDITION, 1) &&
+           verifier.EndTable();
+  }
+};
+
+template<> inline const fc::request::IntValue *ListRemoveIf::value_as<fc::request::IntValue>() const {
+  return value_as_IntValue();
+}
+
+template<> inline const fc::request::UIntValue *ListRemoveIf::value_as<fc::request::UIntValue>() const {
+  return value_as_UIntValue();
+}
+
+template<> inline const fc::request::FloatValue *ListRemoveIf::value_as<fc::request::FloatValue>() const {
+  return value_as_FloatValue();
+}
+
+template<> inline const fc::request::StringValue *ListRemoveIf::value_as<fc::request::StringValue>() const {
+  return value_as_StringValue();
+}
+
+struct ListRemoveIfBuilder {
+  typedef ListRemoveIf Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
+    fbb_.AddOffset(ListRemoveIf::VT_NAME, name);
+  }
+  void add_range(::flatbuffers::Offset<fc::request::Range> range) {
+    fbb_.AddOffset(ListRemoveIf::VT_RANGE, range);
+  }
+  void add_value_type(fc::request::Value value_type) {
+    fbb_.AddElement<uint8_t>(ListRemoveIf::VT_VALUE_TYPE, static_cast<uint8_t>(value_type), 0);
+  }
+  void add_value(::flatbuffers::Offset<void> value) {
+    fbb_.AddOffset(ListRemoveIf::VT_VALUE, value);
+  }
+  void add_condition(fc::request::Condition condition) {
+    fbb_.AddElement<uint8_t>(ListRemoveIf::VT_CONDITION, static_cast<uint8_t>(condition), 0);
+  }
+  explicit ListRemoveIfBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<ListRemoveIf> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<ListRemoveIf>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<ListRemoveIf> CreateListRemoveIf(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    ::flatbuffers::Offset<fc::request::Range> range = 0,
+    fc::request::Value value_type = fc::request::Value_NONE,
+    ::flatbuffers::Offset<void> value = 0,
+    fc::request::Condition condition = fc::request::Condition_Equals) {
+  ListRemoveIfBuilder builder_(_fbb);
+  builder_.add_value(value);
+  builder_.add_range(range);
+  builder_.add_name(name);
+  builder_.add_condition(condition);
+  builder_.add_value_type(value_type);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<ListRemoveIf> CreateListRemoveIfDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    ::flatbuffers::Offset<fc::request::Range> range = 0,
+    fc::request::Value value_type = fc::request::Value_NONE,
+    ::flatbuffers::Offset<void> value = 0,
+    fc::request::Condition condition = fc::request::Condition_Equals) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  return fc::request::CreateListRemoveIf(
+      _fbb,
+      name__,
+      range,
+      value_type,
+      value,
+      condition);
+}
+
+inline bool VerifyValue(::flatbuffers::Verifier &verifier, const void *obj, Value type) {
+  switch (type) {
+    case Value_NONE: {
+      return true;
+    }
+    case Value_IntValue: {
+      auto ptr = reinterpret_cast<const fc::request::IntValue *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Value_UIntValue: {
+      auto ptr = reinterpret_cast<const fc::request::UIntValue *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Value_FloatValue: {
+      auto ptr = reinterpret_cast<const fc::request::FloatValue *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Value_StringValue: {
+      auto ptr = reinterpret_cast<const fc::request::StringValue *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    default: return true;
+  }
+}
+
+inline bool VerifyValueVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types) {
+  if (!values || !types) return !values && !types;
+  if (values->size() != types->size()) return false;
+  for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+    if (!VerifyValue(
+        verifier,  values->Get(i), types->GetEnum<Value>(i))) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace request

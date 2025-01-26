@@ -151,6 +151,7 @@ async def lists():
   print(await list.get_range_reverse('list', start=1, stop=-2))
   print(await list.get_range_reverse('list', start=-4, stop=-1))
   
+  # remove
   print('remove')
   await list.create('rmv', type='int')
   await list.add_head('rmv', [0,1,2,3,4,5,6,7,8,9,10])
@@ -167,6 +168,34 @@ async def lists():
 
   await list.add_head('rmv', [0,1,2,3,4,5,6,7,8,9,10])
   print(await list.get_n('rmv'))
+
+
+  # remove if  
+  print('remove if int')
+  await list.create('rmv_if', type='int')
+  await list.add_head('rmv_if', [0,1,2,5,5,5,6,7,8,9,7,7,10])
+  print(await list.get_n('rmv_if'))
+    
+  await list.remove_if_eq('rmv_if', start=0, stop=7, val=5)
+  print(await list.get_n('rmv_if'))
+
+  # [0,1,2,6,7,8,9,7,7,10]
+  await list.remove_if_eq('rmv_if', start=7, stop=9, val=7)
+  print(await list.get_n('rmv_if'))
+
+
+  print('remove if str')
+  await list.create('rmv_if_str', type='str')
+  await list.add_head('rmv_if_str', ['abba', 'metallica', 'abba', 'mj', 'abba', 'mj', 'mj'])
+  print(await list.get_n('rmv_if_str'))
+    
+  await list.remove_if_eq('rmv_if_str', start=0, stop=3, val='abba')
+  print(await list.get_n('rmv_if_str')) # ['metallica', 'mj', 'abba', 'mj',' mj']
+
+  await list.remove_if_eq('rmv_if_str', start=2, val='mj')
+  print(await list.get_n('rmv_if_str')) # ['metallica', 'mj', 'abba']
+
+
 
 
 if __name__ == "__main__":

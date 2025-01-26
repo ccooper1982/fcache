@@ -207,8 +207,6 @@ namespace fc
       const std::int64_t begin  = start < 0 ? size+start : start,
                          last   = end < 0 ? std::min<>(size, std::labs(size+end)) : std::min<>(size, end);
 
-      PLOGD << "begin: " << begin << ", last: " << last;
-
       if (begin < last)
       {
         if (begin == 0 && last == size)
@@ -233,6 +231,113 @@ namespace fc
     std::int64_t end;
     const bool hasStop;
   };
+  
+  
+  //
+  
+  template<typename T>
+  struct IsEqual
+  {
+    using value_type = T;
+
+    
+    IsEqual (const T v) : val(std::move(v)) {}
+    bool operator()(const T& a) { return a == val; }
+
+    // TODO or const T& val? doesn't matter for primitives, want to avoid copy strings, but
+    T val; 
+  };
+  
+
+  template<typename Condition>
+  struct RemoveIf
+  {
+    using value_type = typename Condition::value_type;
+
+
+    RemoveIf(const int64_t start, const int64_t end, Condition c) noexcept
+      : start(start), end(end), hasStop(true), condition(std::move(c))
+    {
+    }
+
+    RemoveIf(const int64_t start, Condition c) noexcept
+      : start(start), end(0), hasStop(false), condition(std::move(c))
+    {
+    }
+
+
+    void operator()(IntList& list)
+    {
+      if constexpr (std::is_same_v<value_type, int64_t>)
+        doRemove(list);
+    }
+
+    void operator()(UIntList& list)
+    {
+      if constexpr (std::is_same_v<value_type, uint64_t>)
+        doRemove(list);
+    }
+
+    void operator()(FloatList& list)
+    {
+      if constexpr (std::is_same_v<value_type, float>)
+        doRemove(list);
+    }
+
+    void operator()(StringList& list)
+    {
+      if constexpr (std::is_same_v<value_type, std::string>)
+        doRemove(list);
+    }
+
+
+  private:
+  
+    template<typename ListT>
+    constexpr void doRemove (ListT& list) 
+    {
+      if (const auto [valid, itStart, itEnd] = getPositions(list); valid)
+      {
+        const auto newEnd = std::remove_if(itStart, itEnd, condition);
+        list.erase(newEnd, itEnd);
+      } 
+    }
+
+
+    template<typename ListT>
+    std::tuple<bool, typename ListT::iterator, typename ListT::iterator> getPositions(ListT& list)
+    {
+      const auto size = std::ssize(list);
+
+      if ((start >= 0 && start >= size) || std::labs(start) > size)
+        return {false, list.end(), list.end()};
+
+      if (!hasStop)
+        end = size;
+      
+      const std::int64_t begin  = start < 0 ? size+start : start,
+                         last   = end < 0 ? std::min<>(size, std::labs(size+end)) : std::min<>(size, end);
+
+      if (begin < last)
+      {
+        const auto itStart = std::next(list.begin(), begin);
+        const auto itEnd = std::next(list.begin(), last);
+        return {true, itStart, itEnd};
+      }
+      else
+      {
+        return {false, list.end(), list.end()};
+      }   
+    }
+
+
+  private:
+    const std::int64_t start;
+    std::int64_t end;
+    const bool hasStop;
+    Condition condition;
+  };
+  
 
 
   class FcList

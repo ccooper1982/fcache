@@ -196,8 +196,85 @@ namespace fc
       status = Status_Fail;
     }
 
-    createEmptyBodyResponse(fbb, status, ResponseBody_ListRemove);
-    
+    createEmptyBodyResponse(fbb, status, ResponseBody_ListRemove);    
+  }
+
+
+  void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListRemoveIf& req) noexcept
+  {
+    using enum fc::request::Condition;
+    using enum fc::request::Value;
+
+    fc::response::Status status = Status_Ok;
+
+    try
+    {
+      const auto& name = req.name()->str();
+      const int32_t start = req.range()->start();
+      const int32_t stop = req.range()->stop();
+      const bool hasStop = req.range()->has_stop();
+      // const auto condition = req.condition();
+
+      if (const auto listOpt = getList(name); !listOpt)
+      {
+        // TODO Status_NotExist for when a List doesn't exist? Or an empty vector? A FAIL seems a bit unnecessary
+        status = Status_Fail;
+      }
+      else
+      {
+        const auto& fcList = (*listOpt)->second;
+
+        switch (req.value_type())
+        {
+        case Value_IntValue:
+        {
+          PLOGD << "Remove if val: " << req.value_as_IntValue()->v();
+          if (hasStop)
+            std::visit(RemoveIf{start, stop, IsEqual<int64_t>{req.value_as_IntValue()->v()}}, fcList->list());
+          else
+            std::visit(RemoveIf{start, IsEqual<int64_t>{req.value_as_IntValue()->v()}}, fcList->list());
+        }
+        break;
+
+        case Value_StringValue:
+        {
+          PLOGD << "Remove if val: " << req.value_as_StringValue()->v()->string_view();
+          if (hasStop)
+            std::visit(RemoveIf{start, stop, IsEqual<std::string>{req.value_as_StringValue()->v()->str()}}, fcList->list());
+          else
+            std::visit(RemoveIf{start, IsEqual<std::string>{req.value_as_StringValue()->v()->str()}}, fcList->list());
+        }
+        break;
+
+
+        default:
+        break;
+        }
+
+        // switch (condition)
+        // {
+        // case Condition_Equals:
+
+        // break;
+
+        // default:
+        // break;
+
+        // }
+
+        // if (hasStop)
+        //   std::visit(RemoveIfEqual<>{start, stop}, fcList->list());
+        // else
+        //   std::visit(Remove{start}, fcList->list());
+      }
+    }
+    catch(const std::exception& e)
+    {
+      PLOGE << e.what();
+      status = Status_Fail;
+    }
+
+    createEmptyBodyResponse(fbb, status, ResponseBody_ListRemoveIf);
   }
 
 

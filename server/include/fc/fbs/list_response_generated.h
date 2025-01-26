@@ -32,6 +32,9 @@ struct ListDeleteBuilder;
 struct ListRemove;
 struct ListRemoveBuilder;
 
+struct ListRemoveIf;
+struct ListRemoveIfBuilder;
+
 struct ListGetRange;
 struct ListGetRangeBuilder;
 
@@ -148,6 +151,35 @@ struct ListRemoveBuilder {
 inline ::flatbuffers::Offset<ListRemove> CreateListRemove(
     ::flatbuffers::FlatBufferBuilder &_fbb) {
   ListRemoveBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
+struct ListRemoveIf FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ListRemoveIfBuilder Builder;
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct ListRemoveIfBuilder {
+  typedef ListRemoveIf Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  explicit ListRemoveIfBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<ListRemoveIf> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<ListRemoveIf>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<ListRemoveIf> CreateListRemoveIf(
+    ::flatbuffers::FlatBufferBuilder &_fbb) {
+  ListRemoveIfBuilder builder_(_fbb);
   return builder_.Finish();
 }
 

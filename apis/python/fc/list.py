@@ -2,11 +2,12 @@ import flatbuffers
 import flatbuffers.flexbuffers
 import typing
 from fc.client import Client
-from fc.common import raise_if
+from fc.common import raise_if, raise_if_not
 from fc.logging import logger
 from fc.fbs.fc.common import Ident, ListType
 from fc.fbs.fc.request import (Request, RequestBody,
-                               ListCreate, ListAdd, ListDelete, ListGetRange, ListRemove, Range, Base)
+                               ListCreate, ListAdd, ListDelete, ListGetRange, ListRemove, ListRemoveIf, Range, Base)
+from fc.fbs.fc.request import (IntValue, StringValue, FloatValue, Value)
 from fc.fbs.fc.response import (ResponseBody, ListGetRange as ListGetRangeRsp)
 
 
@@ -129,6 +130,8 @@ class List:
 
 
   async def remove(self, name:str, *, start: int = 0, stop: int = None) -> None:
+    raise_if_not(self._is_range_valid(start, stop), 'range invalid')
+    
     fb = flatbuffers.Builder(128)
 
     nameOffset = fb.CreateString(name)
@@ -150,9 +153,52 @@ class List:
   
 
   async def remove_if_eq(self, name:str, *, start: int = 0, stop: int = None, val):
-    # remove if nodes in range [start,stop) equals val
-    pass
+    """ Remove if nodes in range [start,stop) equals val """
+    
+    raise_if_not(self._is_range_valid(start, stop), 'range invalid')
+    
+    fb = flatbuffers.Builder(256)
 
+    nameOffset = fb.CreateString(name)
+
+    if isinstance(val, str):
+      stringValOffset = fb.CreateString(val)
+
+
+    if isinstance(val, int):
+      IntValue.Start(fb)
+      IntValue.AddV(fb, val)
+      valueOffset = IntValue.End(fb)
+      type = Value.Value.IntValue
+    elif isinstance(val, str):
+      StringValue.Start(fb)
+      StringValue.AddV(fb, stringValOffset)
+      valueOffset = StringValue.End(fb)
+      type = Value.Value.StringValue
+    elif isinstance(val, float):
+      FloatValue.Start(fb)
+      FloatValue.AddV(fb, val)
+      valueOffset = FloatValue.End(fb)
+      type = Value.Value.FloatValue
+    else:
+      raise ValueError('val not supported type')
+        
+
+    Range.Start(fb)
+    Range.AddStart(fb, start)
+    Range.AddStop(fb, stop if stop is not None else 0)
+    Range.AddHasStop(fb, stop is not None)
+    rangeOffset = Range.End(fb)
+
+    ListRemoveIf.Start(fb)
+    ListRemoveIf.AddName(fb, nameOffset)
+    ListRemoveIf.AddRange(fb, rangeOffset)
+    ListRemoveIf.AddValueType(fb, type)
+    ListRemoveIf.AddValue(fb, valueOffset)
+    body = ListRemove.End(fb)
+
+    self._complete_request(fb, body, RequestBody.RequestBody.ListRemoveIf)
+    await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListRemoveIf)
 
   ### helpers
   async def _do_get_range(self, name: str, base: Base.Base, start:int, stop: int = None) -> list:    

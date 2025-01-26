@@ -17,3 +17,4 @@ class RequestBody(object):
     ListDelete = 11
     ListGetRange = 12
     ListRemove = 13
+    ListRemoveIf = 14
