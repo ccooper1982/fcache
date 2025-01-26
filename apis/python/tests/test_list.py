@@ -4,7 +4,7 @@ from fc.common import ResponseError
 
 class KV(ListTest):
   async def test_create(self):
-    # TODO add more tests when exists() available
+    # TODO add more checks when exists() available
     await self.list.create('l', type='int', failOnDuplicate=False)
     await self.list.create('l', type='int', failOnDuplicate=False)
 
@@ -152,3 +152,6 @@ class KV(ListTest):
     # end bounds: gets to end
     self.assertListEqual (await self.list.get_range('l', start=0, stop=20), [1,2,3,4,5])
     self.assertListEqual (await self.list.get_range_reverse('l', start=0, stop=20), [5,4,3,2,1])
+
+
+  # TODO delete, delete_all when exists() implemented

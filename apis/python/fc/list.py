@@ -67,7 +67,7 @@ class List:
     await self._do_add(name, items, 0, Base.Base.Tail)
 
 
-  async def delete(self, *, names: typing.List[str]) -> None:
+  async def delete(self, names: typing.List[str]) -> None:
     fb = flatbuffers.Builder(initialSize=1024)
     
     nameOffsets = []

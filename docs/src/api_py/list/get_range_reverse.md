@@ -5,13 +5,12 @@ async def get_range_reverse(name: str, *, start:int, stop: int = None) -> list:
 ```
 Returns items based on a range defined by `start` and `stop` positions.
 
-This is the same as [get_range()](./get_range.md) but:
+This is the same as [get_range()](./get_range.md) but it iterates the list from tail to head:
 
 - positive indices are relative to the tail
     - `start=0` is the tail    
 - negative indices are relative to the head
     - `stop=-1` is the head
-
 
 
 The range is `[start, stop)`, i.e. `stop` is exclusive.
