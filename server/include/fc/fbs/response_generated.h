@@ -77,13 +77,12 @@ enum ResponseBody : uint8_t {
   ResponseBody_ListCreate = 9,
   ResponseBody_ListAdd = 10,
   ResponseBody_ListDelete = 11,
-  ResponseBody_ListGetN = 12,
-  ResponseBody_ListGetRange = 13,
+  ResponseBody_ListGetRange = 12,
   ResponseBody_MIN = ResponseBody_NONE,
   ResponseBody_MAX = ResponseBody_ListGetRange
 };
 
-inline const ResponseBody (&EnumValuesResponseBody())[14] {
+inline const ResponseBody (&EnumValuesResponseBody())[13] {
   static const ResponseBody values[] = {
     ResponseBody_NONE,
     ResponseBody_KVSet,
@@ -97,14 +96,13 @@ inline const ResponseBody (&EnumValuesResponseBody())[14] {
     ResponseBody_ListCreate,
     ResponseBody_ListAdd,
     ResponseBody_ListDelete,
-    ResponseBody_ListGetN,
     ResponseBody_ListGetRange
   };
   return values;
 }
 
 inline const char * const *EnumNamesResponseBody() {
-  static const char * const names[15] = {
+  static const char * const names[14] = {
     "NONE",
     "KVSet",
     "KVGet",
@@ -117,7 +115,6 @@ inline const char * const *EnumNamesResponseBody() {
     "ListCreate",
     "ListAdd",
     "ListDelete",
-    "ListGetN",
     "ListGetRange",
     nullptr
   };
@@ -178,10 +175,6 @@ template<> struct ResponseBodyTraits<fc::response::ListDelete> {
   static const ResponseBody enum_value = ResponseBody_ListDelete;
 };
 
-template<> struct ResponseBodyTraits<fc::response::ListGetN> {
-  static const ResponseBody enum_value = ResponseBody_ListGetN;
-};
-
 template<> struct ResponseBodyTraits<fc::response::ListGetRange> {
   static const ResponseBody enum_value = ResponseBody_ListGetRange;
 };
@@ -239,9 +232,6 @@ struct Response FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const fc::response::ListDelete *body_as_ListDelete() const {
     return body_type() == fc::response::ResponseBody_ListDelete ? static_cast<const fc::response::ListDelete *>(body()) : nullptr;
   }
-  const fc::response::ListGetN *body_as_ListGetN() const {
-    return body_type() == fc::response::ResponseBody_ListGetN ? static_cast<const fc::response::ListGetN *>(body()) : nullptr;
-  }
   const fc::response::ListGetRange *body_as_ListGetRange() const {
     return body_type() == fc::response::ResponseBody_ListGetRange ? static_cast<const fc::response::ListGetRange *>(body()) : nullptr;
   }
@@ -297,10 +287,6 @@ template<> inline const fc::response::ListAdd *Response::body_as<fc::response::L
 
 template<> inline const fc::response::ListDelete *Response::body_as<fc::response::ListDelete>() const {
   return body_as_ListDelete();
-}
-
-template<> inline const fc::response::ListGetN *Response::body_as<fc::response::ListGetN>() const {
-  return body_as_ListGetN();
 }
 
 template<> inline const fc::response::ListGetRange *Response::body_as<fc::response::ListGetRange>() const {
@@ -390,10 +376,6 @@ inline bool VerifyResponseBody(::flatbuffers::Verifier &verifier, const void *ob
     }
     case ResponseBody_ListDelete: {
       auto ptr = reinterpret_cast<const fc::response::ListDelete *>(obj);
-      return verifier.VerifyTable(ptr);
-    }
-    case ResponseBody_ListGetN: {
-      auto ptr = reinterpret_cast<const fc::response::ListGetN *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case ResponseBody_ListGetRange: {

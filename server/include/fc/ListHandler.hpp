@@ -23,7 +23,6 @@ namespace fc
     void handle(FlatBuilder& fbb, const fc::request::ListCreate& req) noexcept;
     void handle(FlatBuilder& fbb, const fc::request::ListAdd& req) noexcept;
     void handle(FlatBuilder& fbb, const fc::request::ListDelete& req) noexcept;
-    void handle(FlatBuilder& fbb, const fc::request::ListGetN& req) noexcept;
     void handle(FlatBuilder& fbb, const fc::request::ListGetRange& req) noexcept;
 
 

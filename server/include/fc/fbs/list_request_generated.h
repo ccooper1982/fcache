@@ -32,9 +32,6 @@ struct ListDeleteBuilder;
 struct ListAdd;
 struct ListAddBuilder;
 
-struct ListGetN;
-struct ListGetNBuilder;
-
 struct ListGetRange;
 struct ListGetRangeBuilder;
 
@@ -336,93 +333,6 @@ inline ::flatbuffers::Offset<ListAdd> CreateListAddDirect(
       name__,
       items__,
       position,
-      base);
-}
-
-struct ListGetN FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef ListGetNBuilder Builder;
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_NAME = 4,
-    VT_START = 6,
-    VT_COUNT = 8,
-    VT_BASE = 10
-  };
-  const ::flatbuffers::String *name() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
-  }
-  int32_t start() const {
-    return GetField<int32_t>(VT_START, 0);
-  }
-  uint32_t count() const {
-    return GetField<uint32_t>(VT_COUNT, 0);
-  }
-  fc::request::Base base() const {
-    return static_cast<fc::request::Base>(GetField<uint8_t>(VT_BASE, 0));
-  }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_NAME) &&
-           verifier.VerifyString(name()) &&
-           VerifyField<int32_t>(verifier, VT_START, 4) &&
-           VerifyField<uint32_t>(verifier, VT_COUNT, 4) &&
-           VerifyField<uint8_t>(verifier, VT_BASE, 1) &&
-           verifier.EndTable();
-  }
-};
-
-struct ListGetNBuilder {
-  typedef ListGetN Table;
-  ::flatbuffers::FlatBufferBuilder &fbb_;
-  ::flatbuffers::uoffset_t start_;
-  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
-    fbb_.AddOffset(ListGetN::VT_NAME, name);
-  }
-  void add_start(int32_t start) {
-    fbb_.AddElement<int32_t>(ListGetN::VT_START, start, 0);
-  }
-  void add_count(uint32_t count) {
-    fbb_.AddElement<uint32_t>(ListGetN::VT_COUNT, count, 0);
-  }
-  void add_base(fc::request::Base base) {
-    fbb_.AddElement<uint8_t>(ListGetN::VT_BASE, static_cast<uint8_t>(base), 0);
-  }
-  explicit ListGetNBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  ::flatbuffers::Offset<ListGetN> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<ListGetN>(end);
-    return o;
-  }
-};
-
-inline ::flatbuffers::Offset<ListGetN> CreateListGetN(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
-    int32_t start = 0,
-    uint32_t count = 0,
-    fc::request::Base base = fc::request::Base_Head) {
-  ListGetNBuilder builder_(_fbb);
-  builder_.add_count(count);
-  builder_.add_start(start);
-  builder_.add_name(name);
-  builder_.add_base(base);
-  return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<ListGetN> CreateListGetNDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *name = nullptr,
-    int32_t start = 0,
-    uint32_t count = 0,
-    fc::request::Base base = fc::request::Base_Head) {
-  auto name__ = name ? _fbb.CreateString(name) : 0;
-  return fc::request::CreateListGetN(
-      _fbb,
-      name__,
-      start,
-      count,
       base);
 }
 

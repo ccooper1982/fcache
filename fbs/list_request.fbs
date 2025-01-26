@@ -34,14 +34,6 @@ table ListAdd
   base: Base;
 }
 
-table ListGetN  // TODO rename: ListGetCount
-{
-  name:string;
-  start:int32;
-  count:uint32;
-  base:Base;  // Head: get from head->tail (forward), otherwise tail->head (reverse)
-}
-
 table ListGetRange
 {
   name:string;

@@ -108,51 +108,6 @@ namespace fc
   };
 
 
-  // Get by count, always beginning from 'start'.
-  //  - Can get from start, going forwards to tail
-  //  - Can get from start, going backwards to head (i.e. reverse)
-  //  - If count is 0, it means get everything from start to end (which is either cend() or crend())
-  // Easiest/clearest way of doing this was to use Base enum which signals forwards or backwards
-  // rather than trying to use 'count'.
-  struct GetByCount
-  {
-    GetByCount(FlexBuilder& flxb, const std::int64_t start, const std::uint64_t count, const fc::request::Base base)
-      : flxb(flxb), start(start), count(count), base(base)
-    {
-    }
-
-
-    template<typename ListT>
-    void operator()(ListT& list) 
-    {
-      const auto size = std::ssize(list);
-      count = count == 0 ? size : count;
-      start = std::min<>(start, size);
-      
-      if (base == Base_Head)  // forward iterating (head->tail)
-      {
-        const auto itStart = std::next(list.cbegin(), start);
-        const auto itEnd = std::next(itStart, std::min<>(std::distance(itStart, list.cend()), count));
-
-        listToTypedVector(flxb, itStart, itEnd);
-      }
-      else // reverse iterating (tail->head)
-      {
-        const auto itStart = std::next(list.crbegin(), start);
-        const auto itEnd = std::next(itStart, std::min<>(std::distance(itStart, list.crend()), count));
-
-        listToTypedVector(flxb, itStart, itEnd);
-      }
-    }
-
-
-  private:
-    FlexBuilder& flxb;
-    std::int64_t start, count;
-    const fc::request::Base base;
-  };
-
-
   // Get from index range: [start, end).
   // - Either/both start and end can be negative
   // - If base is Base_Head use cbegin(), otherwise crbegin()
@@ -222,10 +177,6 @@ namespace fc
   class FcList
   {
   public:
-    // FcList(List&& list, const FlexType type) noexcept : m_flexType(type), m_list(std::move(list))
-    // {
-    // }
-
     FcList(IntList&& list) noexcept : m_flexType(FlexType::FBT_VECTOR_INT), m_list(std::move(list))
     {
     }

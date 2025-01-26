@@ -121,53 +121,6 @@ namespace fc
   }
 
 
-  void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListGetN& req) noexcept
-  {
-    try
-    {
-      const auto& name = req.name()->str();
-            
-      if (const auto listOpt = getList(name); !listOpt)
-      {
-        // TODO Status_NotExist for when a List doesn't exist? Or an empty vector? A FAIL seems a bit unnecessary
-        createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetN);
-      }
-      else
-      {
-        const auto start = req.start();
-        const auto count = req.count();
-        const auto base = req.base();
-        const auto& fcList = (*listOpt)->second;
-
-        // TODO estimate this more accurately by using (count * sizeof(int64_t)) + padding?
-        //      Padding is for FlexBuffer stuff. perhaps add a typeSize() to FcList
-        FlexBuilder flxb{2048U}; 
-        /*
-        if (fcList->type() == FlexType::FBT_VECTOR_INT)
-          get();
-        else if (fcList->type() == FlexType::FBT_VECTOR_UINT)
-          get();
-        */
-
-        std::visit(GetByCount{flxb, start, count, base}, fcList->list());
-        
-        flxb.Finish();
-
-        const auto vec = fbb.CreateVector(flxb.GetBuffer());
-        const auto body = fc::response::CreateListGetN(fbb, vec);
-        
-        auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_ListGetN, body.Union());
-        fbb.Finish(rsp);
-      }
-    }
-    catch(const std::exception& e)
-    {
-      PLOGE << e.what();
-      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetN);
-    }
-  }
-
-
   void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListGetRange& req) noexcept
   {
     try
