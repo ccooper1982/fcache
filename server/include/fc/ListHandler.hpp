@@ -29,6 +29,17 @@ namespace fc
 
   private:
     void createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept;
+
+
+    template<typename Condition, typename ListT>
+    void doRemoveIf (const int32_t start, const int32_t stop, const bool hasStop, const typename Condition::value_type& val, ListT& list)
+    {
+      if (hasStop)
+        std::visit(RemoveIf{start, stop, Condition{val}}, list);
+      else
+        std::visit(RemoveIf{start, Condition{val}}, list);
+    }
+
     
     std::optional<Iterator> getList (const std::string& name)
     {
