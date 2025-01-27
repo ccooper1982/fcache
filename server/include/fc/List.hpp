@@ -11,7 +11,7 @@
 namespace fc
 { 
   // TODO should probably have a traits class, to lookup type info for each list type, so we can do:
-  //   ListTraits<IntList>::value_type
+  //   ListTraits<IntList>::value_type and ListTraits<IntList>::flex_type
   using IntList = std::list<fcint>;
   using UIntList = std::list<fcuint>;
   using FloatList = std::list<fcfloat>;
@@ -277,22 +277,22 @@ namespace fc
     {
     }
 
-
+    // TODO list traits here so we can do ListTraits<IntList>::value_type
     void operator()(IntList& list)
     {
-      if constexpr (std::is_same_v<value_type, int64_t>)
+      if constexpr (std::is_same_v<value_type, fcint>)
         doRemove(list);
     }
 
     void operator()(UIntList& list)
     {
-      if constexpr (std::is_same_v<value_type, uint64_t>)
+      if constexpr (std::is_same_v<value_type, fcuint>)
         doRemove(list);
     }
 
     void operator()(FloatList& list)
     {
-      if constexpr (std::is_same_v<value_type, float>)
+      if constexpr (std::is_same_v<value_type, fcfloat>)
         doRemove(list);
     }
 
