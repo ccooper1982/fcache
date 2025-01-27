@@ -136,29 +136,6 @@ namespace fc
         if (itemsSorted)
         {
           doSortedAdd<ItemT>(list);
-          // if (const auto& highestItem = items[items.size()-1].As<ItemT>(); highestItem <= list.front())
-          // {
-          //   PLOGD << "Sorted list prepend";
-          //   for (std::size_t i = items.size() ; i ; --i)
-          //     list.emplace_front(items[i-1].As<ItemT>());
-          // }
-          // else if (const auto& lowestItem = items[0].As<ItemT>(); lowestItem >= list.back())
-          // {
-          //   PLOGD << "Sorted list append";
-          //   for (std::size_t i = 0 ; i < items.size() ; ++i)
-          //     list.emplace_back(items[i].As<ItemT>());
-          // }
-          // else
-          // {
-          //   typename ListT::iterator it = list.begin();
-
-          //   for (std::size_t i = 0 ; i < items.size() ; ++i)
-          //   {
-          //     auto val = items[i].As<ItemT>();
-          //     const auto itPos = std::lower_bound(it, list.end(), val);
-          //     it = list.emplace(itPos, std::move(val));
-          //   }
-          // }
         }
         else
         {
@@ -173,8 +150,6 @@ namespace fc
       }
       else
       {
-        PLOGD << "doAdd: unsorted";
-
         const auto size = std::ssize(list);
         const auto shift = std::min<>(pos, size);
         auto it = list.begin();
@@ -196,15 +171,15 @@ namespace fc
     template<typename ItemT,typename ListT>
     void doSortedAdd(ListT& list) requires(SortedList)
     {
-      if (const auto& highestItem = items[items.size()-1].As<ItemT>(); highestItem <= list.front())
+      const auto size = std::ssize(list);
+
+      if (const auto& highestItem = items[items.size()-1].As<ItemT>(); size && highestItem <= list.front())
       {
-        PLOGD << "Sorted list prepend";
         for (std::size_t i = items.size() ; i ; --i)
           list.emplace_front(items[i-1].As<ItemT>());
       }
-      else if (const auto& lowestItem = items[0].As<ItemT>(); lowestItem >= list.back())
+      else if (const auto& lowestItem = items[0].As<ItemT>(); size && lowestItem >= list.back())
       {
-        PLOGD << "Sorted list append";
         for (std::size_t i = 0 ; i < items.size() ; ++i)
           list.emplace_back(items[i].As<ItemT>());
       }
