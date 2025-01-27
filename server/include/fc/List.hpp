@@ -171,7 +171,7 @@ namespace fc
     template<typename ItemT,typename ListT>
     void doSortedAdd(ListT& list) requires(SortedList)
     {
-      const auto size = std::ssize(list);
+      const auto size = list.size();
 
       if (const auto& highestItem = items[items.size()-1].As<ItemT>(); size && highestItem <= list.front())
       {
