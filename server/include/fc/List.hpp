@@ -5,28 +5,31 @@
 #include <list>
 #include <plog/Log.h>
 #include <fc/FlatBuffers.hpp>
+#include <fc/Common.hpp>
 
 
 namespace fc
 { 
-  using IntList = std::list<std::int64_t>;
-  using UIntList = std::list<std::uint64_t>;
-  using FloatList = std::list<float>;
+  // TODO should probably have a traits class, to lookup type info for each list type, so we can do:
+  //   ListTraits<IntList>::value_type
+  using IntList = std::list<fcint>;
+  using UIntList = std::list<fcuint>;
+  using FloatList = std::list<fcfloat>;
   using StringList = std::list<std::string>;
   using List = std::variant<IntList, UIntList, StringList, FloatList>;
   using enum fc::request::Base;
 
 
   template<typename V>
-  concept ListValue = std::disjunction_v< std::is_same<V, std::int64_t>,
-                                          std::is_same<V, std::uint64_t>,
-                                          std::is_same<V, float>,
+  concept ListValue = std::disjunction_v< std::is_same<V, fcint>,
+                                          std::is_same<V, fcuint>,
+                                          std::is_same<V, fcfloat>,
                                           std::is_same<V, std::string>,
                                           std::false_type>;
 
 
   template<typename Iterator>
-  inline void listToTypedVector(FlexBuilder& flxb, Iterator begin, const Iterator end)
+  void listToTypedVector(FlexBuilder& flxb, Iterator begin, const Iterator end)
   {
     flxb.TypedVector([&flxb, begin, end]() mutable
     {
@@ -40,7 +43,7 @@ namespace fc
 
 
   template<typename Iterator>
-  inline void listToTypedVector(FlexBuilder& flxb, Iterator it, const int64_t count)
+  void listToTypedVector(FlexBuilder& flxb, Iterator it, const int64_t count)
   {
     flxb.TypedVector([&flxb, it, count]() mutable
     {
@@ -53,27 +56,61 @@ namespace fc
   }
 
 
-  // TODO do we actually need Base? It may be possible to use position to determine base
+  template<typename ListT>
+  std::tuple<bool, int64_t, int64_t> positionsToIndices (const int64_t start, int64_t end, const bool hasStop, ListT& list)
+  {
+    const auto size = std::ssize(list);
+
+    if ((start >= 0 && start >= size) || std::labs(start) > size)
+      return {false, 0, 0};
+
+    if (!hasStop)
+      end = size;
+    
+    const std::int64_t  begin  = start < 0 ? size+start : start,
+                        last   = end < 0 ? std::min<>(size, std::labs(size+end)) : std::min<>(size, end);
+
+    return{true, begin, last};
+  }
+
+
+  template<typename ListT>
+  std::tuple<bool, typename ListT::iterator, typename ListT::iterator> positionsToIterators(const int64_t start, const int64_t end, const bool hasStop, ListT& list)
+  {
+    const auto [valid, begin, last] = positionsToIndices(start, end, hasStop, list);
+
+    if (!valid || begin >= last)
+      return {false, list.end(), list.end()};
+    else
+    {
+      const auto itStart = std::next(list.begin(), begin);
+      const auto itEnd = std::next(list.begin(), last);
+      return {true, itStart, itEnd};
+    }
+  }
+
+
+  // Add
   struct Add
   {
-    Add(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position) //requires (ListValue<V>)
+    Add(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position)
       : items(items), base(base), pos(position)
     {
     }
 
     void operator()(IntList& list)
     {
-      doAdd<std::int64_t>(list);
+      doAdd<fcint>(list);
     }
 
     void operator()(UIntList& list) 
     {
-      doAdd<std::uint64_t>(list);
+      doAdd<fcuint>(list);
     }
 
     void operator()(FloatList& list) 
     {
-      doAdd<float>(list);
+      doAdd<fcfloat>(list);
     }
 
     void operator()(StringList& list)
@@ -108,7 +145,8 @@ namespace fc
   };
 
 
-  // Get from index range: [start, end).
+  // Get Range
+  // Range: [start, end).
   // - Either/both start and end can be negative
   // - If base is Base_Head use cbegin(), otherwise crbegin()
   // - start must be in bounds
@@ -127,26 +165,10 @@ namespace fc
     template<typename ListT>
     bool operator()(ListT& list)
     {
-      bool createdBuffer = false;
-      const auto size = std::ssize(list);
+      const auto [valid, begin, last] = positionsToIndices(start, end, hasStop, list);
 
-      // start must be inbounds (but end will be capped to cend() or crend())
-      // need this because if start is negative, it is offset by 1, so can be same as size:
-      //  [A,B,C,D]
-      // start=-4, to start from A
-      if ((start >= 0 && start >= size) || std::labs(start) > size)
-        return false;
-
-      if (!hasStop)
-        end = size;
-      
-      const std::int64_t begin  = start < 0 ? size+start : start,
-                         last   = end < 0 ? std::min<>(size, std::labs(size+end)) : std::min<>(size, end);
-
-      if (begin < last)
+      if (valid)
       {
-        createdBuffer = true;
-
         if (base == Base_Head)
         {
           const auto itStart = std::next(list.cbegin(), begin);
@@ -165,7 +187,7 @@ namespace fc
         }
       }
 
-      return  createdBuffer;
+      return valid;
     }
 
   private:
@@ -176,7 +198,8 @@ namespace fc
     const fc::request::Base base;
   };
 
-  
+
+  // Remove  
   struct Remove
   {
     Remove(const int64_t start, const int64_t end) noexcept
@@ -193,23 +216,12 @@ namespace fc
     template<typename ListT>
     void operator()(ListT& list)
     {
-      const auto size = std::ssize(list);
+      const auto [valid, begin, last] = positionsToIndices(start, end, hasStop, list);
 
-      // need this because if start is negative, it is offset by 1, so can be same as size:
-      //  [A,B,C,D]
-      // start=-4, to start from A
-      if ((start >= 0 && start >= size) || std::labs(start) > size)
-        return;
-
-      if (!hasStop)
-        end = size;
-      
-      const std::int64_t begin  = start < 0 ? size+start : start,
-                         last   = end < 0 ? std::min<>(size, std::labs(size+end)) : std::min<>(size, end);
-
-      if (begin < last)
+      if (valid)
       {
-        if (begin == 0 && last == size)
+        // if erasing all nodes
+        if (begin == 0 && last == std::ssize(list))
         {
           PLOGD << "Clearing";
           list.clear();
@@ -233,7 +245,7 @@ namespace fc
   };
   
   
-  //
+  // RemoveIf
   
   template<typename T>
   struct IsEqual
@@ -241,7 +253,7 @@ namespace fc
     using value_type = T;
 
     
-    IsEqual (const T v) : val(std::move(v)) {}
+    explicit IsEqual (const T v) : val(std::move(v)) {}
     bool operator()(const T& a) { return a == val; }
 
     // TODO or const T& val? doesn't matter for primitives, want to avoid copy strings, but
@@ -296,41 +308,13 @@ namespace fc
     template<typename ListT>
     constexpr void doRemove (ListT& list) 
     {
-      if (const auto [valid, itStart, itEnd] = getPositions(list); valid)
+      if (const auto [valid, itStart, itEnd] = positionsToIterators(start, end, hasStop, list); valid)
       {
         const auto newEnd = std::remove_if(itStart, itEnd, condition);
         list.erase(newEnd, itEnd);
       } 
     }
-
-
-    template<typename ListT>
-    std::tuple<bool, typename ListT::iterator, typename ListT::iterator> getPositions(ListT& list)
-    {
-      const auto size = std::ssize(list);
-
-      if ((start >= 0 && start >= size) || std::labs(start) > size)
-        return {false, list.end(), list.end()};
-
-      if (!hasStop)
-        end = size;
-      
-      const std::int64_t begin  = start < 0 ? size+start : start,
-                         last   = end < 0 ? std::min<>(size, std::labs(size+end)) : std::min<>(size, end);
-
-      if (begin < last)
-      {
-        const auto itStart = std::next(list.begin(), begin);
-        const auto itEnd = std::next(list.begin(), last);
-        return {true, itStart, itEnd};
-      }
-      else
-      {
-        return {false, list.end(), list.end()};
-      }   
-    }
-
-
+    
   private:
     const std::int64_t start;
     std::int64_t end;
@@ -339,7 +323,9 @@ namespace fc
   };
   
 
-
+  // Holds everything we need to know about a list.
+  // The list is a variant so we can manage a list of different
+  // types. They are interacted with via std::visit().
   class FcList
   {
   public:

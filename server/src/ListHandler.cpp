@@ -146,7 +146,7 @@ namespace fc
                                               std::visit(GetByRange{flxb, start, base}, fcList->list());
         
         if (!createdBuffer)
-          flxb.TypedVector([]{});
+          flxb.TypedVector([]{}); // return empty vector
 
         flxb.Finish();
         const auto vec = fbb.CreateVector(flxb.GetBuffer());
@@ -227,7 +227,11 @@ namespace fc
         switch (req.value_type())
         {
         case Value_IntValue:
-          doRemoveIf<IsEqual<int64_t>>(start, stop, hasStop, req.value_as_IntValue()->v(), fcList->list());
+          doRemoveIf<IsEqual<fcint>>(start, stop, hasStop, req.value_as_IntValue()->v(), fcList->list());
+        break;
+
+        case Value_UIntValue:
+          doRemoveIf<IsEqual<fcuint>>(start, stop, hasStop, req.value_as_UIntValue()->v(), fcList->list());
         break;
 
         case Value_StringValue:
@@ -235,7 +239,7 @@ namespace fc
         break;
 
         case Value_FloatValue:
-          doRemoveIf<IsEqual<float>>(start, stop, hasStop, req.value_as_FloatValue()->v(), fcList->list());
+          doRemoveIf<IsEqual<fcfloat>>(start, stop, hasStop, req.value_as_FloatValue()->v(), fcList->list());
         break;
 
         default:

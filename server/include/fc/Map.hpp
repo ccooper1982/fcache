@@ -343,10 +343,10 @@ namespace fc
     void blobToMap(const Map::iterator it, const flexbuffers::Blob& blob)
     {
       // [blob_len][blob_data]
-      // where blob_len is uint32_t
+      // where blob_len is fcblobsize (uint32_t)
 
-      const auto blobSize = blob.size();
-      const auto bufferSize = blobSize + sizeof(std::uint32_t);
+      const fcblobsize blobSize = static_cast<fcblobsize>(blob.size());
+      const auto bufferSize = blobSize + sizeof(fcblobsize);
       
       auto& vec = std::get<CachedValue::VEC>(it->second.value);
       vec.type = FBT_BLOB;
@@ -355,8 +355,8 @@ namespace fc
 
       auto buffer = vec.data.data();
 
-      std::memcpy(buffer, &blobSize, sizeof(std::uint32_t));
-      std::memcpy(buffer+sizeof(std::uint32_t), blob.data(), blob.size());
+      std::memcpy(buffer, &blobSize, sizeof(fcblobsize));
+      std::memcpy(buffer+sizeof(fcblobsize), blob.data(), blob.size());
     }
 
 
