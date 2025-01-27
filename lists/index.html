@@ -1079,7 +1079,7 @@
 <li>floats</li>
 <li>strings</li>
 </ul>
-<p>There are sorted and unsorted versions of these: </p>
+<p>List can be sorted or unsorted: </p>
 <ul>
 <li>An unsorted list retains the order as added</li>
 <li>A sorted list ensures nodes are always in ascending order. If the items being added are already sorted, this can be signalled when adding, reducing workload </li>
@@ -1087,7 +1087,7 @@
 <p>For both sorted and unsorted lists get items:</p>
 <ul>
 <li>Based on a range <code>[start,stop)</code> with negative positions permitted (similar to Python slicing)</li>
-<li>Use the reverse version, which works similar to C++'s reverse iterators</li>
+<li>Some commands have reverse versions, which work similar to C++'s reverse iterators</li>
 </ul>
 <h2 id="add-items">Add Items</h2>
 <ul>
@@ -1097,16 +1097,16 @@
 <h2 id="get-items">Get Items</h2>
 <p>The server API allows iterating a list from head to tail or tail to head.</p>
 <p>In the Python API there is <code>get_n()</code> which returns <code>n</code> items from a given starting position.</p>
-<div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">await</span> <span class="n">my_list</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">await</span> <span class="n">lists</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 </span></code></pre></div>
 <p>This returns the first three items.</p>
 <p>The reverse version iterates from the tail to head, so returns the last three items:</p>
-<div class="language-py highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="n">my_list</span><span class="o">.</span><span class="n">get_n_reverse</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<div class="language-py highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="n">lists</span><span class="o">.</span><span class="n">get_n_reverse</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 </span></code></pre></div>
 <h2 id="remove-items">Remove Items</h2>
 <p>Items can be removed using their position or based on a value.</p>
 <p>For example, in the Python API we can remove nodes with a value of <code>100</code> in range <code>[0,8)</code>:</p>
-<div class="language-py highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">await</span> <span class="n">my_list</span><span class="o">.</span><span class="n">remove_if_eq</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<div class="language-py highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">await</span> <span class="n">lists</span><span class="o">.</span><span class="n">remove_if_eq</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </span></code></pre></div>
 
 
