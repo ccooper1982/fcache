@@ -91,10 +91,16 @@ namespace fc
 
 
   // Add
+  template<bool SortedList>
   struct Add
   {
-    Add(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position)
+    Add(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position)  requires (!SortedList)
       : items(items), base(base), pos(position)
+    {
+    }
+
+    Add(const flexbuffers::TypedVector& items, const fc::request::Base base, const bool itemsSorted) requires (SortedList)
+      : items(items), base(base), pos(0), itemsSorted(itemsSorted)
     {
     }
 
@@ -120,28 +126,106 @@ namespace fc
 
   private:
     template<typename ItemT, typename ListT>
-    void doAdd(ListT& list)
+    void doAdd(ListT& list) requires(ListValue<ItemT>)
     {
-      const auto size = std::ssize(list);
-      const auto shift = std::min<>(pos, size);
-      auto it = list.begin();
+      // NOTE: with a flexbuffers::TypedVector we can't get an iterator,
+      //       only access is via overloaded operator[]
 
-      if (base == Base_Head)
-        std::advance(it, shift);
-      else if (base == Base_Tail)
-        it = std::next(list.rbegin(), shift).base();
-
-      for (std::size_t i = 0 ; i < items.size() ; ++i)
+      if constexpr (SortedList)
       {
-        it = list.insert(it, items[i].As<ItemT>()); 
-        ++it;
+        if (itemsSorted)
+        {
+          doSortedAdd<ItemT>(list);
+          // if (const auto& highestItem = items[items.size()-1].As<ItemT>(); highestItem <= list.front())
+          // {
+          //   PLOGD << "Sorted list prepend";
+          //   for (std::size_t i = items.size() ; i ; --i)
+          //     list.emplace_front(items[i-1].As<ItemT>());
+          // }
+          // else if (const auto& lowestItem = items[0].As<ItemT>(); lowestItem >= list.back())
+          // {
+          //   PLOGD << "Sorted list append";
+          //   for (std::size_t i = 0 ; i < items.size() ; ++i)
+          //     list.emplace_back(items[i].As<ItemT>());
+          // }
+          // else
+          // {
+          //   typename ListT::iterator it = list.begin();
+
+          //   for (std::size_t i = 0 ; i < items.size() ; ++i)
+          //   {
+          //     auto val = items[i].As<ItemT>();
+          //     const auto itPos = std::lower_bound(it, list.end(), val);
+          //     it = list.emplace(itPos, std::move(val));
+          //   }
+          // }
+        }
+        else
+        {
+          // no shortcuts
+          for (std::size_t i = 0 ; i < items.size() ; ++i)
+          {           
+            auto val = items[i].As<ItemT>();
+            const auto itPos = std::lower_bound(list.begin(), list.end(), val);
+            list.emplace(itPos, std::move(val));
+          }
+        }
+      }
+      else
+      {
+        PLOGD << "doAdd: unsorted";
+
+        const auto size = std::ssize(list);
+        const auto shift = std::min<>(pos, size);
+        auto it = list.begin();
+
+        if (base == Base_Head)
+          std::advance(it, shift);
+        else if (base == Base_Tail)
+          it = std::next(list.rbegin(), shift).base();
+
+        for (std::size_t i = 0 ; i < items.size() ; ++i)
+        {
+          it = list.insert(it, items[i].As<ItemT>()); 
+          ++it;
+        }
+      }
+    }
+
+
+    template<typename ItemT,typename ListT>
+    void doSortedAdd(ListT& list) requires(SortedList)
+    {
+      if (const auto& highestItem = items[items.size()-1].As<ItemT>(); highestItem <= list.front())
+      {
+        PLOGD << "Sorted list prepend";
+        for (std::size_t i = items.size() ; i ; --i)
+          list.emplace_front(items[i-1].As<ItemT>());
+      }
+      else if (const auto& lowestItem = items[0].As<ItemT>(); lowestItem >= list.back())
+      {
+        PLOGD << "Sorted list append";
+        for (std::size_t i = 0 ; i < items.size() ; ++i)
+          list.emplace_back(items[i].As<ItemT>());
+      }
+      else
+      {
+        typename ListT::iterator it = list.begin();
+
+        for (std::size_t i = 0 ; i < items.size() ; ++i)
+        {
+          auto val = items[i].As<ItemT>();
+          const auto itPos = std::lower_bound(it, list.end(), val);
+          it = list.emplace(itPos, std::move(val));
+        }
       }
     }
     
   private:
     const flexbuffers::TypedVector& items;
-    fc::request::Base base;
-    std::int64_t pos;
+    const fc::request::Base base;
+    const std::int64_t pos;
+    const bool itemsSorted{false};
   };
 
 
@@ -246,7 +330,6 @@ namespace fc
   
   
   // RemoveIf
-  
   template<typename T>
   struct IsEqual
   {
@@ -329,25 +412,34 @@ namespace fc
   class FcList
   {
   public:
-    FcList(IntList&& list) noexcept : m_flexType(FlexType::FBT_VECTOR_INT), m_list(std::move(list))
+    FcList(IntList&& list, const bool sorted = false) noexcept :
+      m_flexType(FlexType::FBT_VECTOR_INT), m_list(std::move(list)), m_sorted(sorted)
     {
     }
-    FcList(UIntList&& list) noexcept : m_flexType(FlexType::FBT_VECTOR_UINT), m_list(std::move(list))
+
+    FcList(UIntList&& list, const bool sorted = false) noexcept :
+      m_flexType(FlexType::FBT_VECTOR_UINT), m_list(std::move(list)), m_sorted(sorted)
     {
     }
-    FcList(FloatList&& list) noexcept : m_flexType(FlexType::FBT_VECTOR_FLOAT), m_list(std::move(list))
+
+    FcList(FloatList&& list, const bool sorted = false) noexcept :
+      m_flexType(FlexType::FBT_VECTOR_FLOAT), m_list(std::move(list)), m_sorted(sorted)
     {
     }
-    FcList(StringList&& list) noexcept : m_flexType(FlexType::FBT_VECTOR_KEY), m_list(std::move(list))
+
+    FcList(StringList&& list, const bool sorted = false) noexcept :
+      m_flexType(FlexType::FBT_VECTOR_KEY), m_list(std::move(list)), m_sorted(sorted)
     {
     }
     
-    FlexType type() const { return m_flexType; }
-    List& list() { return m_list; }
-    const List& list() const { return m_list; }
+    FlexType type() const noexcept { return m_flexType; }
+    List& list() noexcept { return m_list; }
+    const List& list() const noexcept { return m_list; }
+    bool isSorted () const noexcept { return m_sorted; }
 
   private:
     FlexType m_flexType;
     List m_list;
+    const bool m_sorted;
   };
 }

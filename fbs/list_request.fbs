@@ -17,14 +17,6 @@ enum Condition : ubyte
 // unions can't contain scalrs.
 // And Python (and perhaps others) doesn't like a union
 // with a string, so wrap in a table
-//table TheValue
-//{
-  //i:int64;
-  //ui:uint64;
-  //f:float;
-  //s:string;
-//}
-
 table IntValue
 {
   v:int64;
@@ -62,6 +54,7 @@ table ListCreate
 {
   name:string;
   type:common.ListType;
+  sorted:bool = false;
 }
 
 table ListDelete
@@ -75,6 +68,7 @@ table ListAdd
   items:[ubyte] (flexbuffer);
   position:int32;  // unlikely to have a list that requires higher range than int32
   base: Base;
+  items_sorted:bool = false;
 }
 
 table ListGetRange

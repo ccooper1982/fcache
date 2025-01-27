@@ -38,8 +38,15 @@ class ListCreate(object):
             return self._tab.Get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
         return 0
 
+    # ListCreate
+    def Sorted(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
+        return False
+
 def ListCreateStart(builder):
-    builder.StartObject(2)
+    builder.StartObject(3)
 
 def Start(builder):
     ListCreateStart(builder)
@@ -55,6 +62,12 @@ def ListCreateAddType(builder, type):
 
 def AddType(builder, type):
     ListCreateAddType(builder, type)
+
+def ListCreateAddSorted(builder, sorted):
+    builder.PrependBoolSlot(2, sorted, 0)
+
+def AddSorted(builder, sorted):
+    ListCreateAddSorted(builder, sorted)
 
 def ListCreateEnd(builder):
     return builder.EndObject()

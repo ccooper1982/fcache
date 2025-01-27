@@ -25,9 +25,10 @@ namespace fc
 
   void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListCreate& req) noexcept
   {
-    auto create = [this](auto&& list, const std::string& name) -> fc::response::Status
+    auto create = [this, sorted = req.sorted(), name = req.name()->str()](auto&& list) -> fc::response::Status
     {
-      const auto [_, created] = m_lists.try_emplace(name, std::make_unique<FcList>(std::forward<decltype(list)>(list)));
+      PLOGD << "ListCreate: list " << name << " is " << (sorted ? "sorted" : "unsorted");
+      const auto [_, created] = m_lists.try_emplace(name, std::make_unique<FcList>(std::forward<decltype(list)>(list), sorted));
       return created ? Status_Ok : Status_Duplicate;      
     };
 
@@ -36,22 +37,22 @@ namespace fc
     if (req.type() == ListType_Int)
     {
       PLOGD << "ListCreate: Int list";
-      status = create(IntList{}, req.name()->str());
+      status = create(IntList{});
     }
     else if (req.type() == ListType_UInt)
     {
       PLOGD << "ListCreate: UInt list";
-      status = create(UIntList{}, req.name()->str());
+      status = create(UIntList{});
     }
     else if (req.type() == ListType_Float)
     {
       PLOGD << "ListCreate: float list";
-      status = create(FloatList{}, req.name()->str());
+      status = create(FloatList{});
     }
     else if (req.type() == ListType_String)
     {
       PLOGD << "ListCreate: string list";
-      status = create(StringList{}, req.name()->str());
+      status = create(StringList{});
     }    
     else
     {
@@ -65,11 +66,12 @@ namespace fc
   void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListAdd& req) noexcept
   {
     fc::response::Status status = Status_Ok;
+    
     const auto& name = req.name()->str();
+    const auto& itemsVector = req.items_flexbuffer_root().AsTypedVector();
 
-    if (const auto listOpt = haveList(fbb, name, ResponseBody_ListAdd); listOpt) [[likely]]
+    if (const auto listOpt = haveList(fbb, name, ResponseBody_ListAdd); listOpt && itemsVector.size()) [[likely]]
     {
-      const auto& itemsVector = req.items_flexbuffer_root().AsTypedVector();
       const auto& fcList = (*listOpt)->second;
 
       switch (fcList->type())
@@ -78,10 +80,13 @@ namespace fc
         case FlexType::FBT_VECTOR_UINT:
         case FlexType::FBT_VECTOR_FLOAT:
         case FlexType::FBT_VECTOR_KEY:
-          std::visit(Add{itemsVector, req.base(), std::abs(req.position())}, fcList->list());
+          if (fcList->isSorted())
+            std::visit(Add<true>{itemsVector, req.base(), req.items_sorted()}, fcList->list());
+          else
+            std::visit(Add<false>{itemsVector, req.base(), std::abs(req.position())}, fcList->list());
         break;
 
-        default:
+        default:  [[unlikely]]
           PLOGE << "Unknown type for list: " << fcList->type();
         break;
       }      

@@ -1,6 +1,7 @@
 import flatbuffers
 import flatbuffers.flexbuffers
 import typing
+from abc import ABC
 from fc.client import Client
 from fc.common import raise_if, raise_if_not
 from fc.logging import logger
@@ -11,7 +12,7 @@ from fc.fbs.fc.request import (IntValue, StringValue, FloatValue, Value)
 from fc.fbs.fc.response import (ResponseBody, ListGetRange as ListGetRangeRsp)
 
 
-class List:
+class List(ABC):
   "List API. If a request fails a ResponseError is raised."
 
 
@@ -19,19 +20,10 @@ class List:
     self.client = client
 
 
-  async def create(self, name: str, *, type: str, failOnDuplicate=True) -> None:
-    """
-    Create a list with the given name. 
-    
-    - `type`: must be one of:  'int', 'uint'
-    - `failOnDuplicate`: if `True` then command will fail if a list with this name 
-                         already exists
-    """
+  async def _create(self, name: str, type: str, *, is_sorted:bool, fail_on_duplicate:bool) -> None:
     try:      
       if type.lower() == 'int':
         listType = ListType.ListType.Int
-      # elif type.lower() == 'uint':
-      #   listType = ListType.ListType.UInt
       elif type.lower() == 'float':
         listType = ListType.ListType.Float
       elif type.lower() == 'str':
@@ -46,28 +38,17 @@ class List:
       ListCreate.Start(fb)
       ListCreate.AddName(fb, nameOffset)
       ListCreate.AddType(fb, listType)
+      ListCreate.AddSorted(fb, is_sorted)
       body = ListCreate.End(fb)
 
       self._complete_request(fb, body, RequestBody.RequestBody.ListCreate)
 
-      await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListCreate, allowDuplicate=not failOnDuplicate)
+      await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListCreate, allowDuplicate=not fail_on_duplicate)
     except Exception as e:
       logger.error(e)
       raise
 
-
-  async def add(self, name: str, items: typing.List[int], *, pos: int) -> None:
-    await self._do_add(name, items, pos, Base.Base.Tail if pos < 0 else Base.Base.Head)
-
-
-  async def add_head(self, name: str, items: typing.List[int]) -> None:
-    await self._do_add(name, items, 0, Base.Base.Head)
-
-
-  async def add_tail(self, name: str, items: typing.List[int]) -> None:
-    await self._do_add(name, items, 0, Base.Base.Tail)
-
-
+  
   async def delete(self, names: typing.List[str]) -> None:
     fb = flatbuffers.Builder(initialSize=1024)
     
@@ -201,6 +182,7 @@ class List:
     self._complete_request(fb, body, RequestBody.RequestBody.ListRemoveIf)
     await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListRemoveIf)
 
+
   ### helpers
   async def _do_get_range(self, name: str, base: Base.Base, start:int, stop: int = None) -> list:    
     try:
@@ -235,7 +217,7 @@ class List:
       raise
 
   
-  async def _do_add(self, name: str, items: typing.List[int], pos: int, base: Base.Base) -> None:
+  async def _do_add(self, name: str, items: typing.List[int], pos: int, base: Base.Base, items_sorted:bool) -> None:
     if len(items) == 0:
       raise ValueError('items cannot be empty')
 
@@ -244,7 +226,6 @@ class List:
       fbb.TypedVectorFromElements(items)
       itemsVector = fbb.Finish()
       
-
       fb = flatbuffers.Builder(initialSize=1024)
       
       nameOffset = fb.CreateString(name)
@@ -255,6 +236,7 @@ class List:
       ListAdd.AddItems(fb, itemOffset)
       ListAdd.AddPosition(fb, pos)
       ListAdd.AddBase(fb, base)
+      ListAdd.AddItemsSorted(fb, items_sorted)
       body = ListAdd.End(fb)
       
       self._complete_request(fb, body, RequestBody.RequestBody.ListAdd)
@@ -287,3 +269,40 @@ class List:
       print(e)
       logger.error(e)
       fb.Clear()
+
+
+## Concrete classes
+
+class UnsortedList(List):
+  def __init__(self, client):
+    super().__init__(client)
+
+
+  async def create(self, name: str, *, type: str, fail_on_duplicate:bool=True) -> None:
+    await super()._create(name, type, is_sorted=False, fail_on_duplicate=fail_on_duplicate)
+
+
+  async def add(self, name: str, items: typing.List[int], *, pos: int) -> None:
+    await self._do_add(name, items, pos, Base.Base.Tail if pos < 0 else Base.Base.Head, False)
+
+
+  async def add_head(self, name: str, items: typing.List[int]) -> None:
+    await self._do_add(name, items, 0, Base.Base.Head, False)
+
+
+  async def add_tail(self, name: str, items: typing.List[int]) -> None:
+    await self._do_add(name, items, 0, Base.Base.Tail, False)
+
+
+
+class SortedList(List):
+  def __init__(self, client):
+    super().__init__(client)
+
+
+  async def create(self, name: str, *, type: str, fail_on_duplicate:bool = True) -> None:
+    await super()._create(name, type, is_sorted=True, fail_on_duplicate=fail_on_duplicate)
+
+
+  async def add(self, name: str, items: typing.List[int], items_sorted:bool = False) -> None:
+    await self._do_add(name, items, 0, Base.Base.Head, items_sorted)  # pos and Base irrelevant for sorted list
