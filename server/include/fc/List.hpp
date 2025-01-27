@@ -5,28 +5,31 @@
 #include <list>
 #include <plog/Log.h>
 #include <fc/FlatBuffers.hpp>
+#include <fc/Common.hpp>
 
 
 namespace fc
 { 
-  using IntList = std::list<std::int64_t>;
-  using UIntList = std::list<std::uint64_t>;
-  using FloatList = std::list<float>;
+  // TODO should probably have a traits class, to lookup type info for each list type, so we can do:
+  //   ListTraits<IntList>::value_type and ListTraits<IntList>::flex_type
+  using IntList = std::list<fcint>;
+  using UIntList = std::list<fcuint>;
+  using FloatList = std::list<fcfloat>;
   using StringList = std::list<std::string>;
   using List = std::variant<IntList, UIntList, StringList, FloatList>;
   using enum fc::request::Base;
 
 
   template<typename V>
-  concept ListValue = std::disjunction_v< std::is_same<V, std::int64_t>,
-                                          std::is_same<V, std::uint64_t>,
-                                          std::is_same<V, float>,
+  concept ListValue = std::disjunction_v< std::is_same<V, fcint>,
+                                          std::is_same<V, fcuint>,
+                                          std::is_same<V, fcfloat>,
                                           std::is_same<V, std::string>,
                                           std::false_type>;
 
 
   template<typename Iterator>
-  inline void listToTypedVector(FlexBuilder& flxb, Iterator begin, const Iterator end)
+  void listToTypedVector(FlexBuilder& flxb, Iterator begin, const Iterator end)
   {
     flxb.TypedVector([&flxb, begin, end]() mutable
     {
@@ -40,7 +43,7 @@ namespace fc
 
 
   template<typename Iterator>
-  inline void listToTypedVector(FlexBuilder& flxb, Iterator it, const int64_t count)
+  void listToTypedVector(FlexBuilder& flxb, Iterator it, const int64_t count)
   {
     flxb.TypedVector([&flxb, it, count]() mutable
     {
@@ -53,27 +56,67 @@ namespace fc
   }
 
 
-  // TODO do we actually need Base? It may be possible to use position to determine base
+  template<typename ListT>
+  std::tuple<bool, int64_t, int64_t> positionsToIndices (const int64_t start, int64_t end, const bool hasStop, ListT& list)
+  {
+    const auto size = std::ssize(list);
+
+    if ((start >= 0 && start >= size) || std::labs(start) > size)
+      return {false, 0, 0};
+
+    if (!hasStop)
+      end = size;
+    
+    const std::int64_t  begin  = start < 0 ? size+start : start,
+                        last   = end < 0 ? std::min<>(size, std::labs(size+end)) : std::min<>(size, end);
+
+    return{true, begin, last};
+  }
+
+
+  template<typename ListT>
+  std::tuple<bool, typename ListT::iterator, typename ListT::iterator> positionsToIterators(const int64_t start, const int64_t end, const bool hasStop, ListT& list)
+  {
+    const auto [valid, begin, last] = positionsToIndices(start, end, hasStop, list);
+
+    if (!valid || begin >= last)
+      return {false, list.end(), list.end()};
+    else
+    {
+      const auto itStart = std::next(list.begin(), begin);
+      const auto itEnd = std::next(list.begin(), last);
+      return {true, itStart, itEnd};
+    }
+  }
+
+
+  // Add
+  template<bool SortedList>
   struct Add
   {
-    Add(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position) //requires (ListValue<V>)
+    Add(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position)  requires (!SortedList)
       : items(items), base(base), pos(position)
+    {
+    }
+
+    Add(const flexbuffers::TypedVector& items, const fc::request::Base base, const bool itemsSorted) requires (SortedList)
+      : items(items), base(base), pos(0), itemsSorted(itemsSorted)
     {
     }
 
     void operator()(IntList& list)
     {
-      doAdd<std::int64_t>(list);
+      doAdd<fcint>(list);
     }
 
     void operator()(UIntList& list) 
     {
-      doAdd<std::uint64_t>(list);
+      doAdd<fcuint>(list);
     }
 
     void operator()(FloatList& list) 
     {
-      doAdd<float>(list);
+      doAdd<fcfloat>(list);
     }
 
     void operator()(StringList& list)
@@ -83,32 +126,98 @@ namespace fc
 
   private:
     template<typename ItemT, typename ListT>
-    void doAdd(ListT& list)
+    void doAdd(ListT& list) requires(ListValue<ItemT>)
     {
-      const auto size = std::ssize(list);
-      const auto shift = std::min<>(pos, size);
-      auto it = list.begin();
+      // NOTE: with a flexbuffers::TypedVector we can't get an iterator,
+      //       only access is via overloaded operator[]
 
-      if (base == Base_Head)
-        std::advance(it, shift);
-      else if (base == Base_Tail)
-        it = std::next(list.rbegin(), shift).base();
-
-      for (std::size_t i = 0 ; i < items.size() ; ++i)
+      if constexpr (SortedList)
       {
-        it = list.insert(it, items[i].As<ItemT>()); 
-        ++it;
+        if (itemsSorted)
+        {
+          doSortedAdd<ItemT>(list);
+        }
+        else
+        {
+          // no shortcuts
+          for (std::size_t i = 0 ; i < items.size() ; ++i)
+          {           
+            auto val = items[i].As<ItemT>();
+            const auto itPos = std::lower_bound(list.begin(), list.end(), val);
+            list.emplace(itPos, std::move(val));
+          }
+        }
+      }
+      else
+      {
+        const auto size = std::ssize(list);
+        const auto shift = std::min<>(pos, size);
+        typename ListT::iterator it;
+        
+        if (base == Base_Head)
+          it = std::next(list.begin(), shift);
+        else          
+          it = std::next(list.rbegin(), shift).base();
+
+        /* NOTE base(), confusingly, this works because:
+            - reverse iterators are implemented in terms of forward iterators (end()/begin())
+            - a reverse iterator: rbegin()+i == end()-i
+            - rbegin() initially is: end()-1
+            - base() returns the underyling iterator (end()-i)
+            - above when shift is 0, rbegin().base() return end()
+            - allowing appending to the list even though rbegin() references the tail node
+            
+            https://stackoverflow.com/a/71366205
+            https://stackoverflow.com/a/16609146
+        */ 
+
+        for (std::size_t i = 0 ; i < items.size() ; ++i)
+        {
+          it = list.emplace(it, items[i].As<ItemT>()); 
+          ++it;
+        }
+      }
+    }
+
+
+    template<typename ItemT,typename ListT>
+    void doSortedAdd(ListT& list) requires(SortedList)
+    {
+      const auto size = list.size();
+
+      if (const auto& highestItem = items[items.size()-1].As<ItemT>(); size && highestItem <= list.front())
+      {
+        for (std::size_t i = items.size() ; i ; --i)
+          list.emplace_front(items[i-1].As<ItemT>());
+      }
+      else if (const auto& lowestItem = items[0].As<ItemT>(); size && lowestItem >= list.back())
+      {
+        for (std::size_t i = 0 ; i < items.size() ; ++i)
+          list.emplace_back(items[i].As<ItemT>());
+      }
+      else
+      {
+        typename ListT::iterator it = list.begin();
+
+        for (std::size_t i = 0 ; i < items.size() ; ++i)
+        {
+          auto val = items[i].As<ItemT>();
+          const auto itPos = std::lower_bound(it, list.end(), val);
+          it = list.emplace(itPos, std::move(val));
+        }
       }
     }
     
   private:
     const flexbuffers::TypedVector& items;
-    fc::request::Base base;
-    std::int64_t pos;
+    const fc::request::Base base;
+    const std::int64_t pos;
+    const bool itemsSorted{false};
   };
 
 
-  // Get from index range: [start, end).
+  // Get Range
+  // Range: [start, end).
   // - Either/both start and end can be negative
   // - If base is Base_Head use cbegin(), otherwise crbegin()
   // - start must be in bounds
@@ -127,26 +236,10 @@ namespace fc
     template<typename ListT>
     bool operator()(ListT& list)
     {
-      bool createdBuffer = false;
-      const auto size = std::ssize(list);
+      const auto [valid, begin, last] = positionsToIndices(start, end, hasStop, list);
 
-      // start must be inbounds (but end will be capped to cend() or crend())
-      // need this because if start is negative, it is offset by 1, so can be same as size:
-      //  [A,B,C,D]
-      // start=-4, to start from A
-      if ((start >= 0 && start >= size) || std::labs(start) > size)
-        return false;
-
-      if (!hasStop)
-        end = size;
-      
-      const std::int64_t begin  = start < 0 ? size+start : start,
-                         last   = end < 0 ? std::min<>(size, std::labs(size+end)) : std::min<>(size, end);
-
-      if (begin < last)
+      if (valid)
       {
-        createdBuffer = true;
-
         if (base == Base_Head)
         {
           const auto itStart = std::next(list.cbegin(), begin);
@@ -165,7 +258,7 @@ namespace fc
         }
       }
 
-      return  createdBuffer;
+      return valid;
     }
 
   private:
@@ -176,7 +269,8 @@ namespace fc
     const fc::request::Base base;
   };
 
-  
+
+  // Remove  
   struct Remove
   {
     Remove(const int64_t start, const int64_t end) noexcept
@@ -193,23 +287,12 @@ namespace fc
     template<typename ListT>
     void operator()(ListT& list)
     {
-      const auto size = std::ssize(list);
+      const auto [valid, begin, last] = positionsToIndices(start, end, hasStop, list);
 
-      // need this because if start is negative, it is offset by 1, so can be same as size:
-      //  [A,B,C,D]
-      // start=-4, to start from A
-      if ((start >= 0 && start >= size) || std::labs(start) > size)
-        return;
-
-      if (!hasStop)
-        end = size;
-      
-      const std::int64_t begin  = start < 0 ? size+start : start,
-                         last   = end < 0 ? std::min<>(size, std::labs(size+end)) : std::min<>(size, end);
-
-      if (begin < last)
+      if (valid)
       {
-        if (begin == 0 && last == size)
+        // if erasing all nodes
+        if (begin == 0 && last == std::ssize(list))
         {
           PLOGD << "Clearing";
           list.clear();
@@ -233,15 +316,14 @@ namespace fc
   };
   
   
-  //
-  
+  // RemoveIf
   template<typename T>
   struct IsEqual
   {
     using value_type = T;
 
     
-    IsEqual (const T v) : val(std::move(v)) {}
+    explicit IsEqual (const T v) : val(std::move(v)) {}
     bool operator()(const T& a) { return a == val; }
 
     // TODO or const T& val? doesn't matter for primitives, want to avoid copy strings, but
@@ -265,22 +347,22 @@ namespace fc
     {
     }
 
-
+    // TODO list traits here so we can do ListTraits<IntList>::value_type
     void operator()(IntList& list)
     {
-      if constexpr (std::is_same_v<value_type, int64_t>)
+      if constexpr (std::is_same_v<value_type, fcint>)
         doRemove(list);
     }
 
     void operator()(UIntList& list)
     {
-      if constexpr (std::is_same_v<value_type, uint64_t>)
+      if constexpr (std::is_same_v<value_type, fcuint>)
         doRemove(list);
     }
 
     void operator()(FloatList& list)
     {
-      if constexpr (std::is_same_v<value_type, float>)
+      if constexpr (std::is_same_v<value_type, fcfloat>)
         doRemove(list);
     }
 
@@ -296,41 +378,13 @@ namespace fc
     template<typename ListT>
     constexpr void doRemove (ListT& list) 
     {
-      if (const auto [valid, itStart, itEnd] = getPositions(list); valid)
+      if (const auto [valid, itStart, itEnd] = positionsToIterators(start, end, hasStop, list); valid)
       {
         const auto newEnd = std::remove_if(itStart, itEnd, condition);
         list.erase(newEnd, itEnd);
       } 
     }
-
-
-    template<typename ListT>
-    std::tuple<bool, typename ListT::iterator, typename ListT::iterator> getPositions(ListT& list)
-    {
-      const auto size = std::ssize(list);
-
-      if ((start >= 0 && start >= size) || std::labs(start) > size)
-        return {false, list.end(), list.end()};
-
-      if (!hasStop)
-        end = size;
-      
-      const std::int64_t begin  = start < 0 ? size+start : start,
-                         last   = end < 0 ? std::min<>(size, std::labs(size+end)) : std::min<>(size, end);
-
-      if (begin < last)
-      {
-        const auto itStart = std::next(list.begin(), begin);
-        const auto itEnd = std::next(list.begin(), last);
-        return {true, itStart, itEnd};
-      }
-      else
-      {
-        return {false, list.end(), list.end()};
-      }   
-    }
-
-
+    
   private:
     const std::int64_t start;
     std::int64_t end;
@@ -339,29 +393,40 @@ namespace fc
   };
   
 
-
+  // Holds everything we need to know about a list.
+  // The list is a variant so we can manage a list of different
+  // types. They are interacted with via std::visit().
   class FcList
   {
   public:
-    FcList(IntList&& list) noexcept : m_flexType(FlexType::FBT_VECTOR_INT), m_list(std::move(list))
+    FcList(IntList&& list, const bool sorted = false) noexcept :
+      m_flexType(FlexType::FBT_VECTOR_INT), m_list(std::move(list)), m_sorted(sorted)
     {
     }
-    FcList(UIntList&& list) noexcept : m_flexType(FlexType::FBT_VECTOR_UINT), m_list(std::move(list))
+
+    FcList(UIntList&& list, const bool sorted = false) noexcept :
+      m_flexType(FlexType::FBT_VECTOR_UINT), m_list(std::move(list)), m_sorted(sorted)
     {
     }
-    FcList(FloatList&& list) noexcept : m_flexType(FlexType::FBT_VECTOR_FLOAT), m_list(std::move(list))
+
+    FcList(FloatList&& list, const bool sorted = false) noexcept :
+      m_flexType(FlexType::FBT_VECTOR_FLOAT), m_list(std::move(list)), m_sorted(sorted)
     {
     }
-    FcList(StringList&& list) noexcept : m_flexType(FlexType::FBT_VECTOR_KEY), m_list(std::move(list))
+
+    FcList(StringList&& list, const bool sorted = false) noexcept :
+      m_flexType(FlexType::FBT_VECTOR_KEY), m_list(std::move(list)), m_sorted(sorted)
     {
     }
     
-    FlexType type() const { return m_flexType; }
-    List& list() { return m_list; }
-    const List& list() const { return m_list; }
+    FlexType type() const noexcept { return m_flexType; }
+    List& list() noexcept { return m_list; }
+    const List& list() const noexcept { return m_list; }
+    bool isSorted () const noexcept { return m_sorted; }
 
   private:
     FlexType m_flexType;
     List m_list;
+    const bool m_sorted;
   };
 }

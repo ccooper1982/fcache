@@ -16,7 +16,7 @@ else
 
   run_server
     
-  python3 -m unittest -v test_list
+  python3 -m unittest -v test_list test_sorted_list
 
   kill_server
   

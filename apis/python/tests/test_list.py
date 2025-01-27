@@ -1,15 +1,15 @@
-from base import ListTest
+from base import UnsortedListTest
 from fc.common import ResponseError
 
 
-class KV(ListTest):
+class KV(UnsortedListTest):
   async def test_create(self):
     # TODO add more checks when exists() available
-    await self.list.create('l', type='int', failOnDuplicate=False)
-    await self.list.create('l', type='int', failOnDuplicate=False)
+    await self.list.create('l', type='int', fail_on_duplicate=False)
+    await self.list.create('l', type='int', fail_on_duplicate=False)
 
     with self.assertRaises(ResponseError):
-      await self.list.create('l', type='int', failOnDuplicate=True)
+      await self.list.create('l', type='int', fail_on_duplicate=True)
 
 
   async def test_add_head(self):

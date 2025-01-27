@@ -3,7 +3,7 @@
 #include <variant>
 #include <fc/FlatBuffers.hpp>
 #include <fc/Memory.hpp>
-
+#include <fc/Common.hpp>
 
 namespace fc
 { 
@@ -33,7 +33,7 @@ namespace fc
     FixedValue& operator= (FixedValue&& other) noexcept = default;
 
 
-    std::variant<std::int64_t, std::uint64_t, float, bool> value;
+    std::variant<fcint, fcuint, fcfloat, fcbool> value;
     ExtractFixedF extract;
   };
 

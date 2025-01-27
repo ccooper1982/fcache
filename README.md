@@ -17,7 +17,7 @@ The client API hides the FlatBuffer details:
 ```py
 import fc
 from fc.kv import KV
-from fc.list import List
+from fc.list import UnsortedList
 
 
 async def connect() -> fc.Client:
@@ -53,8 +53,8 @@ async def kv():
   print(await kv.get(key='perks'))
 
 
-  # create API object for List commands
-  lst = List(client)
+  # Unsorted list API. There's also SortedList
+  lst = UnsortedList(client)
 
   await lst.create('scores', type='int')
   await lst.add_head('scores', [1,2,3,5,5,6,8])

@@ -1,8 +1,11 @@
 # add_head
 
 ```py
-async def add_head(name: str, items: typing.List[int]) -> None
+async def add_head(name: str, items: typing.List[int|str|float]) -> None
 ```
+
+!!! note
+    Unsorted list only
 
 Adds to items to the list's head. Items are added in the same order as `items`.
 

@@ -411,7 +411,8 @@ struct ListCreate FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ListCreateBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
-    VT_TYPE = 6
+    VT_TYPE = 6,
+    VT_SORTED = 8
   };
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
@@ -419,11 +420,15 @@ struct ListCreate FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   fc::common::ListType type() const {
     return static_cast<fc::common::ListType>(GetField<int8_t>(VT_TYPE, 0));
   }
+  bool sorted() const {
+    return GetField<uint8_t>(VT_SORTED, 0) != 0;
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
            VerifyField<int8_t>(verifier, VT_TYPE, 1) &&
+           VerifyField<uint8_t>(verifier, VT_SORTED, 1) &&
            verifier.EndTable();
   }
 };
@@ -437,6 +442,9 @@ struct ListCreateBuilder {
   }
   void add_type(fc::common::ListType type) {
     fbb_.AddElement<int8_t>(ListCreate::VT_TYPE, static_cast<int8_t>(type), 0);
+  }
+  void add_sorted(bool sorted) {
+    fbb_.AddElement<uint8_t>(ListCreate::VT_SORTED, static_cast<uint8_t>(sorted), 0);
   }
   explicit ListCreateBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -452,9 +460,11 @@ struct ListCreateBuilder {
 inline ::flatbuffers::Offset<ListCreate> CreateListCreate(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
-    fc::common::ListType type = fc::common::ListType_Int) {
+    fc::common::ListType type = fc::common::ListType_Int,
+    bool sorted = false) {
   ListCreateBuilder builder_(_fbb);
   builder_.add_name(name);
+  builder_.add_sorted(sorted);
   builder_.add_type(type);
   return builder_.Finish();
 }
@@ -462,12 +472,14 @@ inline ::flatbuffers::Offset<ListCreate> CreateListCreate(
 inline ::flatbuffers::Offset<ListCreate> CreateListCreateDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    fc::common::ListType type = fc::common::ListType_Int) {
+    fc::common::ListType type = fc::common::ListType_Int,
+    bool sorted = false) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return fc::request::CreateListCreate(
       _fbb,
       name__,
-      type);
+      type,
+      sorted);
 }
 
 struct ListDelete FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -528,7 +540,8 @@ struct ListAdd FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_NAME = 4,
     VT_ITEMS = 6,
     VT_POSITION = 8,
-    VT_BASE = 10
+    VT_BASE = 10,
+    VT_ITEMS_SORTED = 12
   };
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
@@ -547,6 +560,9 @@ struct ListAdd FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   fc::request::Base base() const {
     return static_cast<fc::request::Base>(GetField<uint8_t>(VT_BASE, 0));
   }
+  bool items_sorted() const {
+    return GetField<uint8_t>(VT_ITEMS_SORTED, 0) != 0;
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NAME) &&
@@ -556,6 +572,7 @@ struct ListAdd FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            flexbuffers::VerifyNestedFlexBuffer(items(), verifier) &&
            VerifyField<int32_t>(verifier, VT_POSITION, 4) &&
            VerifyField<uint8_t>(verifier, VT_BASE, 1) &&
+           VerifyField<uint8_t>(verifier, VT_ITEMS_SORTED, 1) &&
            verifier.EndTable();
   }
 };
@@ -576,6 +593,9 @@ struct ListAddBuilder {
   void add_base(fc::request::Base base) {
     fbb_.AddElement<uint8_t>(ListAdd::VT_BASE, static_cast<uint8_t>(base), 0);
   }
+  void add_items_sorted(bool items_sorted) {
+    fbb_.AddElement<uint8_t>(ListAdd::VT_ITEMS_SORTED, static_cast<uint8_t>(items_sorted), 0);
+  }
   explicit ListAddBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -592,11 +612,13 @@ inline ::flatbuffers::Offset<ListAdd> CreateListAdd(
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> items = 0,
     int32_t position = 0,
-    fc::request::Base base = fc::request::Base_Head) {
+    fc::request::Base base = fc::request::Base_Head,
+    bool items_sorted = false) {
   ListAddBuilder builder_(_fbb);
   builder_.add_position(position);
   builder_.add_items(items);
   builder_.add_name(name);
+  builder_.add_items_sorted(items_sorted);
   builder_.add_base(base);
   return builder_.Finish();
 }
@@ -606,7 +628,8 @@ inline ::flatbuffers::Offset<ListAdd> CreateListAddDirect(
     const char *name = nullptr,
     const std::vector<uint8_t> *items = nullptr,
     int32_t position = 0,
-    fc::request::Base base = fc::request::Base_Head) {
+    fc::request::Base base = fc::request::Base_Head,
+    bool items_sorted = false) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto items__ = items ? _fbb.CreateVector<uint8_t>(*items) : 0;
   return fc::request::CreateListAdd(
@@ -614,7 +637,8 @@ inline ::flatbuffers::Offset<ListAdd> CreateListAddDirect(
       name__,
       items__,
       position,
-      base);
+      base,
+      items_sorted);
 }
 
 struct ListGetRange FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

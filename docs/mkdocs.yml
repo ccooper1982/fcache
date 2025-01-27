@@ -37,6 +37,7 @@ nav:
   - index.md
   - start.md
   - kv.md
+  - lists.md
   - Python API: 
     - 'api_py/intro.md'
     - KV:

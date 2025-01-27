@@ -38,9 +38,7 @@ namespace fc
       for (std::size_t i = 0 ; i < values.size() && valid; ++i)
       {
         const auto& key = keys[i].AsString().str();
-
-        // TODO m_map.setOrAdd() 
-
+        
         switch (values[i].GetType())
         {
           using enum FlexType;

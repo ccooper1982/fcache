@@ -1,5 +1,5 @@
 #include <fc/Map.hpp>
-
+#include <fc/Common.hpp>
 
 namespace fc
 {
@@ -20,25 +20,25 @@ namespace fc
   
   void CacheMap::extractInt(FlexBuilder& fb, const char * key, const FixedValue& fv)
   {
-    fb.Add(key, std::get<std::int64_t>(fv.value));
+    fb.Add(key, std::get<fcint>(fv.value));
   }
 
   
   void CacheMap::extractUInt(FlexBuilder& fb, const char * key, const FixedValue& fv)
   {
-    fb.Add(key, std::get<std::uint64_t>(fv.value));
+    fb.Add(key, std::get<fcuint>(fv.value));
   }
 
   
   void CacheMap::extractFloat(FlexBuilder& fb, const char * key, const FixedValue& fv)
   {
-    fb.Add(key, std::get<float>(fv.value));
+    fb.Add(key, std::get<fcfloat>(fv.value));
   }
 
   
   void CacheMap::extractBool(FlexBuilder& fb, const char * key, const FixedValue& fv)
   {
-    fb.Add(key, std::get<bool>(fv.value));
+    fb.Add(key, std::get<fcbool>(fv.value));
   }
 
 
@@ -46,10 +46,10 @@ namespace fc
   {
     const auto buffer = vv.data.data();
 
-    std::uint32_t size{0};
-    std::memcpy(&size, buffer, sizeof(std::uint32_t));
+    fcblobsize size{0};
+    std::memcpy(&size, buffer, sizeof(fcblobsize));
 
-    fb.Blob(key, buffer+sizeof(std::uint32_t), size);
+    fb.Blob(key, buffer+sizeof(fcblobsize), size);
   }
   
   
@@ -72,7 +72,6 @@ namespace fc
         const std::string_view sv{buffer+i};
 
         fb.String(sv.data());
-
         i += sv.size()+1; // length of string, +1 to skip '\0'
       }
     });
@@ -81,24 +80,24 @@ namespace fc
 
   void CacheMap::extractIntV(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    toTypedVector<int64_t>(fb, key, vv);
+    toTypedVector<fcint>(fb, key, vv);
   }
 
 
   void CacheMap::extractUIntV(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    toTypedVector<uint64_t>(fb, key, vv);
+    toTypedVector<fcuint>(fb, key, vv);
   }
 
 
   void CacheMap::extractFloatV(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    toTypedVector<float>(fb, key, vv);
+    toTypedVector<fcfloat>(fb, key, vv);
   }
 
 
   void CacheMap::extractBoolV(FlexBuilder& fb, const char * key, const VectorValue& vv)
   {
-    toTypedVector<bool>(fb, key, vv);
+    toTypedVector<fcbool>(fb, key, vv);
   }
 }

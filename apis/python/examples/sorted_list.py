@@ -3,7 +3,7 @@ import random
 import sys
 sys.path.append('../')
 import fc
-from fc.list import UnsortedList
+from fc.list import SortedList
 
 
 async def connect() -> fc.Client:
@@ -20,7 +20,7 @@ async def create():
     return
 
   try:
-    list = UnsortedList(client)
+    list = SortedList(client)
 
     await list.create('list1', type='int')
     await list.create('list2', type='int')
@@ -37,12 +37,12 @@ async def get_count():
     return
 
   try:
-    list = UnsortedList(client)
+    list = SortedList(client)
 
     await list.delete_all()
 
     await list.create('list1', type='int')
-    await list.add_head(name='list1', items=[1,2,3,4,5,6])
+    await list.add('list1', [1,2,3,4,5,6])
     
     print(await list.get_n('list1', start=3))
     print(await list.get_n('list1', start=2, count=2))
@@ -60,12 +60,12 @@ async def get_range():
     return
 
   try:
-    list = UnsortedList(client)
+    list = SortedList(client)
 
     await list.delete_all()
 
-    await list.create('list1', type='int')
-    await list.add_head('list1', items=[1,2,3,4,5,6,7,8,9,10])
+    await list.create('list1', type='int', fail_on_duplicate=False)
+    await list.add('list1', [1,2,3,4,5,6,7,8,9,10])
 
     print(await list.get_range('list1', start=0, stop=2))
     print(await list.get_range('list1', start=0))
@@ -84,12 +84,12 @@ async def get_range_reverse():
     return
 
   try:
-    list = UnsortedList(client)
+    list = SortedList(client)
 
     await list.delete_all()
 
     await list.create('list1', type='int')
-    await list.add_head('list1', items=[1,2,3,4,5,6,7,8,9,10])
+    await list.add('list1', [1,2,3,4,5,6,7,8,9,10])
 
     print(await list.get_range_reverse('list1', start=0, stop=2))
     print(await list.get_range_reverse('list1', start=0))
@@ -100,8 +100,11 @@ async def get_range_reverse():
     print(await list.get_range_reverse('list1', start=-6, stop=-3))
 
     print(await list.get_range('list1', start=-1, stop=5)) # intentionally testing no results
+    
   except Exception as e:
     print(f'Query failed: {e}')
+
+
 
 
 

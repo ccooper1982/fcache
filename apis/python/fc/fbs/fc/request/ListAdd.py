@@ -72,8 +72,15 @@ class ListAdd(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
+    # ListAdd
+    def ItemsSorted(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        if o != 0:
+            return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
+        return False
+
 def ListAddStart(builder):
-    builder.StartObject(4)
+    builder.StartObject(5)
 
 def Start(builder):
     ListAddStart(builder)
@@ -107,6 +114,12 @@ def ListAddAddBase(builder, base):
 
 def AddBase(builder, base):
     ListAddAddBase(builder, base)
+
+def ListAddAddItemsSorted(builder, itemsSorted):
+    builder.PrependBoolSlot(4, itemsSorted, 0)
+
+def AddItemsSorted(builder, itemsSorted):
+    ListAddAddItemsSorted(builder, itemsSorted)
 
 def ListAddEnd(builder):
     return builder.EndObject()

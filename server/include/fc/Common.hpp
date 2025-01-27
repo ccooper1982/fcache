@@ -19,6 +19,14 @@ namespace fc
   #endif
 
 
+  using fcint = std::int64_t;
+  using fcuint = std::uint64_t;
+  using fcfloat = float;
+  using fcdouble = double;
+  using fcbool = bool;
+  using fcblobsize = std::uint32_t;
+
+
   // TODO remind myself why we have connected flag, it is never used after being set. 
   //      Should it be used before each call to send()?
   struct WsSession

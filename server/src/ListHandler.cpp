@@ -25,9 +25,10 @@ namespace fc
 
   void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListCreate& req) noexcept
   {
-    auto create = [this](auto&& list, const std::string& name) -> fc::response::Status
+    auto create = [this, sorted = req.sorted(), name = req.name()->str()](auto&& list) -> fc::response::Status
     {
-      const auto [_, created] = m_lists.try_emplace(name, std::make_unique<FcList>(std::forward<decltype(list)>(list)));
+      PLOGD << "ListCreate: list " << name << " is " << (sorted ? "sorted" : "unsorted");
+      const auto [_, created] = m_lists.try_emplace(name, std::make_unique<FcList>(std::forward<decltype(list)>(list), sorted));
       return created ? Status_Ok : Status_Duplicate;      
     };
 
@@ -36,22 +37,22 @@ namespace fc
     if (req.type() == ListType_Int)
     {
       PLOGD << "ListCreate: Int list";
-      status = create(IntList{}, req.name()->str());
+      status = create(IntList{});
     }
     else if (req.type() == ListType_UInt)
     {
       PLOGD << "ListCreate: UInt list";
-      status = create(UIntList{}, req.name()->str());
+      status = create(UIntList{});
     }
     else if (req.type() == ListType_Float)
     {
       PLOGD << "ListCreate: float list";
-      status = create(FloatList{}, req.name()->str());
+      status = create(FloatList{});
     }
     else if (req.type() == ListType_String)
     {
       PLOGD << "ListCreate: string list";
-      status = create(StringList{}, req.name()->str());
+      status = create(StringList{});
     }    
     else
     {
@@ -65,15 +66,12 @@ namespace fc
   void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListAdd& req) noexcept
   {
     fc::response::Status status = Status_Ok;
+    
     const auto& name = req.name()->str();
+    const auto& itemsVector = req.items_flexbuffer_root().AsTypedVector();
 
-    if (const auto listOpt = getList(name); !listOpt) [[unlikely]]
+    if (const auto listOpt = haveList(fbb, name, ResponseBody_ListAdd); listOpt && itemsVector.size()) [[likely]]
     {
-      status = Status_Fail;
-    }
-    else
-    {
-      const auto& itemsVector = req.items_flexbuffer_root().AsTypedVector();
       const auto& fcList = (*listOpt)->second;
 
       switch (fcList->type())
@@ -82,10 +80,13 @@ namespace fc
         case FlexType::FBT_VECTOR_UINT:
         case FlexType::FBT_VECTOR_FLOAT:
         case FlexType::FBT_VECTOR_KEY:
-          std::visit(Add{itemsVector, req.base(), std::abs(req.position())}, fcList->list());
+          if (fcList->isSorted())
+            std::visit(Add<true>{itemsVector, req.base(), req.items_sorted()}, fcList->list());
+          else
+            std::visit(Add<false>{itemsVector, req.base(), std::abs(req.position())}, fcList->list());
         break;
 
-        default:
+        default:  [[unlikely]]
           PLOGE << "Unknown type for list: " << fcList->type();
         break;
       }      
@@ -107,6 +108,7 @@ namespace fc
       }
       else
       {
+        // if list doesn't exist, it's not an error
         for (const auto name : *req.name())
           m_lists.erase(name->str());
       }    
@@ -131,12 +133,7 @@ namespace fc
       const bool hasStop = req.range()->has_stop();
       const auto base = req.base();
 
-      if (const auto listOpt = getList(name); !listOpt)
-      {
-        // TODO Status_NotExist for when a List doesn't exist? Or an empty vector? A FAIL seems a bit unnecessary
-        createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetRange); 
-      }
-      else
+      if (const auto listOpt = haveList(fbb, name, ResponseBody_ListGetRange); listOpt)  [[likely]]
       {
         const auto& fcList = (*listOpt)->second;
 
@@ -146,7 +143,7 @@ namespace fc
                                               std::visit(GetByRange{flxb, start, base}, fcList->list());
         
         if (!createdBuffer)
-          flxb.TypedVector([]{});
+          flxb.TypedVector([]{}); // return empty vector
 
         flxb.Finish();
         const auto vec = fbb.CreateVector(flxb.GetBuffer());
@@ -175,12 +172,7 @@ namespace fc
       const int32_t stop = req.range()->stop();
       const bool hasStop = req.range()->has_stop();
 
-      if (const auto listOpt = getList(name); !listOpt)
-      {
-        // TODO Status_NotExist for when a List doesn't exist? Or an empty vector? A FAIL seems a bit unnecessary
-        status = Status_Fail;
-      }
-      else
+      if (const auto listOpt = haveList(fbb, name, ResponseBody_ListRemove); listOpt)  [[likely]]
       {
         const auto& fcList = (*listOpt)->second;
 
@@ -215,19 +207,18 @@ namespace fc
       const bool hasStop = req.range()->has_stop();
       // const auto condition = req.condition();  // not used, only one condition at the moment
 
-      if (const auto listOpt = getList(name); !listOpt)
-      {
-        // TODO Status_NotExist for when a List doesn't exist? Or an empty vector? A FAIL seems a bit unnecessary
-        status = Status_Fail;
-      }
-      else
+      if (const auto listOpt = haveList(fbb, name, ResponseBody_ListRemoveIf); listOpt)  [[likely]]
       {
         const auto& fcList = (*listOpt)->second;
 
         switch (req.value_type())
         {
         case Value_IntValue:
-          doRemoveIf<IsEqual<int64_t>>(start, stop, hasStop, req.value_as_IntValue()->v(), fcList->list());
+          doRemoveIf<IsEqual<fcint>>(start, stop, hasStop, req.value_as_IntValue()->v(), fcList->list());
+        break;
+
+        case Value_UIntValue:
+          doRemoveIf<IsEqual<fcuint>>(start, stop, hasStop, req.value_as_UIntValue()->v(), fcList->list());
         break;
 
         case Value_StringValue:
@@ -235,7 +226,7 @@ namespace fc
         break;
 
         case Value_FloatValue:
-          doRemoveIf<IsEqual<float>>(start, stop, hasStop, req.value_as_FloatValue()->v(), fcList->list());
+          doRemoveIf<IsEqual<fcfloat>>(start, stop, hasStop, req.value_as_FloatValue()->v(), fcList->list());
         break;
 
         default:
