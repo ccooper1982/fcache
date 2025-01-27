@@ -152,16 +152,28 @@ namespace fc
       {
         const auto size = std::ssize(list);
         const auto shift = std::min<>(pos, size);
-        auto it = list.begin();
-
+        typename ListT::iterator it;
+        
         if (base == Base_Head)
-          std::advance(it, shift);
-        else if (base == Base_Tail)
+          it = std::next(list.begin(), shift);
+        else          
           it = std::next(list.rbegin(), shift).base();
+
+        /* NOTE base(), confusingly, this works because:
+            - reverse iterators are implemented in terms of forward iterators (end()/begin())
+            - a reverse iterator: rbegin()+i == end()-i
+            - rbegin() initially is: end()-1
+            - base() returns the underyling iterator (end()-i)
+            - above when shift is 0, rbegin().base() return end()
+            - allowing appending to the list even though rbegin() references the tail node
+            
+            https://stackoverflow.com/a/71366205
+            https://stackoverflow.com/a/16609146
+        */ 
 
         for (std::size_t i = 0 ; i < items.size() ; ++i)
         {
-          it = list.insert(it, items[i].As<ItemT>()); 
+          it = list.emplace(it, items[i].As<ItemT>()); 
           ++it;
         }
       }
