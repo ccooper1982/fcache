@@ -101,11 +101,12 @@ async def unsorted_lists():
 
   # list of strings
   await list.create('names', type='str')
-  
-  await list.add_head('names', ['Adam','Charlie'])
+  # alternative to add_head()
+  await list.add('names', ['Arya', 'Fiona'], pos=0)
   print(await list.get_n('names'))
-
-  await list.add('names', ['Bob'], pos=1)
+  await list.add('names', ['David', 'Bob', 'Charlie'], pos=1)
+  print(await list.get_n('names'))
+  await list.add('names', ['Emma'], pos=3)
   print(await list.get_n('names'))
 
 
@@ -200,37 +201,44 @@ async def sorted_lists():
   if (client := await connect()) is None:
     return
   
-  list = SortedList(client)
+  lst = SortedList(client)
 
-  await list.delete_all()
+  await lst.delete_all()
 
-  await list.create('scores', type='int')
-  
-  await list.add('scores', [45,35,25,55])
-  print(await list.get_n('scores'))
+  await lst.create('scores', type='int')
 
-  await list.add('scores', [50,20,100,40,90])
-  print(await list.get_n('scores'))
+  await lst.add('scores', [45,35,25,55])
+  print(await lst.get_n('scores'))
 
-  await list.add('scores', [41,42,43,44,45], items_sorted=True)
-  print(await list.get_n('scores'))
+  await lst.add('scores', [50,20,100,40,90])
+  print(await lst.get_n('scores'))
 
-  await list.add('scores', [1,2,3,4,5], items_sorted=True)
-  print(await list.get_n('scores'))
+  await lst.add('scores', [41,42], items_sorted=True)
+  print(await lst.get_n('scores'))
 
-  await list.add('scores', [100,101,102], items_sorted=True)
-  print(await list.get_n('scores'))
+  await lst.add('scores', [1,2,3], items_sorted=True)
+  print(await lst.get_n('scores'))
 
-  print(await list.get_n('scores', start=5, count=4))
-  print(await list.get_n_reverse('scores', start=13, count=4))
+  await lst.add('scores', [100,101,102], items_sorted=True)
+  print(await lst.get_n('scores'))
 
-  
+  print(await lst.get_n('scores', start=5, count=4))
+  print(await lst.get_n_reverse('scores', start=8, count=4))
+
+  # list of strings
+  await lst.create('names', type='str')
+  await lst.add('names', ['Arya', 'Fiona'])
+  print(await lst.get_n('names'))
+  await lst.add('names', ['David', 'Bob', 'Charlie'])
+  print(await lst.get_n('names'))
+  await lst.add('names', ['Emma'])
+  print(await lst.get_n('names'))
 
 
 if __name__ == "__main__":
   async def run():
     #for f in [kv, kv_blob, unsorted_lists, sorted_lists]:
-    for f in [sorted_lists]:
+    for f in [unsorted_lists, sorted_lists]:
       print(f'---- {f.__name__} ----')
       await f()
   

@@ -94,18 +94,22 @@ Player: Monster, Active: True
 
 ## Lists
 
-Lists are node based doubly linked lists. It's not yet possible to sort the list or create a sorted list.
+Lists are node based doubly linked lists. There are two types, `SortedList` and `UnsortedList`.
 
-```py
-from fc.list import List
 
-async def lists():
+### Unsorted
+
+```py title='Unsorted'
+from fc.list import UnsortedList
+
+async def unsorted_lists():
   if (client := await connect()) is None:
     return
   
   # create API object for list functions
   list = List(client)
 
+  # delete any existing lists
   await list.delete_all()
 
   # create list for integers
@@ -129,25 +133,57 @@ async def lists():
   print(f"e. {await list.get_range('scores', start=2, stop=5)}")
   # get middle 5 in reverse, using negative index
   print(f"f. {await list.get_range_reverse('scores', start=1, stop=-1)}")
-
-
-  # list of strings
-  await list.create('names', type='str')
-  
-  await list.add_head('names', ['Adam','Charlie'])
-  print(await list.get_n('names'))
-
-  await list.add('names', ['Bob'], pos=1)
-  print(await list.get_n('names'))
 ```
 
-```bash title='Output'
+```sh  title='Output'
 a. [25, 35, 40, 45, 55, 60, 65]
 b. [65, 60, 55, 45, 40, 35, 25]
 c. [25, 35, 40]
 d. [60, 65]
 e. [40, 45, 55]
 f. [60, 55, 45, 40, 35]
-['Adam', 'Charlie']
-['Adam', 'Bob', 'Charlie']
+```
+
+### Sorted
+```py title='Sorted'
+from fc.list import SortedList
+
+async def sorted_lists():
+  if (client := await connect()) is None:
+    return
+
+lst = SortedList(client)
+
+await lst.delete_all()
+
+await lst.create('scores', type='int')
+
+await lst.add('scores', [45,35,25,55])
+print(await lst.get_n('scores'))
+
+await lst.add('scores', [50,20,100,40,90])
+print(await lst.get_n('scores'))
+
+await lst.add('scores', [41,42], items_sorted=True)
+print(await lst.get_n('scores'))
+
+await lst.add('scores', [1,2,3], items_sorted=True)
+print(await lst.get_n('scores'))
+
+await lst.add('scores', [100,101,102], items_sorted=True)
+print(await lst.get_n('scores'))
+
+print(await lst.get_n('scores', start=5, count=4))
+print(await lst.get_n_reverse('scores', start=8, count=4))
+```
+
+
+```sh  title='Output'
+[25, 35, 45, 55]
+[20, 25, 35, 40, 45, 50, 55, 90, 100]
+[20, 25, 35, 40, 41, 42, 45, 50, 55, 90, 100]
+[1, 2, 3, 20, 25, 35, 40, 41, 42, 45, 50, 55, 90, 100]
+[1, 2, 3, 20, 25, 35, 40, 41, 42, 45, 50, 55, 90, 100, 100, 101, 102]
+[35, 40, 41, 42]
+[42, 41, 40, 35]
 ```
