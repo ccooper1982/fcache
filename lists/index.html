@@ -11,25 +11,25 @@
       
       
       
-        <link rel="prev" href="../get_range_reverse/">
+        <link rel="prev" href="../kv/">
       
       
-        <link rel="next" href="../remove_if_eq/">
+        <link rel="next" href="../api_py/intro/">
       
       
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.50">
     
     
       
-        <title>remove - fcache</title>
+        <title>Lists - fcache</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.a40c8224.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.a40c8224.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -48,7 +48,7 @@
       
     
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#remove" class="md-skip">
+        <a href="#lists" class="md-skip">
           Skip to content
         </a>
       
@@ -90,7 +90,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="fcache" class="md-header__button md-logo" aria-label="fcache" data-md-component="logo">
+    <a href=".." title="fcache" class="md-header__button md-logo" aria-label="fcache" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              remove
+              Lists
             
           </span>
         </div>
@@ -223,7 +223,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="fcache" class="md-nav__button md-logo" aria-label="fcache" data-md-component="logo">
+    <a href=".." title="fcache" class="md-nav__button md-logo" aria-label="fcache" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -253,7 +253,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -273,7 +273,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../start/" class="md-nav__link">
+      <a href="../start/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -293,7 +293,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../kv/" class="md-nav__link">
+      <a href="../kv/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -310,10 +310,30 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../../lists/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Lists
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -322,6 +342,53 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#add-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      Add Items
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      Get Items
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#remove-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      Remove Items
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -330,19 +397,17 @@
       
   
   
-    
   
   
-  
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
           <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
@@ -356,7 +421,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             Python API
@@ -370,7 +435,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../intro/" class="md-nav__link">
+      <a href="../api_py/intro/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -426,7 +491,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/set/" class="md-nav__link">
+      <a href="../api_py/kv/set/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -447,7 +512,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/add/" class="md-nav__link">
+      <a href="../api_py/kv/add/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -468,7 +533,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/get/" class="md-nav__link">
+      <a href="../api_py/kv/get/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -489,7 +554,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/remove/" class="md-nav__link">
+      <a href="../api_py/kv/remove/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -510,7 +575,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/clear/" class="md-nav__link">
+      <a href="../api_py/kv/clear/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -531,7 +596,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/clear_set/" class="md-nav__link">
+      <a href="../api_py/kv/clear_set/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -552,7 +617,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/contains/" class="md-nav__link">
+      <a href="../api_py/kv/contains/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -573,7 +638,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/count/" class="md-nav__link">
+      <a href="../api_py/kv/count/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -599,19 +664,17 @@
                 
   
   
-    
   
   
-  
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
         
           
           <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
@@ -625,7 +688,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5_3">
             <span class="md-nav__icon md-icon"></span>
             List
@@ -639,7 +702,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../create/" class="md-nav__link">
+      <a href="../api_py/list/create/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -660,7 +723,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../add_head/" class="md-nav__link">
+      <a href="../api_py/list/add_head/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -681,7 +744,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../add_tail/" class="md-nav__link">
+      <a href="../api_py/list/add_tail/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -702,7 +765,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../add/" class="md-nav__link">
+      <a href="../api_py/list/add/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -723,7 +786,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get_head/" class="md-nav__link">
+      <a href="../api_py/list/get_head/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -744,7 +807,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get_tail/" class="md-nav__link">
+      <a href="../api_py/list/get_tail/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -765,7 +828,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get_n/" class="md-nav__link">
+      <a href="../api_py/list/get_n/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -786,7 +849,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get_n_reverse/" class="md-nav__link">
+      <a href="../api_py/list/get_n_reverse/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -807,7 +870,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get_range/" class="md-nav__link">
+      <a href="../api_py/list/get_range/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -828,7 +891,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get_range_reverse/" class="md-nav__link">
+      <a href="../api_py/list/get_range_reverse/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -846,30 +909,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    remove
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../api_py/list/remove/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -878,35 +921,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Examples
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -919,7 +933,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../remove_if_eq/" class="md-nav__link">
+      <a href="../api_py/list/remove_if_eq/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -940,7 +954,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../delete/" class="md-nav__link">
+      <a href="../api_py/list/delete/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -961,7 +975,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../delete_all/" class="md-nav__link">
+      <a href="../api_py/list/delete_all/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1017,9 +1031,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
+  <a href="#add-items" class="md-nav__link">
     <span class="md-ellipsis">
-      Examples
+      Add Items
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      Get Items
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#remove-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      Remove Items
     </span>
   </a>
   
@@ -1040,31 +1072,41 @@
                   
 
 
-<h1 id="remove">remove</h1>
-<p><div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">remove</span><span class="p">(</span><span class="n">name</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<h1 id="lists">Lists</h1>
+<p>A list is a node based doubly linked list with support for:</p>
+<ul>
+<li>integers (signed and unsigned)</li>
+<li>floats</li>
+<li>strings</li>
+</ul>
+<p>There are sorted and unsorted versions of these: </p>
+<ul>
+<li>An unsorted list retains the order as added</li>
+<li>A sorted list ensures nodes are always in ascending order. If the items being added are already sorted, this can be signalled when adding, reducing workload </li>
+</ul>
+<p>For both sorted and unsorted lists get items:</p>
+<ul>
+<li>Based on a range <code>[start,stop)</code> with negative positions permitted (similar to Python slicing)</li>
+<li>Use the reverse version, which works similar to C++'s reverse iterators</li>
+</ul>
+<h2 id="add-items">Add Items</h2>
+<ul>
+<li>Unsorted List: items can be added anywhere in the list</li>
+<li>Sorted List: order is defined by the sorted order</li>
+</ul>
+<h2 id="get-items">Get Items</h2>
+<p>The server API allows iterating a list from head to tail or tail to head.</p>
+<p>In the Python API there is <code>get_n()</code> which returns <code>n</code> items from a given starting position.</p>
+<div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">await</span> <span class="n">my_list</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 </span></code></pre></div>
-Remove items from a list using the range: <code>[start, stop)</code>.</p>
-<p><code>start</code> and <code>stop</code> use the same rules as <a href="../get_range/">get_range()</a>, so negative
-and positive values are permitted, but they must translate to positions where <code>start &lt; stop</code>.</p>
-<h2 id="examples">Examples</h2>
-<div class="language-py highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s1">&#39;rmv&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;int&#39;</span><span class="p">)</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">add_head</span><span class="p">(</span><span class="s1">&#39;rmv&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">])</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;rmv&#39;</span><span class="p">))</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;rmv&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;rmv&#39;</span><span class="p">))</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;rmv&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stop</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;rmv&#39;</span><span class="p">))</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;rmv&#39;</span><span class="p">)</span>  <span class="c1"># remove all</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;rmv&#39;</span><span class="p">))</span>
+<p>This returns the first three items.</p>
+<p>The reverse version iterates from the tail to head, so returns the last three items:</p>
+<div class="language-py highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="n">my_list</span><span class="o">.</span><span class="n">get_n_reverse</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 </span></code></pre></div>
-<div class="language-bash highlight"><span class="filename">Output</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="o">[</span><span class="m">0</span>,<span class="w"> </span><span class="m">1</span>,<span class="w"> </span><span class="m">2</span>,<span class="w"> </span><span class="m">3</span>,<span class="w"> </span><span class="m">4</span>,<span class="w"> </span><span class="m">5</span>,<span class="w"> </span><span class="m">6</span>,<span class="w"> </span><span class="m">7</span>,<span class="w"> </span><span class="m">8</span>,<span class="w"> </span><span class="m">9</span>,<span class="w"> </span><span class="m">10</span><span class="o">]</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="o">[</span><span class="m">3</span>,<span class="w"> </span><span class="m">4</span>,<span class="w"> </span><span class="m">5</span>,<span class="w"> </span><span class="m">6</span>,<span class="w"> </span><span class="m">7</span>,<span class="w"> </span><span class="m">8</span>,<span class="w"> </span><span class="m">9</span>,<span class="w"> </span><span class="m">10</span><span class="o">]</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="o">[</span><span class="m">3</span>,<span class="w"> </span><span class="m">10</span><span class="o">]</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="o">[]</span>
+<h2 id="remove-items">Remove Items</h2>
+<p>Items can be removed using their position or based on a value.</p>
+<p>For example, in the Python API we can remove nodes with a value of <code>100</code> in range <code>[0,8)</code>:</p>
+<div class="language-py highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">await</span> <span class="n">my_list</span><span class="o">.</span><span class="n">remove_if_eq</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </span></code></pre></div>
 
 
@@ -1112,10 +1154,10 @@ and positive values are permitted, but they must translate to positions where <c
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["content.code.copy", "content.code.select"], "search": "../../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.select"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.60a45f97.min.js"></script>
+      <script src="../assets/javascripts/bundle.60a45f97.min.js"></script>
       
     
   </body>

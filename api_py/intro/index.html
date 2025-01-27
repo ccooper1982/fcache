@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../../kv/">
+        <link rel="prev" href="../../lists/">
       
       
         <link rel="next" href="../kv/set/">
@@ -310,6 +310,26 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lists/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lists
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -322,10 +342,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -336,8 +356,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             Python API
           </label>
@@ -444,6 +464,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Lists">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unsorted" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unsorted
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sorted" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sorted
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -469,10 +513,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" >
         
           
-          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -483,8 +527,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_2">
             <span class="md-nav__icon md-icon"></span>
             KV
           </label>
@@ -680,10 +724,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
         
           
-          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -694,8 +738,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
             <span class="md-nav__icon md-icon"></span>
             List
           </label>
@@ -1085,6 +1129,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Lists">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unsorted" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unsorted
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sorted" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sorted
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1226,58 +1294,87 @@
 <p>A <code>TypedVector</code> is a type of FlexBuffer vector, where each element is the same type.</p>
 </div>
 <h2 id="lists">Lists</h2>
-<p>Lists are node based doubly linked lists. It's not yet possible to sort the list or create a sorted list.</p>
-<div class="language-py highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fc.list</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+<p>Lists are node based doubly linked lists. There are two types, <code>SortedList</code> and <code>UnsortedList</code>.</p>
+<h3 id="unsorted">Unsorted</h3>
+<div class="language-py highlight"><span class="filename">Unsorted</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fc.list</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnsortedList</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">lists</span><span class="p">():</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">unsorted_lists</span><span class="p">():</span>
 </span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>  <span class="k">if</span> <span class="p">(</span><span class="n">client</span> <span class="o">:=</span> <span class="k">await</span> <span class="n">connect</span><span class="p">())</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="k">return</span>
 </span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
 </span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>  <span class="c1"># create API object for list functions</span>
 </span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>  <span class="nb">list</span> <span class="o">=</span> <span class="n">List</span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
 </span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>  <span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">delete_all</span><span class="p">()</span>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>  <span class="c1"># create list for integers</span>
-</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>  <span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;int&#39;</span><span class="p">)</span>
-</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>  <span class="c1"># add these items to head</span>
-</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>  <span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">add_head</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">25</span><span class="p">,</span><span class="mi">35</span><span class="p">,</span><span class="mi">45</span><span class="p">,</span><span class="mi">55</span><span class="p">])</span>
-</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>  <span class="c1"># insert in between 35 and 45 (at position 2)</span>
-</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>  <span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">40</span><span class="p">],</span> <span class="n">pos</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>  <span class="c1"># add two more to the tail</span>
-</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>  <span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">add_tail</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">60</span><span class="p">,</span> <span class="mi">65</span><span class="p">])</span>
-</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>
-</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>  <span class="c1"># get everything from the first item</span>
-</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>  <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;a. </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="nb">list</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>  <span class="c1"># get everything in reverse</span>
-</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a>  <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;b. </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="nb">list</span><span class="o">.</span><span class="n">get_n_reverse</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a>  <span class="c1"># # get the first 3 </span>
-</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a>  <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;c. </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="nb">list</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a>  <span class="c1"># # get the last 2</span>
-</span><span id="__span-4-28"><a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a>  <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;d. </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="nb">list</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">start</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-4-29"><a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a>  <span class="c1"># get middle 3 with range (could also use get_n())</span>
-</span><span id="__span-4-30"><a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a>  <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;e. </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="nb">list</span><span class="o">.</span><span class="n">get_range</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">start</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">stop</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-4-31"><a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a>  <span class="c1"># get middle 5 in reverse, using negative index</span>
-</span><span id="__span-4-32"><a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a>  <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;f. </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="nb">list</span><span class="o">.</span><span class="n">get_range_reverse</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">stop</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-4-33"><a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a>
-</span><span id="__span-4-34"><a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a>
-</span><span id="__span-4-35"><a id="__codelineno-4-35" name="__codelineno-4-35" href="#__codelineno-4-35"></a>  <span class="c1"># list of strings</span>
-</span><span id="__span-4-36"><a id="__codelineno-4-36" name="__codelineno-4-36" href="#__codelineno-4-36"></a>  <span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;str&#39;</span><span class="p">)</span>
-</span><span id="__span-4-37"><a id="__codelineno-4-37" name="__codelineno-4-37" href="#__codelineno-4-37"></a>
-</span><span id="__span-4-38"><a id="__codelineno-4-38" name="__codelineno-4-38" href="#__codelineno-4-38"></a>  <span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">add_head</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Adam&#39;</span><span class="p">,</span><span class="s1">&#39;Charlie&#39;</span><span class="p">])</span>
-</span><span id="__span-4-39"><a id="__codelineno-4-39" name="__codelineno-4-39" href="#__codelineno-4-39"></a>  <span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">))</span>
-</span><span id="__span-4-40"><a id="__codelineno-4-40" name="__codelineno-4-40" href="#__codelineno-4-40"></a>
-</span><span id="__span-4-41"><a id="__codelineno-4-41" name="__codelineno-4-41" href="#__codelineno-4-41"></a>  <span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Bob&#39;</span><span class="p">],</span> <span class="n">pos</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="__span-4-42"><a id="__codelineno-4-42" name="__codelineno-4-42" href="#__codelineno-4-42"></a>  <span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">))</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>  <span class="c1"># delete any existing lists</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>  <span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">delete_all</span><span class="p">()</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>  <span class="c1"># create list for integers</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>  <span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;int&#39;</span><span class="p">)</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>  <span class="c1"># add these items to head</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>  <span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">add_head</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">25</span><span class="p">,</span><span class="mi">35</span><span class="p">,</span><span class="mi">45</span><span class="p">,</span><span class="mi">55</span><span class="p">])</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>  <span class="c1"># insert in between 35 and 45 (at position 2)</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>  <span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">40</span><span class="p">],</span> <span class="n">pos</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>  <span class="c1"># add two more to the tail</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>  <span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">add_tail</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">60</span><span class="p">,</span> <span class="mi">65</span><span class="p">])</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>  <span class="c1"># get everything from the first item</span>
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>  <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;a. </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="nb">list</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a>  <span class="c1"># get everything in reverse</span>
+</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a>  <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;b. </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="nb">list</span><span class="o">.</span><span class="n">get_n_reverse</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a>  <span class="c1"># # get the first 3 </span>
+</span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a>  <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;c. </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="nb">list</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-4-28"><a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a>  <span class="c1"># # get the last 2</span>
+</span><span id="__span-4-29"><a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a>  <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;d. </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="nb">list</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">start</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-4-30"><a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a>  <span class="c1"># get middle 3 with range (could also use get_n())</span>
+</span><span id="__span-4-31"><a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a>  <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;e. </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="nb">list</span><span class="o">.</span><span class="n">get_range</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">start</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">stop</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-4-32"><a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a>  <span class="c1"># get middle 5 in reverse, using negative index</span>
+</span><span id="__span-4-33"><a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a>  <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;f. </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="nb">list</span><span class="o">.</span><span class="n">get_range_reverse</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">stop</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></code></pre></div>
-<div class="language-bash highlight"><span class="filename">Output</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>a.<span class="w"> </span><span class="o">[</span><span class="m">25</span>,<span class="w"> </span><span class="m">35</span>,<span class="w"> </span><span class="m">40</span>,<span class="w"> </span><span class="m">45</span>,<span class="w"> </span><span class="m">55</span>,<span class="w"> </span><span class="m">60</span>,<span class="w"> </span><span class="m">65</span><span class="o">]</span>
+<div class="language-sh highlight"><span class="filename">Output</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>a.<span class="w"> </span><span class="o">[</span><span class="m">25</span>,<span class="w"> </span><span class="m">35</span>,<span class="w"> </span><span class="m">40</span>,<span class="w"> </span><span class="m">45</span>,<span class="w"> </span><span class="m">55</span>,<span class="w"> </span><span class="m">60</span>,<span class="w"> </span><span class="m">65</span><span class="o">]</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>b.<span class="w"> </span><span class="o">[</span><span class="m">65</span>,<span class="w"> </span><span class="m">60</span>,<span class="w"> </span><span class="m">55</span>,<span class="w"> </span><span class="m">45</span>,<span class="w"> </span><span class="m">40</span>,<span class="w"> </span><span class="m">35</span>,<span class="w"> </span><span class="m">25</span><span class="o">]</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>c.<span class="w"> </span><span class="o">[</span><span class="m">25</span>,<span class="w"> </span><span class="m">35</span>,<span class="w"> </span><span class="m">40</span><span class="o">]</span>
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>d.<span class="w"> </span><span class="o">[</span><span class="m">60</span>,<span class="w"> </span><span class="m">65</span><span class="o">]</span>
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>e.<span class="w"> </span><span class="o">[</span><span class="m">40</span>,<span class="w"> </span><span class="m">45</span>,<span class="w"> </span><span class="m">55</span><span class="o">]</span>
 </span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>f.<span class="w"> </span><span class="o">[</span><span class="m">60</span>,<span class="w"> </span><span class="m">55</span>,<span class="w"> </span><span class="m">45</span>,<span class="w"> </span><span class="m">40</span>,<span class="w"> </span><span class="m">35</span><span class="o">]</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="o">[</span><span class="s1">&#39;Adam&#39;</span>,<span class="w"> </span><span class="s1">&#39;Charlie&#39;</span><span class="o">]</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="o">[</span><span class="s1">&#39;Adam&#39;</span>,<span class="w"> </span><span class="s1">&#39;Bob&#39;</span>,<span class="w"> </span><span class="s1">&#39;Charlie&#39;</span><span class="o">]</span>
+</span></code></pre></div>
+<h3 id="sorted">Sorted</h3>
+<div class="language-py highlight"><span class="filename">Sorted</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fc.list</span><span class="w"> </span><span class="kn">import</span> <span class="n">SortedList</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">sorted_lists</span><span class="p">():</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  <span class="k">if</span> <span class="p">(</span><span class="n">client</span> <span class="o">:=</span> <span class="k">await</span> <span class="n">connect</span><span class="p">())</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="k">return</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="n">lst</span> <span class="o">=</span> <span class="n">SortedList</span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">delete_all</span><span class="p">()</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;int&#39;</span><span class="p">)</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">45</span><span class="p">,</span><span class="mi">35</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mi">55</span><span class="p">])</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">))</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">40</span><span class="p">,</span><span class="mi">90</span><span class="p">])</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">))</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">41</span><span class="p">,</span><span class="mi">42</span><span class="p">],</span> <span class="n">items_sorted</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">))</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="n">items_sorted</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">))</span>
+</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>
+</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span><span class="mi">101</span><span class="p">,</span><span class="mi">102</span><span class="p">],</span> <span class="n">items_sorted</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-6-26"><a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">))</span>
+</span><span id="__span-6-27"><a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a>
+</span><span id="__span-6-28"><a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+</span><span id="__span-6-29"><a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n_reverse</span><span class="p">(</span><span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+</span></code></pre></div>
+<div class="language-sh highlight"><span class="filename">Output</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="o">[</span><span class="m">25</span>,<span class="w"> </span><span class="m">35</span>,<span class="w"> </span><span class="m">45</span>,<span class="w"> </span><span class="m">55</span><span class="o">]</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="o">[</span><span class="m">20</span>,<span class="w"> </span><span class="m">25</span>,<span class="w"> </span><span class="m">35</span>,<span class="w"> </span><span class="m">40</span>,<span class="w"> </span><span class="m">45</span>,<span class="w"> </span><span class="m">50</span>,<span class="w"> </span><span class="m">55</span>,<span class="w"> </span><span class="m">90</span>,<span class="w"> </span><span class="m">100</span><span class="o">]</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="o">[</span><span class="m">20</span>,<span class="w"> </span><span class="m">25</span>,<span class="w"> </span><span class="m">35</span>,<span class="w"> </span><span class="m">40</span>,<span class="w"> </span><span class="m">41</span>,<span class="w"> </span><span class="m">42</span>,<span class="w"> </span><span class="m">45</span>,<span class="w"> </span><span class="m">50</span>,<span class="w"> </span><span class="m">55</span>,<span class="w"> </span><span class="m">90</span>,<span class="w"> </span><span class="m">100</span><span class="o">]</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="o">[</span><span class="m">1</span>,<span class="w"> </span><span class="m">2</span>,<span class="w"> </span><span class="m">3</span>,<span class="w"> </span><span class="m">20</span>,<span class="w"> </span><span class="m">25</span>,<span class="w"> </span><span class="m">35</span>,<span class="w"> </span><span class="m">40</span>,<span class="w"> </span><span class="m">41</span>,<span class="w"> </span><span class="m">42</span>,<span class="w"> </span><span class="m">45</span>,<span class="w"> </span><span class="m">50</span>,<span class="w"> </span><span class="m">55</span>,<span class="w"> </span><span class="m">90</span>,<span class="w"> </span><span class="m">100</span><span class="o">]</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="o">[</span><span class="m">1</span>,<span class="w"> </span><span class="m">2</span>,<span class="w"> </span><span class="m">3</span>,<span class="w"> </span><span class="m">20</span>,<span class="w"> </span><span class="m">25</span>,<span class="w"> </span><span class="m">35</span>,<span class="w"> </span><span class="m">40</span>,<span class="w"> </span><span class="m">41</span>,<span class="w"> </span><span class="m">42</span>,<span class="w"> </span><span class="m">45</span>,<span class="w"> </span><span class="m">50</span>,<span class="w"> </span><span class="m">55</span>,<span class="w"> </span><span class="m">90</span>,<span class="w"> </span><span class="m">100</span>,<span class="w"> </span><span class="m">100</span>,<span class="w"> </span><span class="m">101</span>,<span class="w"> </span><span class="m">102</span><span class="o">]</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="o">[</span><span class="m">35</span>,<span class="w"> </span><span class="m">40</span>,<span class="w"> </span><span class="m">41</span>,<span class="w"> </span><span class="m">42</span><span class="o">]</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="o">[</span><span class="m">42</span>,<span class="w"> </span><span class="m">41</span>,<span class="w"> </span><span class="m">40</span>,<span class="w"> </span><span class="m">35</span><span class="o">]</span>
 </span></code></pre></div>
 
 
