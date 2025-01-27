@@ -41,7 +41,7 @@ async def get_count():
 
     await list.delete_all()
 
-    await list.create('list1', type='int', failOnDuplicate=False)
+    await list.create('list1', type='int')
     await list.add_head(name='list1', items=[1,2,3,4,5,6])
     
     print(await list.get_n('list1', start=3))
@@ -64,7 +64,7 @@ async def get_range():
 
     await list.delete_all()
 
-    await list.create('list1', type='int', failOnDuplicate=False)
+    await list.create('list1', type='int')
     await list.add_head('list1', items=[1,2,3,4,5,6,7,8,9,10])
 
     print(await list.get_range('list1', start=0, stop=2))
@@ -88,7 +88,7 @@ async def get_range_reverse():
 
     await list.delete_all()
 
-    await list.create('list1', type='int', failOnDuplicate=False)
+    await list.create('list1', type='int')
     await list.add_head('list1', items=[1,2,3,4,5,6,7,8,9,10])
 
     print(await list.get_range_reverse('list1', start=0, stop=2))
@@ -100,7 +100,6 @@ async def get_range_reverse():
     print(await list.get_range_reverse('list1', start=-6, stop=-3))
 
     print(await list.get_range('list1', start=-1, stop=5)) # intentionally testing no results
-    
   except Exception as e:
     print(f'Query failed: {e}')
 
