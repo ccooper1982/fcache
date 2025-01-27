@@ -218,8 +218,8 @@ class List(ABC):
 
   
   async def _do_add(self, name: str, items: typing.List[int], pos: int, base: Base.Base, items_sorted:bool) -> None:
-    if len(items) == 0:
-      raise ValueError('items cannot be empty')
+    raise_if(len(items) == 0, 'items cannot be empty')
+    raise_if(pos < 0, 'pos negative')
 
     try:
       fbb = flatbuffers.flexbuffers.Builder()
@@ -282,15 +282,15 @@ class UnsortedList(List):
     await super()._create(name, type, is_sorted=False, fail_on_duplicate=fail_on_duplicate)
 
 
-  async def add(self, name: str, items: typing.List[int], *, pos: int) -> None:
+  async def add(self, name: str, items: typing.List[int|str|float], *, pos: int) -> None:
     await self._do_add(name, items, pos, Base.Base.Tail if pos < 0 else Base.Base.Head, False)
 
 
-  async def add_head(self, name: str, items: typing.List[int]) -> None:
+  async def add_head(self, name: str, items: typing.List[int|str|float]) -> None:
     await self._do_add(name, items, 0, Base.Base.Head, False)
 
 
-  async def add_tail(self, name: str, items: typing.List[int]) -> None:
+  async def add_tail(self, name: str, items: typing.List[int|str|float]) -> None:
     await self._do_add(name, items, 0, Base.Base.Tail, False)
 
 
@@ -304,5 +304,5 @@ class SortedList(List):
     await super()._create(name, type, is_sorted=True, fail_on_duplicate=fail_on_duplicate)
 
 
-  async def add(self, name: str, items: typing.List[int], items_sorted:bool = False) -> None:
+  async def add(self, name: str, items: typing.List[int|str|float], items_sorted:bool = False) -> None:
     await self._do_add(name, items, 0, Base.Base.Head, items_sorted)  # pos and Base irrelevant for sorted list
