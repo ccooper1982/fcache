@@ -217,7 +217,7 @@ class List(ABC):
       raise
 
   
-  async def _do_add(self, name: str, items: typing.List[int], pos: int, base: Base.Base, items_sorted:bool) -> None:
+  async def _do_add(self, name: str, items: typing.List[int|str|float], pos: int, base: Base.Base, items_sorted:bool) -> None:
     raise_if(len(items) == 0, 'items cannot be empty')
     raise_if(pos < 0, 'pos negative')
 
