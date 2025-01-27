@@ -49,6 +49,19 @@ namespace fc
         return {};
     }
 
+
+    std::optional<Iterator> haveList (FlatBuilder& fb, const std::string& name, const fc::response::ResponseBody bodyType)
+    {
+      if (const auto opt = getList(name); opt) 
+        return opt;
+      else  [[unlikely]]
+      {
+        createEmptyBodyResponse(fb, Status_Fail, bodyType);
+        return {};
+      }
+    }
+
+
   private:
     std::unordered_map<std::string, std::unique_ptr<FcList>> m_lists;
   };

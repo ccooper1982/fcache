@@ -67,11 +67,7 @@ namespace fc
     fc::response::Status status = Status_Ok;
     const auto& name = req.name()->str();
 
-    if (const auto listOpt = getList(name); !listOpt) [[unlikely]]
-    {
-      status = Status_Fail;
-    }
-    else
+    if (const auto listOpt = haveList(fbb, name, ResponseBody_ListAdd); listOpt) [[likely]]
     {
       const auto& itemsVector = req.items_flexbuffer_root().AsTypedVector();
       const auto& fcList = (*listOpt)->second;
@@ -107,6 +103,7 @@ namespace fc
       }
       else
       {
+        // if list doesn't exist, it's not an error
         for (const auto name : *req.name())
           m_lists.erase(name->str());
       }    
@@ -131,12 +128,7 @@ namespace fc
       const bool hasStop = req.range()->has_stop();
       const auto base = req.base();
 
-      if (const auto listOpt = getList(name); !listOpt)
-      {
-        // TODO Status_NotExist for when a List doesn't exist? Or an empty vector? A FAIL seems a bit unnecessary
-        createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListGetRange); 
-      }
-      else
+      if (const auto listOpt = haveList(fbb, name, ResponseBody_ListGetRange); listOpt)  [[likely]]
       {
         const auto& fcList = (*listOpt)->second;
 
@@ -175,12 +167,7 @@ namespace fc
       const int32_t stop = req.range()->stop();
       const bool hasStop = req.range()->has_stop();
 
-      if (const auto listOpt = getList(name); !listOpt)
-      {
-        // TODO Status_NotExist for when a List doesn't exist? Or an empty vector? A FAIL seems a bit unnecessary
-        status = Status_Fail;
-      }
-      else
+      if (const auto listOpt = haveList(fbb, name, ResponseBody_ListRemove); listOpt)  [[likely]]
       {
         const auto& fcList = (*listOpt)->second;
 
@@ -215,12 +202,7 @@ namespace fc
       const bool hasStop = req.range()->has_stop();
       // const auto condition = req.condition();  // not used, only one condition at the moment
 
-      if (const auto listOpt = getList(name); !listOpt)
-      {
-        // TODO Status_NotExist for when a List doesn't exist? Or an empty vector? A FAIL seems a bit unnecessary
-        status = Status_Fail;
-      }
-      else
+      if (const auto listOpt = haveList(fbb, name, ResponseBody_ListRemoveIf); listOpt)  [[likely]]
       {
         const auto& fcList = (*listOpt)->second;
 
