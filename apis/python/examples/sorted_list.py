@@ -64,7 +64,7 @@ async def get_range():
 
     await list.delete_all()
 
-    await list.create('list1', type='int', failOnDuplicate=False)
+    await list.create('list1', type='int', fail_on_duplicate=False)
     await list.add('list1', [1,2,3,4,5,6,7,8,9,10])
 
     print(await list.get_range('list1', start=0, stop=2))
@@ -110,7 +110,7 @@ async def get_range_reverse():
 
 if __name__ == "__main__":
   async def run():
-    for f in [get_range_reverse]:
+    for f in [create, get_count, get_range, get_range_reverse]:
       print(f'---- {f.__name__} ----')
       await f()
   
