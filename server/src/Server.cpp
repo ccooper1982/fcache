@@ -275,6 +275,14 @@ namespace fc
     {
       m_listHandler->handle(fbb, *request.body_as_ListRemoveIf());
     }
+    else if (request.body_type() == fc::request::RequestBody_ListIntersect)
+    {
+      m_listHandler->handle(fbb, *request.body_as_ListIntersect());
+    }
+    else
+    {
+      fbb.Finish(fc::response::CreateResponse(fbb, fc::response::Status_CommandUnknown));
+    }
 
     send(ws, fbb);
   }

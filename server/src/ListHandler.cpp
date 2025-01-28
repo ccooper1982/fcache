@@ -137,7 +137,7 @@ namespace fc
       {
         const auto& fcList = (*listOpt)->second;
 
-        FlexBuilder flxb{2048U}; 
+        FlexBuilder flxb{4096U}; 
 
         const bool createdBuffer = hasStop ?  std::visit(GetByRange{flxb, start, stop, base}, fcList->list()) :
                                               std::visit(GetByRange{flxb, start, base}, fcList->list());
@@ -244,6 +244,51 @@ namespace fc
     }
 
     createEmptyBodyResponse(fbb, status, ResponseBody_ListRemoveIf);
+  }
+  
+
+  void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListIntersect& req) noexcept
+  {
+    try
+    {
+      const auto list1Opt = haveList(fbb, req.list1_name()->str(), ResponseBody_ListIntersect);
+      const auto list2Opt = haveList(fbb, req.list2_name()->str(), ResponseBody_ListIntersect);
+
+      if (list1Opt && list2Opt)  [[likely]]
+      {
+        const auto& fcList1 = (*list1Opt)->second;
+        const auto& fcList2 = (*list2Opt)->second;
+
+        // TODO: allow intersecting of IntList and UIntlist
+
+        if (!(fcList1->type() == fcList2->type() && fcList1->isSorted() && fcList2->isSorted()))
+          createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListIntersect);
+        else
+        {
+          FlexBuilder flxb{4096U};
+
+          std::visit([&flxb, &range1 = *(req.list1_range()), &range2 = *(req.list2_range()), &other = fcList2->list()](const auto& l1)
+          {
+            // list2 must be same type as list1
+            const auto& l2 = std::get<std::remove_cvref_t<decltype(l1)>>(other);  
+            intersect(flxb, l1, l2, range1, range2);
+          },
+          fcList1->list());
+
+          // intersect() finishes the FlexBuilder
+          const auto vec = fbb.CreateVector(flxb.GetBuffer());
+          const auto body = fc::response::CreateListIntersect(fbb, vec);
+          
+          auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_ListIntersect, body.Union());
+          fbb.Finish(rsp);
+        }
+      }
+    }
+    catch(const std::exception& e)
+    {
+      PLOGE << e.what();
+      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListIntersect);
+    }
   }
 
 

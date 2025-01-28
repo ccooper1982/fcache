@@ -22,7 +22,8 @@ union RequestBody
   ListDelete,
   ListGetRange,
   ListRemove,
-  ListRemoveIf
+  ListRemoveIf,
+  ListIntersect
 }
 
 table Request

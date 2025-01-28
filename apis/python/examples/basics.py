@@ -235,6 +235,31 @@ async def sorted_lists():
   print(await lst.get_n('names'))
 
 
+  # intersect int
+  await lst.create('i1', type='int')
+  await lst.create('i2', type='int')
+
+  await lst.add('i1', [0,1,2,5,5,5,6,7,8,9,10], items_sorted=True)
+  await lst.add('i2', [0,1,2,5,5,5,6,7], items_sorted=True)
+
+  print(await lst.intersect('i1', 'i2'))
+  print(await lst.intersect('i1', 'i2', l1_stop=6))
+  print(await lst.intersect('i1', 'i2', l2_stop=3))
+  print(await lst.intersect('i1', 'i2', l1_start=3, l1_stop=6, l2_stop=-2))
+
+  #intersect str
+  await lst.create('s1', type='str')
+  await lst.create('s2', type='str')
+
+  await lst.add('s1', ['apple', 'cider', 'painful', 'tequila', 'yes'], items_sorted=True)
+  await lst.add('s2', ['apple', 'beer', 'cider', 'no', 'painful', 'tequila'], items_sorted=True)
+
+  print(await lst.intersect('s1', 's2'))
+  print(await lst.intersect('s1', 's2', l1_stop=2, l2_stop=-3))
+  print(await lst.intersect('s1', 's2', l1_start=2))
+  print(await lst.intersect('s1', 's2', l1_start=2, l2_start=4))
+
+
 if __name__ == "__main__":
   async def run():
     #for f in [kv, kv_blob, unsorted_lists, sorted_lists]:

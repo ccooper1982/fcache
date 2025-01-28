@@ -29,20 +29,6 @@ namespace fc
 
 
   template<typename Iterator>
-  void listToTypedVector(FlexBuilder& flxb, Iterator begin, const Iterator end)
-  {
-    flxb.TypedVector([&flxb, begin, end]() mutable
-    {
-      while (begin != end)
-      {
-        flxb.Add(*begin);
-        ++begin;
-      }
-    });
-  }
-
-
-  template<typename Iterator>
   void listToTypedVector(FlexBuilder& flxb, Iterator it, const int64_t count)
   {
     flxb.TypedVector([&flxb, it, count]() mutable
@@ -74,19 +60,42 @@ namespace fc
   }
 
 
+  template<typename It, typename ListT>
+  std::tuple<bool, It, It> toIterators(const int64_t start, const int64_t end, const bool hasStop, ListT& list)
+  {
+    constexpr bool IsConst = std::is_same_v<It, typename ListT::const_iterator>;
+    using Iterator = std::conditional_t<IsConst, typename ListT::const_iterator, typename ListT::iterator>;
+
+    const auto [valid, begin, last] = positionsToIndices(start, end, hasStop, list);
+    
+    if (!valid || begin >= last)
+      return {false, Iterator{}, Iterator{}};
+    else
+    {
+      Iterator itBegin;
+
+      if constexpr (IsConst)  
+        itBegin = list.cbegin();
+      else
+        itBegin = list.begin();
+
+      return {true, std::next(itBegin, begin),
+                    std::next(itBegin, last)};
+    }
+  }
+
+
   template<typename ListT>
   std::tuple<bool, typename ListT::iterator, typename ListT::iterator> positionsToIterators(const int64_t start, const int64_t end, const bool hasStop, ListT& list)
   {
-    const auto [valid, begin, last] = positionsToIndices(start, end, hasStop, list);
+    return toIterators<typename ListT::iterator> (start, end, hasStop, list);
+  }
 
-    if (!valid || begin >= last)
-      return {false, list.end(), list.end()};
-    else
-    {
-      const auto itStart = std::next(list.begin(), begin);
-      const auto itEnd = std::next(list.begin(), last);
-      return {true, itStart, itEnd};
-    }
+
+  template<typename ListT>
+  std::tuple<bool, typename ListT::const_iterator, typename ListT::const_iterator> positionsToConstIterators(const int64_t start, const int64_t end, const bool hasStop, ListT& list)
+  {
+    return toIterators<typename ListT::const_iterator> (start, end, hasStop, list);
   }
 
 
@@ -240,20 +249,15 @@ namespace fc
 
       if (valid)
       {
+        const auto count = last-begin;
         if (base == Base_Head)
         {
           const auto itStart = std::next(list.cbegin(), begin);
-          const auto count = last-begin;
-
-          PLOGD << "Forward for " << count << " from " << *itStart;
           listToTypedVector(flxb, itStart, count);
         }
         else
         {
           const auto itStart = std::next(list.crbegin(), begin);
-          const auto count = last-begin;
-        
-          PLOGD << "Reverse for " << count << " from " << *itStart;
           listToTypedVector(flxb, itStart, count);
         }
       }
@@ -291,16 +295,10 @@ namespace fc
 
       if (valid)
       {
-        // if erasing all nodes
-        if (begin == 0 && last == std::ssize(list))
-        {
-          PLOGD << "Clearing";
+        if (last-begin == std::ssize(list))
           list.clear();
-        }
         else
         {
-          PLOGD << "Removing: " << begin << " to " << last;
-
           const auto itStart = std::next(list.begin(), begin);
           const auto itEnd = std::next(list.begin(), last);
           list.erase(itStart, itEnd);
@@ -392,6 +390,50 @@ namespace fc
     Condition condition;
   };
   
+
+  template<typename ListT>
+  void doIntersect( FlexBuilder& flxb, 
+                  const typename ListT::const_iterator l1Begin, const typename ListT::const_iterator l1End,
+                  const typename ListT::const_iterator l2Begin, const typename ListT::const_iterator l2End)
+  {
+    using value_t = typename ListT::value_type;
+
+    std::list<value_t> result;
+    std::set_intersection(l1Begin, l1End,
+                          l2Begin, l2End,
+                          std::back_inserter(result));
+
+    
+    if (result.empty())    [[unlikely]]
+      flxb.TypedVector([]{}); // create empty vector for clients
+    else
+    {
+      flxb.TypedVector([&flxb, &result]
+      {
+        for (const auto& v : result)
+          flxb.Add(v);
+      });
+    }
+
+    flxb.Finish();
+  }
+
+
+  template<typename ListT>
+  void intersect( FlexBuilder& flxb,
+                  const ListT& l1,
+                  const ListT& l2,
+                  const fc::request::Range& l1Range, const fc::request::Range& l2Range)
+  {
+    const auto [l1Valid, l1Begin, l1Last] = positionsToConstIterators(l1Range.start(), l1Range.stop(), l1Range.has_stop(), l1);
+    const auto [l2Valid, l2Begin, l2Last] = positionsToConstIterators(l2Range.start(), l2Range.stop(), l2Range.has_stop(), l2);
+    
+    if (l1Valid && l2Valid)
+    {
+      doIntersect<ListT>(flxb, l1Begin, l1Last, l2Begin, l2Last);
+    }
+  }
+
 
   // Holds everything we need to know about a list.
   // The list is a variant so we can manage a list of different
