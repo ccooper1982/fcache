@@ -49,3 +49,24 @@ For example, in the Python API we can remove nodes with a value of `100` in rang
 ```py
 await lists.remove_if_eq('scores', start=0, stop=8, val=100)
 ```
+
+
+## Intersect
+Sorted lists of the same type can be intersected, with support for start/stop positions within each list.
+
+
+```py
+await lst.create('i1', type='int')
+await lst.create('i2', type='int')
+
+await lst.add('i1', [0,1,2,5,5,5,6,7,8,9,10], items_sorted=True)
+await lst.add('i2', [0,1,2,5,5,5,6,7], items_sorted=True)
+
+print(await lst.intersect('i1', 'i2'))
+print(await lst.intersect('i1', 'i2', l1_stop=6))
+```
+
+```sh title='Output'
+[0, 1, 2, 5, 5, 5, 6, 7]
+[0, 1, 2, 5, 5, 5]
+```

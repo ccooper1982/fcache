@@ -50,6 +50,8 @@ nav:
       - contains: 'api_py/kv/contains.md'
       - count: 'api_py/kv/count.md'
     - List:
+      - Sorted Only:
+        - 'api_py/list/intersect.md'
       - create: 'api_py/list/create.md'
       - add_head: 'api_py/list/add_head.md'
       - add_tail: 'api_py/list/add_tail.md'
@@ -64,3 +66,4 @@ nav:
       - remove_if_eq: 'api_py/list/remove_if_eq.md'
       - delete: 'api_py/list/delete.md'
       - delete_all: 'api_py/list/delete_all.md'
+      
