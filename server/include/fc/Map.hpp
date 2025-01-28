@@ -9,7 +9,7 @@ namespace fc
 {
   class CacheMap
   {
-    using Map = ankerl::unordered_dense::pmr::map<std::pmr::string, CachedValue>;
+    using Map = ankerl::unordered_dense::pmr::map<std::string, CachedValue>;
     using CacheMapIterator = Map::iterator;
     using CacheMapConstIterator = Map::const_iterator;
     using enum FlexType;
@@ -46,12 +46,10 @@ namespace fc
         else
           static_assert(false, "FlexBuffers::Type not supported for fixed type");
 
-        const std::pmr::string pmrKey{key, MapMemory::getPool()};
-
         // set and add commands both emplace if does not exist
-        if (const auto it = m_map.find(pmrKey) ; it == m_map.end())
+        if (const auto it = m_map.find(key) ; it == m_map.end())
         {
-          m_map.try_emplace(pmrKey, FixedValue{value, extract});
+          m_map.try_emplace(key, FixedValue{value, extract});
         }
         else if constexpr (IsSet)
         {
@@ -75,11 +73,9 @@ namespace fc
     {
       try
       {
-        const std::pmr::string pmrKey{key, MapMemory::getPool()};
-        
-        if (const auto it = m_map.find(pmrKey) ; it == m_map.end())
+        if (const auto it = m_map.find(key) ; it == m_map.end())
         {
-          storeVectorValue<FlexT>(pmrKey, v);
+          storeVectorValue<FlexT>(key, v);
         }
         else if (IsSet)
         {
@@ -104,11 +100,9 @@ namespace fc
     {
       try
       {
-        const std::pmr::string pmrKey{key, MapMemory::getPool()};
-        
-        if (const auto it = m_map.find(pmrKey) ; it == m_map.end())
+        if (const auto it = m_map.find(key) ; it == m_map.end())
         {
-          auto [itEmplaced, _] = m_map.try_emplace(pmrKey, VectorValue{});
+          auto [itEmplaced, _] = m_map.try_emplace(key, VectorValue{});
           stringToMap(itEmplaced, str);
         }
         else if (IsSet)
@@ -134,11 +128,9 @@ namespace fc
     {
       try
       {
-        const std::pmr::string pmrKey{key, MapMemory::getPool()};
-        
-        if (const auto it = m_map.find(pmrKey) ; it == m_map.end())
+        if (const auto it = m_map.find(key) ; it == m_map.end())
         {
-          auto [itEmplaced, _] = m_map.try_emplace(pmrKey, VectorValue{});
+          auto [itEmplaced, _] = m_map.try_emplace(key, VectorValue{});
           blobToMap(itEmplaced, blob);
         }
         else if (IsSet)
@@ -164,9 +156,7 @@ namespace fc
       {
         for (const auto& key : keys)
         { 
-          const std::pmr::string pmrKey{key->str(), MapMemory::getPool()};
-
-          if (const auto& it = m_map.find(pmrKey); it != m_map.cend())
+          if (const auto& it = m_map.find(key->str()); it != m_map.cend())
           {
             const auto pKey = key->c_str();
             const auto& cachedValue = it->second;
@@ -190,10 +180,7 @@ namespace fc
     void remove (const KeyVector& keys)
     {
       for (const auto& key : keys)
-      {
-        const std::pmr::string pmrKey{key->str(), MapMemory::getPool()};
-        m_map.erase(pmrKey);
-      }
+        m_map.erase(key->str());
     };
 
     
@@ -219,9 +206,7 @@ namespace fc
       {
         for (const auto key : keys)
         {
-          const std::pmr::string pmrKey{key->str(), MapMemory::getPool()};
-
-          if (m_map.contains(pmrKey))
+          if (m_map.contains(key->str()))
             fb.String(key->c_str());
         }
       });      
@@ -250,11 +235,11 @@ namespace fc
     
 
     template<FlexType FlexT>
-    void storeVectorValue (const std::pmr::string& pmrKey, const flexbuffers::TypedVector& v)
+    void storeVectorValue (const std::string& key, const flexbuffers::TypedVector& v)
     {
       // this function is only called if the key is not in the map, so
       // no need to check second return value of try_emplace()
-      auto [it, _] = m_map.try_emplace(pmrKey, VectorValue{});
+      auto [it, _] = m_map.try_emplace(key, VectorValue{});
       storeVectorValue<FlexT>(it, v);
     }
 

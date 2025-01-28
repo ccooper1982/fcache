@@ -10,7 +10,7 @@ namespace fc
   struct FixedValue;
   struct VectorValue;
 
-  using CachedKey = std::string;  // TODO change to std::pmr::string, requires some func signatures changed
+  using CachedKey = std::string;
   using KeyVector = flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>;  
   using ExtractFixedF = void (*)(FlexBuilder&, const char * key, const FixedValue&);
   using ExtractVectorF = void (*)(FlexBuilder&, const char * key, const VectorValue&);
