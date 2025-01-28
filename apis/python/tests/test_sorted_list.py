@@ -83,3 +83,14 @@ class KV(SortedListTest):
 
     await self.list.remove_if_eq('rmv', start=-7, val=7)
     self.assertListEqual(await self.list.get_n('rmv'), [0,1,2,6,8,9,10])
+  
+
+  async def test_intersect(self):
+    await self.list.create('i1', type='int')
+    await self.list.create('i2', type='int')
+
+    await self.list.add('i1', [0,1,2,5,5,5,6,7,8,9,10], items_sorted=True)
+    await self.list.add('i2', [0,1,2,5,5,5,6,7], items_sorted=True)
+
+    self.assertListEqual(await self.list.intersect('i1', 'i2'), [0,1,2,5,5,5,6,7])
+

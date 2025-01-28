@@ -95,6 +95,8 @@ table ListRemoveIf
 
 table ListIntersect
 {
-  list1:string;
-  list2:string;
+  list1_name:string;
+  list2_name:string;
+  list1_range:Range;
+  list2_range:Range;
 }

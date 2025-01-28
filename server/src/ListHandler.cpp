@@ -251,8 +251,8 @@ namespace fc
   {
     try
     {
-      const auto list1Opt = haveList(fbb, req.list1()->str(), ResponseBody_ListIntersect);
-      const auto list2Opt = haveList(fbb, req.list2()->str(), ResponseBody_ListIntersect);
+      const auto list1Opt = haveList(fbb, req.list1_name()->str(), ResponseBody_ListIntersect);
+      const auto list2Opt = haveList(fbb, req.list2_name()->str(), ResponseBody_ListIntersect);
 
       if (list1Opt && list2Opt)  [[likely]]
       {
@@ -267,10 +267,10 @@ namespace fc
         {
           FlexBuilder flxb{4096U};
 
-          std::visit([&flxb, &other = fcList1->list()](const auto& l1)
+          std::visit([&flxb, &range1 = *(req.list1_range()), &range2 = *(req.list2_range()), &other = fcList1->list()](const auto& l1)
           {
             const auto& l2 = std::get<std::remove_cvref_t<decltype(l1)>>(other);
-            intersect(flxb, l1, l2);
+            intersect(flxb, l1, l2, range1, range2);
           },
           fcList2->list());
 

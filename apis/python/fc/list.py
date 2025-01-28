@@ -308,18 +308,36 @@ class SortedList(List):
     await self._do_add(name, items, 0, Base.Base.Head, items_sorted)  # pos and Base irrelevant for sorted list
 
 
-  async def intersect(self, name1: str, name2: str) -> typing.List[int|float|str]:
-    raise_if(len(name1) == 0, 'name1 empty')
-    raise_if(len(name2) == 0, 'name2 empty')
+  async def intersect(self, list1: str, list2: str, *,
+                            l1_start:int=0, l1_stop:int=None,
+                            l2_start:int=0, l2_stop:int=None) -> typing.List[int|float|str]:
+    
+    raise_if(len(list1) == 0, 'name1 empty')
+    raise_if(len(list2) == 0, 'name2 empty')
 
     fb = flatbuffers.Builder(128)
 
-    name1Offset = fb.CreateString(name1)
-    name2Offset = fb.CreateString(name2)
+    name1_offset = fb.CreateString(list1)
+    name2_offset = fb.CreateString(list2)
+
+    # TODO do a _create_range()
+    Range.Start(fb)
+    Range.AddStart(fb, l1_start)
+    Range.AddStop(fb, 0 if l1_stop is None else l1_stop)
+    Range.AddHasStop(fb, l1_stop is not None)
+    range1Offset = Range.End(fb)
+
+    Range.Start(fb)
+    Range.AddStart(fb, l2_start)
+    Range.AddStop(fb, 0 if l2_stop is None else l2_stop)
+    Range.AddHasStop(fb, l2_stop is not None)
+    range2Offset = Range.End(fb)
 
     ListIntersect.Start(fb)
-    ListIntersect.AddList1(fb, name1Offset)
-    ListIntersect.AddList2(fb, name2Offset)
+    ListIntersect.AddList1Name(fb, name1_offset)
+    ListIntersect.AddList2Name(fb, name2_offset)    
+    ListIntersect.AddList1Range(fb, range1Offset)
+    ListIntersect.AddList2Range(fb, range2Offset)
     body = ListRemove.End(fb)
 
     self._complete_request(fb, body, RequestBody.RequestBody.ListIntersect)

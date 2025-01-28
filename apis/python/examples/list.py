@@ -138,10 +138,11 @@ async def intersect():
     await list.create('l1', type='int')
     await list.create('l2', type='int')
 
-    await list.add('l1', [1,2,3,4,5,6,7,8,9,10])
-    await list.add('l2', [1,2,9,10])
+    await list.add('l1', [1,2,3,4,5,6,7,8,9,10], items_sorted=True)
+    await list.add('l2', [1,2,9,10], items_sorted=True)
     
     print(await list.intersect('l1', 'l2'))
+    print(await list.intersect('l1', 'l2', l2_start=-2))
   except Exception as e:
     print(f'Query failed: {e}')
 
@@ -149,7 +150,7 @@ async def intersect():
 if __name__ == "__main__":
   async def run():
     #for f in [create, get_count, get_range, get_range_reverse]:
-    for f in [intersect, remove]:
+    for f in [intersect]:
       print(f'---- {f.__name__} ----')
       await f()
   
