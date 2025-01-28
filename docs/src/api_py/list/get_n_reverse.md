@@ -1,7 +1,7 @@
 # get_n_reverse
 
 ```py
-async def get_n_reverse(name: str, *, start: int = 0, count: int = 0) -> list:
+async def get_n_reverse(name: str, *, start: int = 0, count: int = None) -> list:
 ```
 
 Returns `count` number of items, beginning from `start` position.
@@ -10,7 +10,7 @@ This is the same as [get_n()](./get_n.md) but `start` is from the tail, i.e. `st
 rather than the head.
 
 - `count`
-    - Value `0` means get to the head
+    - `None` will get to and including the head
     - Cannot be negative
 
 - `start` cannot be negative

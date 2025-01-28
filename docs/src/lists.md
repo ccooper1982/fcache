@@ -7,7 +7,7 @@ A list is a node based doubly linked list with support for:
 - strings
 
 
-List can be sorted or unsorted: 
+Lists can be sorted or unsorted: 
 
 - An unsorted list retains the order as added
 - A sorted list ensures nodes are always in ascending order. If the items being added are already sorted, this can be signalled when adding, reducing workload 

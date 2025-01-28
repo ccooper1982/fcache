@@ -1,13 +1,13 @@
 # get_n
 
 ```py
-async def get_n(name: str, *, start: int = 0, count: int = 0) -> list:
+async def get_n(name: str, *, start: int = 0, count: int = None) -> list:
 ```
 
 Returns `count` number of items, beginning from `start` position.
 
 - `count`
-    - Value `0` means get until to the tail
+    - `None` will get until to and including the tail
     - Cannot be negative
 
 - `start` cannot be negative
