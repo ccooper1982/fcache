@@ -335,15 +335,15 @@ class SortedList(List):
 
     ListIntersect.Start(fb)
     ListIntersect.AddList1Name(fb, name1_offset)
-    ListIntersect.AddList2Name(fb, name2_offset)    
+    ListIntersect.AddList2Name(fb, name2_offset)
     ListIntersect.AddList1Range(fb, range1Offset)
     ListIntersect.AddList2Range(fb, range2Offset)
-    body = ListRemove.End(fb)
+    body = ListIntersect.End(fb)
 
     self._complete_request(fb, body, RequestBody.RequestBody.ListIntersect)
     rsp = await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListIntersect)
 
-    union_body = ListGetRangeRsp.ListGetRange()
+    union_body = ListIntersectRsp.ListIntersect()
     union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
     result = flatbuffers.flexbuffers.Loads(union_body.ItemsAsNumpy().tobytes())
     return result
