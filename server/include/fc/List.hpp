@@ -60,7 +60,6 @@ namespace fc
   }
 
 
-  // TODO yuck?
   template<typename It, typename ListT>
   std::tuple<bool, It, It> toIterators(const int64_t start, const int64_t end, const bool hasStop, ListT& list)
   {
