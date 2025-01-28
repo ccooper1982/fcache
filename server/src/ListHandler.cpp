@@ -267,12 +267,13 @@ namespace fc
         {
           FlexBuilder flxb{4096U};
 
-          std::visit([&flxb, &range1 = *(req.list1_range()), &range2 = *(req.list2_range()), &other = fcList1->list()](const auto& l1)
+          std::visit([&flxb, &range1 = *(req.list1_range()), &range2 = *(req.list2_range()), &other = fcList2->list()](const auto& l1)
           {
-            const auto& l2 = std::get<std::remove_cvref_t<decltype(l1)>>(other);
+            // list2 must be same type as list1
+            const auto& l2 = std::get<std::remove_cvref_t<decltype(l1)>>(other);  
             intersect(flxb, l1, l2, range1, range2);
           },
-          fcList2->list());
+          fcList1->list());
 
           // intersect() finishes the FlexBuilder
           const auto vec = fbb.CreateVector(flxb.GetBuffer());
