@@ -60,26 +60,43 @@ namespace fc
   }
 
 
+  // TODO yuck?
+  template<typename It, typename ListT>
+  std::tuple<bool, It, It> toIterators(const int64_t start, const int64_t end, const bool hasStop, ListT& list)
+  {
+    constexpr bool IsConst = std::is_same_v<It, typename ListT::const_iterator>;
+    using Iterator = std::conditional_t<IsConst, typename ListT::const_iterator, typename ListT::iterator>;
+
+    const auto [valid, begin, last] = positionsToIndices(start, end, hasStop, list);
+    
+    if (!valid || begin >= last)
+      return {false, Iterator{}, Iterator{}};
+    else
+    {
+      Iterator itBegin;
+
+      if constexpr (IsConst)  
+        itBegin = list.cbegin();
+      else
+        itBegin = list.begin();
+
+      return {true, std::next(itBegin, begin),
+                    std::next(itBegin, last)};
+    }
+  }
+
+
   template<typename ListT>
   std::tuple<bool, typename ListT::iterator, typename ListT::iterator> positionsToIterators(const int64_t start, const int64_t end, const bool hasStop, ListT& list)
   {
-   const auto [valid, begin, last] = positionsToIndices(start, end, hasStop, list);
-    
-    if (!valid || begin >= last)
-      return {false, std::end(list), std::end(list)};
-    
-    return {true, std::next(list.begin(), begin), std::next(list.begin(), last)};
+    return toIterators<typename ListT::iterator> (start, end, hasStop, list);
   }
+
 
   template<typename ListT>
   std::tuple<bool, typename ListT::const_iterator, typename ListT::const_iterator> positionsToConstIterators(const int64_t start, const int64_t end, const bool hasStop, ListT& list)
   {
-    const auto [valid, begin, last] = positionsToIndices(start, end, hasStop, list);
-    
-    if (!valid || begin >= last)
-      return {false, std::cend(list), std::cend(list)};
-    
-    return {true, std::next(list.cbegin(), begin), std::next(list.cbegin(), last)};
+    return toIterators<typename ListT::const_iterator> (start, end, hasStop, list);
   }
 
 
