@@ -29,20 +29,6 @@ namespace fc
 
 
   template<typename Iterator>
-  void listToTypedVector(FlexBuilder& flxb, Iterator begin, const Iterator end)
-  {
-    flxb.TypedVector([&flxb, begin, end]() mutable
-    {
-      while (begin != end)
-      {
-        flxb.Add(*begin);
-        ++begin;
-      }
-    });
-  }
-
-
-  template<typename Iterator>
   void listToTypedVector(FlexBuilder& flxb, Iterator it, const int64_t count)
   {
     flxb.TypedVector([&flxb, it, count]() mutable
@@ -240,20 +226,15 @@ namespace fc
 
       if (valid)
       {
+        const auto count = last-begin;
         if (base == Base_Head)
         {
           const auto itStart = std::next(list.cbegin(), begin);
-          const auto count = last-begin;
-
-          PLOGD << "Forward for " << count << " from " << *itStart;
           listToTypedVector(flxb, itStart, count);
         }
         else
         {
           const auto itStart = std::next(list.crbegin(), begin);
-          const auto count = last-begin;
-        
-          PLOGD << "Reverse for " << count << " from " << *itStart;
           listToTypedVector(flxb, itStart, count);
         }
       }
@@ -291,16 +272,10 @@ namespace fc
 
       if (valid)
       {
-        // if erasing all nodes
-        if (begin == 0 && last == std::ssize(list))
-        {
-          PLOGD << "Clearing";
+        if (last-begin == std::ssize(list))
           list.clear();
-        }
         else
         {
-          PLOGD << "Removing: " << begin << " to " << last;
-
           const auto itStart = std::next(list.begin(), begin);
           const auto itEnd = std::next(list.begin(), last);
           list.erase(itStart, itEnd);
@@ -392,6 +367,34 @@ namespace fc
     Condition condition;
   };
   
+
+
+  template<typename ListT>
+  void intersect(FlexBuilder& flxb, const ListT& l1, const ListT& l2)
+  {
+    using value_t = typename ListT::value_type;
+
+    std::list<value_t> result;
+    std::set_intersection(std::cbegin(l1), std::cend(l1),
+                          std::cbegin(l2), std::cend(l2),
+                          std::back_inserter(result));
+
+    
+    if (result.empty())    [[unlikely]]
+      flxb.TypedVector([]{}); // create empty vector for clients
+    else
+    {
+      flxb.TypedVector([&flxb, &result]
+      {
+        for (const auto& v : result)
+          flxb.Add(v);
+      });
+    }
+
+    flxb.Finish();
+  }
+
+
 
   // Holds everything we need to know about a list.
   // The list is a variant so we can manage a list of different

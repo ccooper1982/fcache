@@ -92,3 +92,9 @@ table ListRemoveIf
   value:Value;
   condition:Condition;
 }
+
+table ListIntersect
+{
+  list1:string;
+  list2:string;
+}

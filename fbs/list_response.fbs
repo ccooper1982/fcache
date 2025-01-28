@@ -29,3 +29,9 @@ table ListGetRange
   items:[ubyte] (flexbuffer);
   type:common.ListType;
 }
+
+
+table ListIntersect
+{
+  items:[ubyte] (flexbuffer);
+}

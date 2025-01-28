@@ -7,9 +7,9 @@ from fc.common import raise_if, raise_if_not
 from fc.logging import logger
 from fc.fbs.fc.common import Ident, ListType
 from fc.fbs.fc.request import (Request, RequestBody,
-                               ListCreate, ListAdd, ListDelete, ListGetRange, ListRemove, ListRemoveIf, Range, Base)
+                               ListCreate, ListAdd, ListDelete, ListGetRange, ListRemove, ListRemoveIf, ListIntersect, Range, Base)
 from fc.fbs.fc.request import (IntValue, StringValue, FloatValue, Value)
-from fc.fbs.fc.response import (ResponseBody, ListGetRange as ListGetRangeRsp)
+from fc.fbs.fc.response import (ResponseBody, ListGetRange as ListGetRangeRsp, ListIntersect as ListIntersectRsp)
 
 
 class List(ABC):
@@ -306,3 +306,26 @@ class SortedList(List):
 
   async def add(self, name: str, items: typing.List[int|str|float], items_sorted:bool = False) -> None:
     await self._do_add(name, items, 0, Base.Base.Head, items_sorted)  # pos and Base irrelevant for sorted list
+
+
+  async def intersect(self, name1: str, name2: str) -> typing.List[int|float|str]:
+    raise_if(len(name1) == 0, 'name1 empty')
+    raise_if(len(name2) == 0, 'name2 empty')
+
+    fb = flatbuffers.Builder(128)
+
+    name1Offset = fb.CreateString(name1)
+    name2Offset = fb.CreateString(name2)
+
+    ListIntersect.Start(fb)
+    ListIntersect.AddList1(fb, name1Offset)
+    ListIntersect.AddList2(fb, name2Offset)
+    body = ListRemove.End(fb)
+
+    self._complete_request(fb, body, RequestBody.RequestBody.ListIntersect)
+    rsp = await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListIntersect)
+
+    union_body = ListGetRangeRsp.ListGetRange()
+    union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
+    result = flatbuffers.flexbuffers.Loads(union_body.ItemsAsNumpy().tobytes())
+    return result
