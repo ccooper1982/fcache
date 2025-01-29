@@ -1,4 +1,5 @@
 {
+  "python.pythonPath": "~/venv/bin/python",
   "files.associations": {
     "*.proto": "proto3",
     "atomic": "cpp",
@@ -79,5 +80,7 @@
     "future": "cpp",
     "*.inc": "cpp",
     "complex": "cpp"
-  }
+  },
+  "makefile.configureOnOpen": false,
+  "C_Cpp.default.compilerPath": "/usr/bin/g++"
 }
