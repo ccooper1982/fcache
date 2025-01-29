@@ -12,15 +12,12 @@
 static std::latch run{1U};
 static plog::ColorConsoleAppender<fc::FcFormatter> consoleAppender;
 
-
+// 64 bytes seems a reasonable value for a minimum useful flatbuffers message
 static unsigned int MinPayload = 64;
-static unsigned int MaxPayload = 4 * 1024*1024;
-#ifdef FC_DEBUG
-static unsigned int DefaultPayload = 16384;
-#else
-static unsigned int DefaultPayload = 2048;
-#endif
-
+// no particular reason for this max value, but it needs one
+static unsigned int MaxPayload = 8 * 1024*1024; 
+// having default too low will cause confusion
+static unsigned int DefaultPayload = 16 * 1024;
 
 
 static void kvSigHandle(int param)
