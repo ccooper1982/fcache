@@ -64,6 +64,9 @@ await lst.add('i2', [0,1,2,5,5,5,6,7], items_sorted=True)
 
 print(await lst.intersect('i1', 'i2'))
 print(await lst.intersect('i1', 'i2', l1_stop=6))
+
+# you can also set new_name_list, which creates a new list for
+# for the intersected items, rather than returning them
 ```
 
 ```sh title='Output'

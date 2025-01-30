@@ -156,16 +156,14 @@ async def intersect_new():
 
     await list.delete_all()
 
-    await list.create('l1', type='int')
-    await list.create('l2', type='int')
+    await list.create('list1', type='int')
+    await list.create('list2', type='int')
 
-    await list.add('l1', [1,2,3,4,5,6,7,8,9,10], items_sorted=True)
-    await list.add('l2', [1,2,9,10], items_sorted=True)
+    await list.add('list1', [1,2,3,4,5,6,7,8,9,10], items_sorted=True)
+    await list.add('list2', [1,2,9,10], items_sorted=True)
     
-    print(await list.intersect('l1', 'l2'))
-
-    await list.intersect('l1', 'l2', new_list_name='l3')
-    print(await list.get_n('l3'))
+    await list.intersect('list1', 'list2', new_list_name='list3')
+    print(await list.get_n('list3'))
   except Exception as e:
     print(f'Query failed: {e}')
 
@@ -173,8 +171,7 @@ async def intersect_new():
 
 if __name__ == "__main__":
   async def run():
-    #for f in [create, get_count, get_range, get_range_reverse]:
-    for f in [intersect_new]:
+    for f in [create, get_count, get_range, get_range_reverse, intersect, intersect_new]:
       print(f'---- {f.__name__} ----')
       await f()
   

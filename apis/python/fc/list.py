@@ -311,7 +311,7 @@ class SortedList(List):
   async def intersect(self, list1: str, list2: str, *,
                             l1_start:int=0, l1_stop:int=None,
                             l2_start:int=0, l2_stop:int=None,
-                            new_list_name:str=None) -> typing.List[int|float|str]:
+                            new_list_name:str=None) -> None | typing.List[int|float|str]:
     
     raise_if(len(list1) == 0, 'name1 empty')
     raise_if(len(list2) == 0, 'name2 empty')
@@ -352,7 +352,8 @@ class SortedList(List):
     self._complete_request(fb, body, RequestBody.RequestBody.ListIntersect)
     rsp = await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListIntersect)
 
-    union_body = ListIntersectRsp.ListIntersect()
-    union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
-    result = flatbuffers.flexbuffers.Loads(union_body.ItemsAsNumpy().tobytes())
-    return result
+    if newName_offset is None:    
+      union_body = ListIntersectRsp.ListIntersect()
+      union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
+      result = flatbuffers.flexbuffers.Loads(union_body.ItemsAsNumpy().tobytes())
+      return result
