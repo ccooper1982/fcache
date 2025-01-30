@@ -247,15 +247,14 @@ namespace fc
               if (const auto newListOpt = getList(newListName) ; newListOpt)
               {
                 auto& newList = (*newListOpt)->second->list();
-                std::visit([&flxb, &range1, &range2, &other = fcList2->list(), &newList](const auto& l1) mutable
+                std::visit([&flxb, &range1, &range2, &l1list = fcList1->list(), &l2list = fcList2->list()](auto& newList) mutable
                 {
                   // list1, list2 and newList are same type but newList is not const
-                  const auto& l2 = std::get<std::remove_cvref_t<decltype(l1)>>(other);
-                  auto& newLewListConcrete = std::get<std::remove_cvref_t<decltype(l1)>>(newList);
-
-                  intersect<std::remove_cvref_t<decltype(newLewListConcrete)>>(newLewListConcrete, l1, l2, range1, range2);                  
+                  const auto& l1 = std::get<std::remove_cvref_t<decltype(newList)>>(l1list);
+                  const auto& l2 = std::get<std::remove_cvref_t<decltype(newList)>>(l2list);
+                  intersect<std::remove_cvref_t<decltype(newList)>>(newList, l1, l2, range1, range2);                  
                 },
-                fcList1->list());
+                newList);
               }
             }
             
