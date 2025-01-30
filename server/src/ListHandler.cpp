@@ -266,7 +266,7 @@ namespace fc
           {
             std::visit([&flxb, &range1, &range2, &other = fcList2->list()](const auto& l1)
             {
-              // list2 are the same type as list1, checked above
+              // list1 and list2 are same type, checked above
               const auto& l2 = std::get<std::remove_cvref_t<decltype(l1)>>(other);  
               intersect(flxb, l1, l2, range1, range2);
             },
