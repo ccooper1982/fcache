@@ -30,6 +30,7 @@ namespace fc
 
   private:
     void createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept;
+    fc::response::Status createList(const std::string& name, const fc::common::ListType type, const bool sorted);
 
 
     template<typename Condition, typename ListT>
@@ -60,6 +61,39 @@ namespace fc
         createEmptyBodyResponse(fb, Status_Fail, bodyType);
         return {};
       }
+    }
+
+    
+    inline bool flexTypeToListType (const FlexType type, fc::common::ListType& listType) const
+    {
+      using enum fc::common::ListType;
+      using enum FlexType;
+
+      bool valid = true;
+      switch (type)
+      {
+        case FBT_VECTOR_INT:
+          listType = ListType_Int;
+          break;
+        case FBT_VECTOR_UINT:
+          listType =  ListType_UInt;
+          break;
+        case FBT_VECTOR_FLOAT:
+          listType =  ListType_Float;
+          break;
+        case FBT_VECTOR_KEY:
+          listType =  ListType_String;
+          break;
+        default:
+        {
+          PLOGE << "listTypeToFlexType: invalid value";
+          listType = ListType_MAX;
+          valid = false;
+          break;
+        }
+      }
+
+      return valid;
     }
 
 

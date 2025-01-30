@@ -7,11 +7,11 @@
 #include <fc/FlatBuffers.hpp>
 #include <fc/Common.hpp>
 
-
+//
+// TODO this file is becoming chunky, requires a split
+// 
 namespace fc
 { 
-  // TODO should probably have a traits class, to lookup type info for each list type, so we can do:
-  //   ListTraits<IntList>::value_type and ListTraits<IntList>::flex_type
   using IntList = std::list<fcint>;
   using UIntList = std::list<fcuint>;
   using FloatList = std::list<fcfloat>;
@@ -26,6 +26,57 @@ namespace fc
                                           std::is_same<V, fcfloat>,
                                           std::is_same<V, std::string>,
                                           std::false_type>;
+
+
+  template<typename T>
+  struct ListTraits
+  {
+    // value_type is what the std::list<T> stores
+    // ListT is the variant in List
+    // flexType() returns the FlexBuffer type for the list in requests/responses
+
+    static constexpr FlexType flexType()
+    {
+      static_assert(false, "T not supported by List variant");
+      return FlexType::FBT_NULL;
+    }
+  };
+
+  
+  template<typename T>
+  struct ListCommonTraits
+  {
+    using ListT = T;
+    using Iterator = typename T::iterator;
+  };
+
+  template<>
+  struct ListTraits<IntList> : public ListCommonTraits<IntList>
+  {
+    using value_type = int64_t;
+    static constexpr FlexType flexType() { return FlexType::FBT_VECTOR_INT; }
+  };
+
+  template<>
+  struct ListTraits<UIntList> : public ListCommonTraits<UIntList>
+  {
+    using value_type = uint64_t;
+    static constexpr FlexType flexType() { return FlexType::FBT_VECTOR_UINT; }
+  };
+
+  template<>
+  struct ListTraits<FloatList> : public ListCommonTraits<FloatList>
+  {
+    using value_type = float;
+    static constexpr FlexType flexType() { return FlexType::FBT_VECTOR_FLOAT; }
+  };
+
+  template<>
+  struct ListTraits<StringList> : public ListCommonTraits<StringList>
+  {
+    using value_type = std::string;
+    static constexpr FlexType flexType() { return FlexType::FBT_VECTOR_KEY; }
+  };
 
 
   template<typename Iterator>
@@ -61,10 +112,14 @@ namespace fc
 
 
   template<typename It, typename ListT>
-  std::tuple<bool, It, It> toIterators(const int64_t start, const int64_t end, const bool hasStop, ListT& list)
+  std::tuple<bool, It, It> positionsToIterators(const int64_t start, const int64_t end, const bool hasStop, ListT& list)
   {
-    constexpr bool IsConst = std::is_same_v<It, typename ListT::const_iterator>;
-    using Iterator = std::conditional_t<IsConst, typename ListT::const_iterator, typename ListT::iterator>;
+    using ListIt = typename ListT::iterator;
+    using ListConstIt = typename ListT::const_iterator;
+
+    constexpr bool IsConst = std::is_same_v<It, ListConstIt>;
+    using Iterator = std::conditional_t<IsConst, ListConstIt, ListIt>;
+
 
     const auto [valid, begin, last] = positionsToIndices(start, end, hasStop, list);
     
@@ -82,20 +137,6 @@ namespace fc
       return {true, std::next(itBegin, begin),
                     std::next(itBegin, last)};
     }
-  }
-
-
-  template<typename ListT>
-  std::tuple<bool, typename ListT::iterator, typename ListT::iterator> positionsToIterators(const int64_t start, const int64_t end, const bool hasStop, ListT& list)
-  {
-    return toIterators<typename ListT::iterator> (start, end, hasStop, list);
-  }
-
-
-  template<typename ListT>
-  std::tuple<bool, typename ListT::const_iterator, typename ListT::const_iterator> positionsToConstIterators(const int64_t start, const int64_t end, const bool hasStop, ListT& list)
-  {
-    return toIterators<typename ListT::const_iterator> (start, end, hasStop, list);
   }
 
 
@@ -376,7 +417,9 @@ namespace fc
     template<typename ListT>
     constexpr void doRemove (ListT& list) 
     {
-      if (const auto [valid, itStart, itEnd] = positionsToIterators(start, end, hasStop, list); valid)
+      using iterator_t = typename ListT::iterator;
+
+      if (const auto [valid, itStart, itEnd] = positionsToIterators<iterator_t>(start, end, hasStop, list); valid)
       {
         const auto newEnd = std::remove_if(itStart, itEnd, condition);
         list.erase(newEnd, itEnd);
@@ -392,13 +435,16 @@ namespace fc
   
 
   template<typename ListT>
-  void doIntersect( FlexBuilder& flxb, 
+  void doIntersectToFlexBuffer( FlexBuilder& flxb, 
                   const typename ListT::const_iterator l1Begin, const typename ListT::const_iterator l1End,
                   const typename ListT::const_iterator l2Begin, const typename ListT::const_iterator l2End)
   {
-    using value_t = typename ListT::value_type;
+    using value_t = typename ListTraits<ListT>::value_type;
 
-    std::list<value_t> result;
+    // TODO std::vector<value_t> with a sensible reserve()?
+    //      I don't think we can insert directly to the flexbuffer
+    std::list<value_t> result;  
+
     std::set_intersection(l1Begin, l1End,
                           l2Begin, l2End,
                           std::back_inserter(result));
@@ -419,18 +465,49 @@ namespace fc
   }
 
 
-  template<typename ListT>
-  void intersect( FlexBuilder& flxb,
-                  const ListT& l1,
-                  const ListT& l2,
-                  const fc::request::Range& l1Range, const fc::request::Range& l2Range)
+  template<typename TargetListT, typename SourceListT>
+  void doIntersectToList( TargetListT& newList, 
+                          const typename SourceListT::const_iterator l1Begin, const typename SourceListT::const_iterator l1End,
+                          const typename SourceListT::const_iterator l2Begin, const typename SourceListT::const_iterator l2End)
   {
-    const auto [l1Valid, l1Begin, l1Last] = positionsToConstIterators(l1Range.start(), l1Range.stop(), l1Range.has_stop(), l1);
-    const auto [l2Valid, l2Begin, l2Last] = positionsToConstIterators(l2Range.start(), l2Range.stop(), l2Range.has_stop(), l2);
+    std::set_intersection(l1Begin, l1End,
+                          l2Begin, l2End,
+                          std::back_inserter(newList));
+  }
+
+
+  // intersect to a new list
+  template<typename TargetListT, typename SourceListT>
+  void intersect( TargetListT& newList,
+                  const SourceListT& l1, const SourceListT& l2,
+                  const fc::request::Range& l1Range, const fc::request::Range& l2Range) requires (std::is_same_v<std::remove_cvref_t<SourceListT>, std::remove_cvref_t<TargetListT>>)
+  {
+    using iterator_t = SourceListT::const_iterator;
+
+    const auto [l1Valid, l1Begin, l1Last] = positionsToIterators<iterator_t>(l1Range.start(), l1Range.stop(), l1Range.has_stop(), l1);
+    const auto [l2Valid, l2Begin, l2Last] = positionsToIterators<iterator_t>(l2Range.start(), l2Range.stop(), l2Range.has_stop(), l2);
     
     if (l1Valid && l2Valid)
     {
-      doIntersect<ListT>(flxb, l1Begin, l1Last, l2Begin, l2Last);
+      doIntersectToList<TargetListT, SourceListT>(newList, l1Begin, l1Last, l2Begin, l2Last);
+    }
+  }
+
+
+  // intersect to response buffer
+  template<typename ListT>
+  void intersect( FlexBuilder& flxb,
+                  const ListT& l1, const ListT& l2,
+                  const fc::request::Range& l1Range, const fc::request::Range& l2Range)
+  {
+    using iterator_t = typename ListT::const_iterator;
+
+    const auto [l1Valid, l1Begin, l1Last] = positionsToIterators<iterator_t>(l1Range.start(), l1Range.stop(), l1Range.has_stop(), l1);
+    const auto [l2Valid, l2Begin, l2Last] = positionsToIterators<iterator_t>(l2Range.start(), l2Range.stop(), l2Range.has_stop(), l2);
+    
+    if (l1Valid && l2Valid)
+    {
+      doIntersectToFlexBuffer<ListT>(flxb, l1Begin, l1Last, l2Begin, l2Last);
     }
   }
 
@@ -441,24 +518,13 @@ namespace fc
   class FcList
   {
   public:
-    FcList(IntList&& list, const bool sorted = false) noexcept :
-      m_flexType(FlexType::FBT_VECTOR_INT), m_list(std::move(list)), m_sorted(sorted)
+    template<typename ListT>
+    FcList(ListT&& list, const bool sorted) noexcept :
+      m_list(std::move(list)),
+      m_flexType(ListTraits<ListT>::flexType()),
+      m_sorted(sorted)
     {
-    }
 
-    FcList(UIntList&& list, const bool sorted = false) noexcept :
-      m_flexType(FlexType::FBT_VECTOR_UINT), m_list(std::move(list)), m_sorted(sorted)
-    {
-    }
-
-    FcList(FloatList&& list, const bool sorted = false) noexcept :
-      m_flexType(FlexType::FBT_VECTOR_FLOAT), m_list(std::move(list)), m_sorted(sorted)
-    {
-    }
-
-    FcList(StringList&& list, const bool sorted = false) noexcept :
-      m_flexType(FlexType::FBT_VECTOR_KEY), m_list(std::move(list)), m_sorted(sorted)
-    {
     }
     
     FlexType type() const noexcept { return m_flexType; }
@@ -467,8 +533,8 @@ namespace fc
     bool isSorted () const noexcept { return m_sorted; }
 
   private:
-    FlexType m_flexType;
     List m_list;
+    FlexType m_flexType;    
     const bool m_sorted;
   };
 }

@@ -25,40 +25,7 @@ namespace fc
 
   void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListCreate& req) noexcept
   {
-    auto create = [this, sorted = req.sorted(), name = req.name()->str()](auto&& list) -> fc::response::Status
-    {
-      PLOGD << "ListCreate: list " << name << " is " << (sorted ? "sorted" : "unsorted");
-      const auto [_, created] = m_lists.try_emplace(name, std::make_unique<FcList>(std::forward<decltype(list)>(list), sorted));
-      return created ? Status_Ok : Status_Duplicate;      
-    };
-
-    fc::response::Status status = Status_Fail;
-
-    if (req.type() == ListType_Int)
-    {
-      PLOGD << "ListCreate: Int list";
-      status = create(IntList{});
-    }
-    else if (req.type() == ListType_UInt)
-    {
-      PLOGD << "ListCreate: UInt list";
-      status = create(UIntList{});
-    }
-    else if (req.type() == ListType_Float)
-    {
-      PLOGD << "ListCreate: float list";
-      status = create(FloatList{});
-    }
-    else if (req.type() == ListType_String)
-    {
-      PLOGD << "ListCreate: string list";
-      status = create(StringList{});
-    }    
-    else
-    {
-      PLOGE << "ListCreate: unknown list type";
-    }
-
+    const fc::response::Status status = createList(req.name()->str(), req.type(), req.sorted());
     createEmptyBodyResponse(fbb, status, ResponseBody_ListCreate);
   }
 
@@ -262,18 +229,48 @@ namespace fc
         // TODO: allow intersecting of IntList and UIntlist
 
         if (!(fcList1->type() == fcList2->type() && fcList1->isSorted() && fcList2->isSorted()))
-          createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListIntersect);
+          createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListIntersect);        
         else
         {
+          const auto& range1 = *(req.list1_range());
+          const auto& range2 = *(req.list2_range());
+          const bool createNewList = req.new_list_name() && !req.new_list_name()->str().empty();
+
           FlexBuilder flxb{4096U};
 
-          std::visit([&flxb, &range1 = *(req.list1_range()), &range2 = *(req.list2_range()), &other = fcList2->list()](const auto& l1)
+          if (fc::common::ListType listType; createNewList && flexTypeToListType(fcList1->type(), listType))
           {
-            // list2 must be same type as list1
-            const auto& l2 = std::get<std::remove_cvref_t<decltype(l1)>>(other);  
-            intersect(flxb, l1, l2, range1, range2);
-          },
-          fcList1->list());
+            const auto& newListName = req.new_list_name()->str(); 
+            if (createList(newListName, listType, true) == Status_Ok)
+            {
+              if (const auto newListOpt = getList(newListName) ; newListOpt)
+              {
+                auto& newList = (*newListOpt)->second->list();
+                std::visit([&flxb, &range1, &range2, &other = fcList2->list(), &newList](const auto& l1) mutable
+                {
+                  // list1, list2 and newList are same type but newList is not const
+                  const auto& l2 = std::get<std::remove_cvref_t<decltype(l1)>>(other);
+                  auto& newLewListConcrete = std::get<std::remove_cvref_t<decltype(l1)>>(newList);
+
+                  intersect<decltype(newLewListConcrete)>(newLewListConcrete, l1, l2, range1, range2);
+                },
+                fcList1->list());
+              }
+            }
+            
+            flxb.TypedVector([]{}); // should also return a valid flexbuffer
+            flxb.Finish();
+          }
+          else
+          {
+            std::visit([&flxb, &range1, &range2, &other = fcList2->list()](const auto& l1)
+            {
+              // list2 must be same type as list1
+              const auto& l2 = std::get<std::remove_cvref_t<decltype(l1)>>(other);  
+              intersect(flxb, l1, l2, range1, range2);
+            },
+            fcList1->list());
+          }
 
           // intersect() finishes the FlexBuilder
           const auto vec = fbb.CreateVector(flxb.GetBuffer());
@@ -304,5 +301,33 @@ namespace fc
     {
       PLOGE << e.what();
     }
+  }
+
+
+  fc::response::Status ListHandler::createList(const std::string& name, const fc::common::ListType type, const bool sorted)
+  {
+    auto create = [this, sorted, &name](auto&& list) -> fc::response::Status
+    {
+      const auto [_, created] = m_lists.try_emplace(name, std::make_unique<FcList>(std::forward<decltype(list)>(list), sorted));
+      return created ? Status_Ok : Status_Duplicate;      
+    };
+
+    fc::response::Status status = Status_Fail; 
+
+    if (type <= fc::common::ListType_MAX)
+    {
+      PLOGD << "ListCreate: " << fc::common::EnumNamesListType()[type] << " list, sorted: " << std::boolalpha << sorted;
+
+      if (type == ListType_Int)
+        status = create(IntList{});
+      else if (type == ListType_UInt)
+        status = create(UIntList{});
+      else if (type == ListType_Float)
+        status = create(FloatList{});
+      else if (type == ListType_String)
+        status = create(StringList{});
+    }
+
+    return status;
   }
 }

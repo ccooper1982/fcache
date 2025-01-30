@@ -310,7 +310,8 @@ class SortedList(List):
 
   async def intersect(self, list1: str, list2: str, *,
                             l1_start:int=0, l1_stop:int=None,
-                            l2_start:int=0, l2_stop:int=None) -> typing.List[int|float|str]:
+                            l2_start:int=0, l2_stop:int=None,
+                            new_list_name:str=None) -> typing.List[int|float|str]:
     
     raise_if(len(list1) == 0, 'name1 empty')
     raise_if(len(list2) == 0, 'name2 empty')
@@ -318,7 +319,11 @@ class SortedList(List):
     fb = flatbuffers.Builder(128)
 
     name1_offset = fb.CreateString(list1)
-    name2_offset = fb.CreateString(list2)
+    name2_offset = fb.CreateString(list2) 
+
+    newName_offset = None
+    if new_list_name and len(new_list_name) > 0:
+      newName_offset = fb.CreateString(new_list_name)
 
     # TODO do a _create_range()
     Range.Start(fb)
@@ -338,6 +343,10 @@ class SortedList(List):
     ListIntersect.AddList2Name(fb, name2_offset)
     ListIntersect.AddList1Range(fb, range1Offset)
     ListIntersect.AddList2Range(fb, range2Offset)
+    
+    if newName_offset:
+      ListIntersect.AddNewListName(fb, newName_offset)
+
     body = ListIntersect.End(fb)
 
     self._complete_request(fb, body, RequestBody.RequestBody.ListIntersect)
