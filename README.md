@@ -12,7 +12,7 @@ fcache docs available [here](https://ccooper1982.github.io/fcache/).
 
 
 # Python Client
-The client API hides the FlatBuffer details:
+The client API hides the FlatBuffers details:
 
 ```py
 import fc
@@ -60,7 +60,7 @@ async def kv():
   await lst.add_head('scores', [1,2,3,5,5,6,8])
   await lst.get_n('scores', start=3, count=2) # [5,5]
   await lst.get_range('scores', start=1, stop=-2)  # [2,3,5,5]
-  await lst.remove_if_eq('scores', val=5)  # [2,3]
+  await lst.remove_if_eq('scores', val=5)  # [1,2,3,6,8]
 
 
 if __name__ == "__main__":
@@ -109,7 +109,7 @@ Binary is in `server/release`.
 |---|---|---|
 |IP|127.0.0.1|`--ip`|
 |Port|1987|`--port / -p`|
-|Max Payload|2048|`--maxPayload`|
+|Max Payload|16384 (bytes)|`--maxPayload`|
 
 <br/>
 
