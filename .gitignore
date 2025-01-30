@@ -12,3 +12,6 @@ apis/python/examples/cat_rsp.jpg
 memtest/debug/*
 memtest/release/*
 apis/python/fc/fbs/fc/common/__pycache__/*
+server/CMakeFiles/*
+memtest/CMakeFiles/*
+memtest/Makefile

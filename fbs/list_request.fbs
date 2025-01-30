@@ -14,6 +14,7 @@ enum Condition : ubyte
   Equals
 }
 
+
 // unions can't contain scalrs.
 // And Python (and perhaps others) doesn't like a union
 // with a string, so wrap in a table
@@ -99,4 +100,8 @@ table ListIntersect
   list2_name:string;
   list1_range:Range;
   list2_range:Range;
+  // if new_name is set:
+  //  create list with intersected nodes but don't send new list in response
+  // else: return intersected nodes in response
+  new_list_name:string; 
 }

@@ -110,3 +110,34 @@ class KV(SortedListTest):
     self.assertListEqual(await self.list.intersect('s1', 's2', l1_start=2), ['painful', 'tequila'])
     self.assertListEqual(await self.list.intersect('s1', 's2', l1_start=2, l2_start=4), ['painful', 'tequila'])
   
+
+  async def test_intersect_new_int(self):
+    await self.list.create('i1', type='int')
+    await self.list.create('i2', type='int')
+
+    await self.list.add('i1', [0,1,2,5,5,5,6,7,8,9,10], items_sorted=True)
+    await self.list.add('i2', [0,1,2,5,5,5,6,7], items_sorted=True)
+
+    await self.list.intersect('i1', 'i2', new_list_name='i3')
+    await self.list.intersect('i1', 'i2', l2_stop=3, new_list_name='i4')
+
+    self.assertListEqual(await self.list.get_n('i3'), [0,1,2,5,5,5,6,7])
+    self.assertListEqual(await self.list.get_n('i4'), [0,1,2])
+
+    self.assertListEqual(await self.list.intersect('i3', 'i4'), [0,1,2,])
+
+
+  async def test_intersect_errors(self):
+    await self.list.create('i', type='int')
+    await self.list.create('s', type='str')
+    await self.list.create('f', type='float')
+
+    with self.assertRaises(ResponseError):
+      await self.list.intersect('i', 's')
+      await self.list.intersect('s', 'f')
+      await self.list.intersect('f', 'i')
+
+    with self.assertRaises(ResponseError):
+      await self.list.intersect('i', 's', new_list_name='x')
+      await self.list.intersect('s', 'f', new_list_name='x')
+      await self.list.intersect('f', 'i', new_list_name='x')

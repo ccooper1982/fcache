@@ -105,12 +105,73 @@ async def get_range_reverse():
     print(f'Query failed: {e}')
 
 
+async def remove():
+  if (client := await connect()) is None:
+    return
+
+  try:
+    list = SortedList(client)
+
+    await list.delete_all()
+
+    await list.create('l1', type='int')
+
+    await list.add('l1', [0,1,2,3,4,5,6,7,8,9])    
+    await list.remove('l1')
+
+    await list.add('l1', [0,1,2,3,4,5,6,7,8,9])
+    await list.remove('l1', start=0, stop=10)
+
+  except Exception as e:
+    print(f'Query failed: {e}')
+
+
+async def intersect():
+  if (client := await connect()) is None:
+    return
+
+  try:
+    list = SortedList(client)
+
+    await list.delete_all()
+
+    await list.create('l1', type='int')
+    await list.create('l2', type='int')
+
+    await list.add('l1', [1,2,3,4,5,6,7,8,9,10], items_sorted=True)
+    await list.add('l2', [1,2,9,10], items_sorted=True)
+    
+    print(await list.intersect('l1', 'l2'))
+    print(await list.intersect('l1', 'l2', l2_start=-2))
+  except Exception as e:
+    print(f'Query failed: {e}')
+
+
+async def intersect_new():
+  if (client := await connect()) is None:
+    return
+
+  try:
+    list = SortedList(client)
+
+    await list.delete_all()
+
+    await list.create('list1', type='int')
+    await list.create('list2', type='int')
+
+    await list.add('list1', [1,2,3,4,5,6,7,8,9,10], items_sorted=True)
+    await list.add('list2', [1,2,9,10], items_sorted=True)
+    
+    await list.intersect('list1', 'list2', new_list_name='list3')
+    print(await list.get_n('list3'))
+  except Exception as e:
+    print(f'Query failed: {e}')
 
 
 
 if __name__ == "__main__":
   async def run():
-    for f in [create, get_count, get_range, get_range_reverse]:
+    for f in [create, get_count, get_range, get_range_reverse, intersect, intersect_new]:
       print(f'---- {f.__name__} ----')
       await f()
   
