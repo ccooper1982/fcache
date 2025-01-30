@@ -228,7 +228,8 @@ namespace fc
 
         // TODO: allow intersecting of IntList and UIntlist
 
-        if (!(fcList1->type() == fcList2->type() && fcList1->isSorted() && fcList2->isSorted()))
+        // check sorted and types
+        if (!fcList1->canIntersectWith(*fcList2))
           createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListIntersect);        
         else
         {
@@ -252,20 +253,21 @@ namespace fc
                   const auto& l2 = std::get<std::remove_cvref_t<decltype(l1)>>(other);
                   auto& newLewListConcrete = std::get<std::remove_cvref_t<decltype(l1)>>(newList);
 
-                  intersect<decltype(newLewListConcrete)>(newLewListConcrete, l1, l2, range1, range2);
+                  intersect<std::remove_cvref_t<decltype(newLewListConcrete)>>(newLewListConcrete, l1, l2, range1, range2);                  
                 },
                 fcList1->list());
               }
             }
             
-            flxb.TypedVector([]{}); // should also return a valid flexbuffer
+            // always return a valid/non-empty flexbuffer
+            flxb.TypedVector([]{}); 
             flxb.Finish();
           }
           else
           {
             std::visit([&flxb, &range1, &range2, &other = fcList2->list()](const auto& l1)
             {
-              // list2 must be same type as list1
+              // list2 are the same type as list1, checked above
               const auto& l2 = std::get<std::remove_cvref_t<decltype(l1)>>(other);  
               intersect(flxb, l1, l2, range1, range2);
             },
@@ -331,3 +333,4 @@ namespace fc
     return status;
   }
 }
+

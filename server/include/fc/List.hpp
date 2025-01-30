@@ -465,10 +465,10 @@ namespace fc
   }
 
 
-  template<typename TargetListT, typename SourceListT>
-  void doIntersectToList( TargetListT& newList, 
-                          const typename SourceListT::const_iterator l1Begin, const typename SourceListT::const_iterator l1End,
-                          const typename SourceListT::const_iterator l2Begin, const typename SourceListT::const_iterator l2End)
+  template<typename ListT>
+  void doIntersectToList( ListT& newList, 
+                          const typename ListT::const_iterator l1Begin, const typename ListT::const_iterator l1End,
+                          const typename ListT::const_iterator l2Begin, const typename ListT::const_iterator l2End)
   {
     std::set_intersection(l1Begin, l1End,
                           l2Begin, l2End,
@@ -477,19 +477,19 @@ namespace fc
 
 
   // intersect to a new list
-  template<typename TargetListT, typename SourceListT>
-  void intersect( TargetListT& newList,
-                  const SourceListT& l1, const SourceListT& l2,
-                  const fc::request::Range& l1Range, const fc::request::Range& l2Range) requires (std::is_same_v<std::remove_cvref_t<SourceListT>, std::remove_cvref_t<TargetListT>>)
+  template<typename ListT>
+  void intersect( ListT& newList,
+                  const ListT& l1, const ListT& l2,
+                  const fc::request::Range& l1Range, const fc::request::Range& l2Range)
   {
-    using iterator_t = SourceListT::const_iterator;
+    using iterator_t = ListT::const_iterator;
 
     const auto [l1Valid, l1Begin, l1Last] = positionsToIterators<iterator_t>(l1Range.start(), l1Range.stop(), l1Range.has_stop(), l1);
     const auto [l2Valid, l2Begin, l2Last] = positionsToIterators<iterator_t>(l2Range.start(), l2Range.stop(), l2Range.has_stop(), l2);
     
     if (l1Valid && l2Valid)
     {
-      doIntersectToList<TargetListT, SourceListT>(newList, l1Begin, l1Last, l2Begin, l2Last);
+      doIntersectToList<std::remove_cvref_t<ListT>>(newList, l1Begin, l1Last, l2Begin, l2Last);
     }
   }
 
@@ -531,6 +531,23 @@ namespace fc
     List& list() noexcept { return m_list; }
     const List& list() const noexcept { return m_list; }
     bool isSorted () const noexcept { return m_sorted; }
+
+
+    bool operator==(const FcList& a)
+    {
+      return a.type() == type() && a.isSorted() == isSorted();
+    }
+
+    bool operator!=(const FcList& a)
+    {
+      return !(*this == a);
+    }
+
+
+    bool canIntersectWith (const FcList& other)
+    {
+     return isSorted() && other.isSorted() && type() == other.type();
+    }
 
   private:
     List m_list;
