@@ -29,7 +29,7 @@ async def create():
     await list.delete_all()
 
   except:
-    print('Query failed')
+    print('Query failed: intentional')
         
 
 async def get_count():
