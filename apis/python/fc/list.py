@@ -247,14 +247,15 @@ class List(ABC):
 
 
   def _is_range_valid(self, start:int, stop:int):
-    # easy checks we can do without knowing the list's size
+    # easy checks we can do without knowing the list's size    
     if stop is None:
-      return True    
+      return True
     elif start == stop:
       return False
     elif (start < 0 and stop < 0) or (start > 0 and stop > 0):
       if start > stop:
         return False
+    
     return True
 
 
@@ -292,6 +293,14 @@ class UnsortedList(List):
 
   async def add_tail(self, name: str, items: typing.List[int|str|float]) -> None:
     await self._do_add(name, items, 0, Base.Base.Tail, False)
+
+  
+  async def remove_head(self, name: str) -> None:
+    await self.remove(name, stop=1)
+
+
+  async def remove_tail(self, name: str) -> None:
+    await self.remove(name, start=-1)
 
 
 

@@ -179,4 +179,30 @@ class KV(UnsortedListTest):
     self.assertListEqual(await self.list.get_n('rmv'), [0,1,2,6,8,9,10])
 
 
+  async def test_remove_head(self):
+    data = [0,1,2,3,4,5,6,7,8,9]
+
+    await self.list.create('l', type='int')
+    await self.list.add_head('l', data)
+
+    for i in range(10):
+      await self.list.remove_head('l')
+      self.assertListEqual(await self.list.get_n('l'), data[i+1:])
+
+    self.assertListEqual(await self.list.get_n('l'), [])
+
+
+  async def test_remove_tail(self):
+    data = [0,1,2,3,4,5,6,7,8,9]
+
+    await self.list.create('l', type='int')
+    await self.list.add_head('l', data)
+
+    for i in range(10):
+      await self.list.remove_tail('l')
+      self.assertListEqual(await self.list.get_n('l'), data[:-(i+1)])
+
+    self.assertListEqual(await self.list.get_n('l'), [])
+
+
   # TODO delete, delete_all when exists() implemented
