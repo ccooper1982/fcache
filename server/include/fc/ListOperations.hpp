@@ -156,6 +156,7 @@ namespace fc
     template<typename ItemT,typename ListT>
     void doSourceListSortedAdd(ListT& list) requires(SortedList)
     {
+      // TODO do some quickbenching to compare approaches, i.e. removing first two checks
       const auto size = list.size();
 
       if (const auto& highestItem = items[items.size()-1].As<ItemT>(); size && highestItem <= list.front())
