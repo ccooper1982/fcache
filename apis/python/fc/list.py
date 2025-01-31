@@ -7,7 +7,7 @@ from fc.common import raise_if, raise_if_not
 from fc.logging import logger
 from fc.fbs.fc.common import Ident, ListType
 from fc.fbs.fc.request import (Request, RequestBody,
-                               ListCreate, ListAdd, ListDelete, ListGetRange, ListRemove, ListRemoveIf, ListIntersect, Range, Base)
+                               ListCreate, ListAdd, ListDelete, ListGetRange, ListRemove, ListRemoveIf, ListIntersect, ListSet, Range, Base)
 from fc.fbs.fc.request import (IntValue, StringValue, FloatValue, Value)
 from fc.fbs.fc.response import (ResponseBody, ListGetRange as ListGetRangeRsp, ListIntersect as ListIntersectRsp)
 
@@ -112,6 +112,7 @@ class List(ABC):
 
   async def remove(self, name:str, *, start: int = 0, stop: int = None) -> None:
     raise_if_not(self._is_range_valid(start, stop), 'range invalid')
+    raise_if(len(name) == 0, 'list name empty')
     
     fb = flatbuffers.Builder(128)
 
@@ -303,6 +304,32 @@ class UnsortedList(List):
     await self.remove(name, start=-1)
 
 
+  async def set(self, name:str, items: typing.List[int|str|float], *, pos:int=0):
+    raise_if(len(items) == 0, 'items cannot be empty')
+    raise_if(pos < 0, 'pos negative')
+
+    try:
+      fbb = flatbuffers.flexbuffers.Builder()
+      fbb.TypedVectorFromElements(items)
+      itemsVector = fbb.Finish()
+      
+      fb = flatbuffers.Builder(initialSize=1024)
+      
+      nameOffset = fb.CreateString(name)
+      itemOffset = fb.CreateByteVector(itemsVector)
+
+      ListSet.Start(fb)
+      ListSet.AddName(fb, nameOffset)
+      ListSet.AddItems(fb, itemOffset)
+      ListSet.AddPosition(fb, pos)
+      ListSet.AddBase(fb, Base.Base.Head)
+      body = ListSet.End(fb)
+      
+      self._complete_request(fb, body, RequestBody.RequestBody.ListSet)
+      await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListSet)
+    except Exception as e:
+      logger.error(e)
+      raise
 
 class SortedList(List):
   def __init__(self, client):

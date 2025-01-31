@@ -27,6 +27,7 @@ namespace fc
     void handle(FlatBuilder& fbb, const fc::request::ListRemove& req) noexcept;
     void handle(FlatBuilder& fbb, const fc::request::ListRemoveIf& req) noexcept;
     void handle(FlatBuilder& fbb, const fc::request::ListIntersect& req) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::ListSet& req) noexcept;
 
   private:
     void createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept;

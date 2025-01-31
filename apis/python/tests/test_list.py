@@ -205,4 +205,26 @@ class KV(UnsortedListTest):
     self.assertListEqual(await self.list.get_n('l'), [])
 
 
+  async def test_set(self):
+    await self.list.create('l', type='int')
+    await self.list.add_head('l', [0,0,1,1,1,20,20,30,30])
+
+    await self.list.set('l', [2,2,3,3], pos=5)
+    self.assertListEqual(await self.list.get_n('l'), [0,0,1,1,1,2,2,3,3])
+
+
+  async def test_set_errors(self):
+    await self.list.create('l', type='int')
+    
+    # target list is empty
+    await self.list.set('l', [0,0,0], pos=0)
+    await self.list.set('l', [0,0,0], pos=10)
+
+    await self.list.add_head('l', [0,0,1,1,1,20,20,30,30])
+    # out of bounds
+    await self.list.set('l', [0,0,0], pos=50)
+
+    self.assertListEqual(await self.list.get_n('l'), [0,0,1,1,1,20,20,30,30])
+
+
   # TODO delete, delete_all when exists() implemented

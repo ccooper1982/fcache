@@ -68,6 +68,13 @@ namespace fc
   }
 
 
+  template<typename It, typename ListT>
+  std::tuple<bool, It, It> positionsToIterators(const int64_t start, ListT& list)
+  {
+    return positionsToIterators<It, ListT>(start, 0, false, list);
+  }
+
+
   // Add
   template<bool SortedList>
   struct Add
@@ -180,6 +187,51 @@ namespace fc
     const fc::request::Base base;
     const std::int64_t pos;
     const bool itemsSorted{false};
+  };
+
+
+  template<bool SortedList>
+  struct Set
+  {
+    using enum fc::response::Status;
+
+    Set(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position) // requires (!SortedList)
+      : items(items), base(base), pos(position)
+    {
+    }
+
+    
+    template<typename ListT>
+    void operator()(ListT& list)
+    {
+      using value_t = ListTraits<ListT>::value_type;
+
+      if constexpr (!SortedList)
+      {
+        const auto [valid, begin, end] = positionsToIterators<typename ListT::iterator>(pos, list);
+
+        if (!valid || begin == end)
+        {
+          PLOGW_IF(!valid) << "List::Set is not valid range";
+        }
+        else
+        {
+          std::size_t i = 0;
+          for (auto it = begin ; it != end ; ++i)
+            *it++ = items[i].As<value_t>();
+        }
+      }
+      else
+      {
+        PLOGE << "Not yet";
+      }
+    }
+    
+
+  private:
+    const flexbuffers::TypedVector& items;
+    const fc::request::Base base;
+    const std::int64_t pos;    
   };
 
 

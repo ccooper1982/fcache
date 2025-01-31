@@ -105,3 +105,11 @@ table ListIntersect
   // else: return intersected nodes in response
   new_list_name:string; 
 }
+
+table ListSet
+{
+  name:string;
+  position:int32;
+  base:Base;
+  items:[ubyte] (flexbuffer);
+}
