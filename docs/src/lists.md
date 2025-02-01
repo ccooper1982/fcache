@@ -15,13 +15,13 @@ Lists can be sorted or unsorted:
 For both sorted and unsorted lists get items:
 
 - Based on a range `[start,stop)` with negative positions permitted (similar to Python slicing)
-- Some commands have reverse versions, which work similar to C++'s reverse iterators
+- Some commands have reverse versions which iterate the list from tail to head
 
 
 ## Add Items
 
 - Unsorted List: items can be added anywhere in the list
-- Sorted List: order is defined by the sorted order
+- Sorted List: the list is sorted automatically, in ascending order
 
 
 ## Get Items
