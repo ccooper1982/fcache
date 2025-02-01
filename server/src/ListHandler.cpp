@@ -52,6 +52,7 @@ namespace fc
             if (fcList->isSorted())
               std::visit(Add<true>{itemsVector, req.base(), req.items_sorted()}, fcList->list());
             else
+              // PyAPI prevents position  being <0, but that will changes soon anyway
               std::visit(Add<false>{itemsVector, req.base(), std::abs(req.position())}, fcList->list());
           break;
 
