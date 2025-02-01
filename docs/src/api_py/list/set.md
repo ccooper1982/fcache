@@ -4,7 +4,7 @@
 async def set(name:str, items: typing.List[int|str|float], *, pos:int=0):
 ```
 
-Replace item values in the list, starting at `pos` with the given `items`. The list items are overwritten
+Replace list node values, starting at `pos`, with `items`. The list items are overwritten
 in the same order as `items`.
 
 - All `items` must be the same type 
