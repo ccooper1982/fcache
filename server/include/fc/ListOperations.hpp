@@ -68,13 +68,6 @@ namespace fc
   }
 
 
-  template<typename It, typename ListT>
-  std::tuple<bool, It, It> positionsToIterators(const int64_t start, ListT& list)
-  {
-    return positionsToIterators<It, ListT>(start, 0, false, list);
-  }
-
-
   // Add
   template<bool SortedList>
   struct Add
@@ -123,7 +116,7 @@ namespace fc
       else
       {
         const auto size = std::ssize(list);
-        const auto shift = std::min<>(pos, size);
+        const auto shift = std::min(pos, size);
         typename ListT::iterator it;
         
         if (base == Base_Head)
@@ -131,16 +124,19 @@ namespace fc
         else          
           it = std::next(list.rbegin(), shift).base();
 
-        /* NOTE base(), confusingly, this works because:
-            - reverse iterators are implemented in terms of forward iterators (end()/begin())
-            - a reverse iterator: rbegin()+i == end()-i
-            - rbegin() initially is: end()-1
-            - base() returns the underyling iterator (end()-i)
-            - above when shift is 0, rbegin().base() return end()
-            - allowing appending to the list even though rbegin() references the tail node
-            
-            https://stackoverflow.com/a/71366205
-            https://stackoverflow.com/a/16609146
+        /*
+        NOTE (1)
+              This is a slight hack which lets ListAdd append to the list, but it's inconsistent. The
+              PyAPI sets Base_Tail with position 0, which due to .base() call, actually appends. It is
+              more intuitive for it to insert before the tail node. 
+              Perhaps an ListAppend message is better.
+
+        NOTE (2)
+              This works because:
+              - reverse iterators are implemented in terms of forward iterators (end()/begin())
+           
+              https://stackoverflow.com/a/71366205
+              https://stackoverflow.com/a/16609146
         */ 
 
         for (std::size_t i = 0 ; i < items.size() ; ++i)
