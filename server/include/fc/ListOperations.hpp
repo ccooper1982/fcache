@@ -191,12 +191,11 @@ namespace fc
   };
 
 
-  template<bool SortedList>
   struct Set
   {
     using enum fc::response::Status;
 
-    Set(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position) // requires (!SortedList)
+    Set(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position)
       : items(items), base(base), pos(position)
     {
     }
@@ -206,25 +205,17 @@ namespace fc
     void operator()(ListT& list)
     {
       using value_t = ListTraits<ListT>::value_type;
+      const auto [valid, begin, end] = positionsToIterators<typename ListT::iterator>(pos, pos+items.size(), true, list);
 
-      if constexpr (!SortedList)
+      if (!valid || begin == end)
       {
-        const auto [valid, begin, end] = positionsToIterators<typename ListT::iterator>(pos, list);
-
-        if (!valid || begin == end)
-        {
-          PLOGW_IF(!valid) << "List::Set is not valid range";
-        }
-        else
-        {
-          std::size_t i = 0;
-          for (auto it = begin ; it != end ; ++i)
-            *it++ = items[i].As<value_t>();
-        }
+        PLOGW_IF(!valid) << "List::Set is not valid range";
       }
       else
       {
-        PLOGE << "Not yet";
+        std::size_t i = 0;
+        for (auto it = begin ; it != end ; ++i)
+          *it++ = items[i].As<value_t>();
       }
     }
     

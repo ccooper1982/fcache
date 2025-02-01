@@ -11,7 +11,9 @@ enum Status : byte
   Ok = 1,
   CommandUnknown,
   ParseError,
-  Duplicate
+  Duplicate,
+  NotPermitted,
+  NotExist
 }
 
 

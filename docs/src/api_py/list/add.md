@@ -44,9 +44,7 @@ The sort order is determined by the `<` operator and is always ascending order.
 ## Examples
 
 ```py title='Unsorted'
-from fc.list import UnsortedList
-
-lst = UnsortedList()
+# lst is a fc.list.UnsortedList
 
 await lst.create('names', type='str')
 
@@ -61,16 +59,12 @@ print(await lst.get_n('names'))
 ```
 
 ```bash title='Output'
-['Arya', 'Fiona']
-['Arya', 'David', 'Bob', 'Charlie', 'Fiona']
-['Arya', 'David', 'Bob', 'Emma', 'Charlie', 'Fiona']
+
 ```
 
 
 ```py title='Sorted'
-from fc.list import SortedList
-
-lst = SortedList()
+# lst is a fc.list.SortedList
 
 await lst.create('names', type='str')
 

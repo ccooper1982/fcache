@@ -308,26 +308,29 @@ namespace fc
       const auto& name = req.name()->str();
       const auto& itemsVector = req.items_flexbuffer_root().AsTypedVector();
 
-      if (const auto listOpt = haveList(fbb, name, ResponseBody_ListSet); listOpt && itemsVector.size()) [[likely]]
+      if (const auto listOpt = haveList(fbb, name, ResponseBody_ListSet); listOpt && itemsVector.size())
       {
-        const auto& fcList = (*listOpt)->second;
-
-        switch (fcList->type())
+        if (const auto& fcList = (*listOpt)->second; fcList->isSorted())
+          status = Status_NotPermitted;
+        else
         {
-          case FlexType::FBT_VECTOR_INT:
-          case FlexType::FBT_VECTOR_UINT:
-          case FlexType::FBT_VECTOR_FLOAT:
-          case FlexType::FBT_VECTOR_KEY:
+          switch (fcList->type())
           {
-            std::visit(Set<false>{itemsVector, req.base(), std::abs(req.position())}, fcList->list());
-          }
-          break;
+            case FlexType::FBT_VECTOR_INT:
+            case FlexType::FBT_VECTOR_UINT:
+            case FlexType::FBT_VECTOR_FLOAT:
+            case FlexType::FBT_VECTOR_KEY:
+            {
+              std::visit(Set{itemsVector, req.base(), std::abs(req.position())}, fcList->list());
+            }
+            break;
 
-          default:  [[unlikely]]
-            PLOGE << "Unknown type for list: " << fcList->type();
-            status = Status_Fail;
-          break;
-        }      
+            default:  [[unlikely]]
+              PLOGE << "Unknown type for list: " << fcList->type();
+              status = Status_Fail;
+            break;
+          }
+        }
       }
     }
     catch(const std::exception& e)

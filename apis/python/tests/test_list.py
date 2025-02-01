@@ -221,10 +221,14 @@ class KV(UnsortedListTest):
     await self.list.set('l', [0,0,0], pos=10)
 
     await self.list.add_head('l', [0,0,1,1,1,20,20,30,30])
+    
+    # partially inbounds
+    await self.list.set('l', [20,20,30,30], pos=7)
+    self.assertListEqual(await self.list.get_n('l'), [0,0,1,1,1,20,20,20,20])
+
     # out of bounds
     await self.list.set('l', [0,0,0], pos=50)
-
-    self.assertListEqual(await self.list.get_n('l'), [0,0,1,1,1,20,20,30,30])
+    self.assertListEqual(await self.list.get_n('l'), [0,0,1,1,1,20,20,20,20])
 
 
   # TODO delete, delete_all when exists() implemented

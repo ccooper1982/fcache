@@ -197,6 +197,25 @@ async def unsorted_lists():
   print(await list.get_n('rmv_if_str')) # ['metallica', 'mj', 'abba']
 
 
+  # set
+  await list.create('set', type='str')
+  await list.add_head('set', ['A','B', 'X', 'Y', 'Z','F','G'])
+  print(await list.get_n('set'))
+
+  # replace 'X'
+  await list.set('set', ['C'], pos=2)
+  print(await list.get_n('set'))
+
+  # replace 'Y','Z'
+  await list.set('set', ['D','E'], pos=3)
+  print(await list.get_n('set'))
+
+  # items is length 3, but pos=5 leaves only 2 items, so last two
+  # list nodes are replaced, no error
+  await list.set('set', ['A','D'], pos=5)
+  print(await list.get_n('set'))
+
+
 async def sorted_lists():
   if (client := await connect()) is None:
     return
@@ -263,7 +282,7 @@ async def sorted_lists():
 if __name__ == "__main__":
   async def run():
     #for f in [kv, kv_blob, unsorted_lists, sorted_lists]:
-    for f in [unsorted_lists, sorted_lists]:
+    for f in [unsorted_lists]:
       print(f'---- {f.__name__} ----')
       await f()
   
