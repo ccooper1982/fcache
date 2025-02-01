@@ -44,7 +44,7 @@ class KV(UnsortedListTest):
     await self.list.create('l', type='int')
 
     # same as add_head
-    await self.list.add('l', [1,2,3], pos=0)
+    await self.list.add('l', [1,2,3])
     out = await self.list.get_n('l')
     self.assertListEqual(out, [1,2,3])
 
@@ -62,6 +62,28 @@ class KV(UnsortedListTest):
     await self.list.add('l', [-1,0], pos=0)
     out = await self.list.get_n('l')
     self.assertListEqual(out, [-1,0,1,2,3,4,5,6,7,8,9])
+
+    
+  async def test_add_negative(self):
+    await self.list.create('l', type='int')
+
+    # essentially add to end
+    await self.list.add('l', [7,8,9], pos=3)
+    self.assertListEqual(await self.list.get_n('l'), [7,8,9])
+
+    await self.list.add('l', [1,3], pos=-3)
+    self.assertListEqual(await self.list.get_n('l'), [1,3,7,8,9])
+
+    await self.list.add('l', [2], pos=-4)
+    self.assertListEqual(await self.list.get_n('l'), [1,2,3,7,8,9])
+
+    await self.list.add('l', [4,5,6], pos=-3)
+    self.assertListEqual(await self.list.get_n('l'), [1,2,3,4,5,6,7,8,9])
+
+    await self.list.add('l', [8], pos=-1)
+    self.assertListEqual(await self.list.get_n('l'), [1,2,3,4,5,6,7,8,8,9])
+
+    
 
 
   async def test_get_head_tail(self):

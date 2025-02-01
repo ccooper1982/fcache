@@ -36,7 +36,8 @@ union ResponseBody
   ListRemove,
   ListRemoveIf,
   ListIntersect,
-  ListSet
+  ListSet,
+  ListAppend
 }
 
 

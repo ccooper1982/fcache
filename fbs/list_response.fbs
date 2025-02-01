@@ -3,30 +3,19 @@ include "common.fbs";
 namespace fc.response;
 
 
-table ListCreate
-{
-}
+table ListCreate{}
 
-table ListAdd
-{
-}
+table ListAdd{}
 
-table ListDelete
-{
-}
+table ListDelete{}
 
-table ListRemove
-{
-}
+table ListRemove{}
 
-table ListRemoveIf
-{
-}
+table ListRemoveIf{}
 
-table ListSet
-{
-  
-}
+table ListSet{}
+
+table ListAppend {}
 
 
 table ListGetRange

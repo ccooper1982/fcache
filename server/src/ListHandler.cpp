@@ -32,6 +32,24 @@ namespace fc
 
   void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListAdd& req) noexcept
   {
+    const auto& name = req.name()->str();
+    const auto& items = req.items_flexbuffer_root().AsTypedVector();
+
+    doAddAppend(fbb, name, items, false, req.base(), req.position(), req.items_sorted());
+  }
+
+
+  void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListAppend& req) noexcept
+  {
+    const auto& name = req.name()->str();
+    const auto& items = req.items_flexbuffer_root().AsTypedVector();
+
+    doAddAppend(fbb, name, items);
+  }
+
+
+  void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListSet& req) noexcept
+  {
     fc::response::Status status = Status_Ok;
 
     try
@@ -39,28 +57,29 @@ namespace fc
       const auto& name = req.name()->str();
       const auto& itemsVector = req.items_flexbuffer_root().AsTypedVector();
 
-      if (const auto listOpt = haveList(fbb, name, ResponseBody_ListAdd); listOpt && itemsVector.size()) [[likely]]
+      if (const auto listOpt = haveList(fbb, name, ResponseBody_ListSet); listOpt && itemsVector.size())
       {
-        const auto& fcList = (*listOpt)->second;
-
-        switch (fcList->type())
+        if (const auto& fcList = (*listOpt)->second; fcList->isSorted())
+          status = Status_NotPermitted;
+        else
         {
-          case FlexType::FBT_VECTOR_INT:
-          case FlexType::FBT_VECTOR_UINT:
-          case FlexType::FBT_VECTOR_FLOAT:
-          case FlexType::FBT_VECTOR_KEY:
-            if (fcList->isSorted())
-              std::visit(Add<true>{itemsVector, req.base(), req.items_sorted()}, fcList->list());
-            else
-              // PyAPI prevents position  being <0, but that will changes soon anyway
-              std::visit(Add<false>{itemsVector, req.base(), std::abs(req.position())}, fcList->list());
-          break;
+          switch (fcList->type())
+          {
+            case FlexType::FBT_VECTOR_INT:
+            case FlexType::FBT_VECTOR_UINT:
+            case FlexType::FBT_VECTOR_FLOAT:
+            case FlexType::FBT_VECTOR_KEY:
+            {
+              std::visit(Set{itemsVector, req.base(), std::abs(req.position())}, fcList->list());
+            }
+            break;
 
-          default:  [[unlikely]]
-            PLOGE << "Unknown type for list: " << fcList->type();
-            status = Status_Fail;
-          break;
-        }      
+            default:  [[unlikely]]
+              PLOGE << "Unknown type for list: " << fcList->type();
+              status = Status_Fail;
+            break;
+          }
+        }
       }
     }
     catch(const std::exception& e)
@@ -69,7 +88,7 @@ namespace fc
       status = Status_Fail;
     }
 
-    createEmptyBodyResponse(fbb, status, fc::response::ResponseBody_ListAdd);
+    createEmptyBodyResponse(fbb, status, ResponseBody_ListSet);
   }
 
 
@@ -96,7 +115,7 @@ namespace fc
       status = Status_Fail;
     }
     
-    createEmptyBodyResponse(fbb, status, fc::response::ResponseBody_ListDelete);
+    createEmptyBodyResponse(fbb, status, ResponseBody_ListDelete);
   }
 
 
@@ -300,65 +319,6 @@ namespace fc
   }
 
 
-  void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListSet& req) noexcept
-  {
-    fc::response::Status status = Status_Ok;
-
-    try
-    {
-      const auto& name = req.name()->str();
-      const auto& itemsVector = req.items_flexbuffer_root().AsTypedVector();
-
-      if (const auto listOpt = haveList(fbb, name, ResponseBody_ListSet); listOpt && itemsVector.size())
-      {
-        if (const auto& fcList = (*listOpt)->second; fcList->isSorted())
-          status = Status_NotPermitted;
-        else
-        {
-          switch (fcList->type())
-          {
-            case FlexType::FBT_VECTOR_INT:
-            case FlexType::FBT_VECTOR_UINT:
-            case FlexType::FBT_VECTOR_FLOAT:
-            case FlexType::FBT_VECTOR_KEY:
-            {
-              std::visit(Set{itemsVector, req.base(), std::abs(req.position())}, fcList->list());
-            }
-            break;
-
-            default:  [[unlikely]]
-              PLOGE << "Unknown type for list: " << fcList->type();
-              status = Status_Fail;
-            break;
-          }
-        }
-      }
-    }
-    catch(const std::exception& e)
-    {
-      PLOGE << e.what();
-      status = Status_Fail;
-    }
-
-    createEmptyBodyResponse(fbb, status, fc::response::ResponseBody_ListSet);
-  }
-
-
-  void ListHandler::createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept
-  {
-    // TODO this function is also in KvHandler. Move to Common.hpp or create Handler base class
-    try
-    {
-      const auto rsp = fc::response::CreateResponse (fbb, status, bodyType);
-      fbb.Finish(rsp);
-    }
-    catch(const std::exception& e)
-    {
-      PLOGE << e.what();
-    }
-  }
-
-
   fc::response::Status ListHandler::createList(const std::string& name, const fc::common::ListType type, const bool sorted)
   {
     auto create = [this, sorted, &name](auto&& list) -> fc::response::Status
@@ -384,6 +344,65 @@ namespace fc
     }
 
     return status;
+  }
+
+
+  void ListHandler::doAddAppend(  FlatBuilder& fbb, const std::string& name, const flexbuffers::TypedVector& items,
+                                  const bool isAppend, const fc::request::Base base, const std::int64_t pos, const bool itemsSorted)
+  {
+    const fc::response::ResponseBody bodyType = isAppend ? ResponseBody_ListAppend : ResponseBody_ListAdd;
+
+    try
+    {
+      fc::response::Status status = Status_Ok;
+
+      if (const auto listOpt = haveList(fbb, name, bodyType); listOpt && items.size()) [[likely]]
+      {
+        const auto& fcList = (*listOpt)->second;
+
+        switch (fcList->type())
+        {
+          case FlexType::FBT_VECTOR_INT:
+          case FlexType::FBT_VECTOR_UINT:
+          case FlexType::FBT_VECTOR_FLOAT:
+          case FlexType::FBT_VECTOR_KEY:
+            if (isAppend && !fcList->isSorted())
+              std::visit(Add<false>{items}, fcList->list());
+            else if (fcList->isSorted())
+              std::visit(Add<true>{items, base, itemsSorted}, fcList->list());
+            else
+              std::visit(Add<false>{items, base, pos}, fcList->list());
+          break;
+
+          default:  [[unlikely]]
+            PLOGE << "Unknown type for list: " << fcList->type();
+            status = Status_Fail;
+          break;
+        }      
+      
+        createEmptyBodyResponse(fbb, status, bodyType);  
+      }
+    }
+    catch(const std::exception& e)
+    {
+      PLOGE << e.what();
+      createEmptyBodyResponse(fbb, Status_Fail, bodyType);
+    }
+  }
+
+
+  void ListHandler::createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept
+  {
+    // TODO this function is also in KvHandler. Move to Common.hpp or create Handler base class
+    try
+    {
+      const auto rsp = fc::response::CreateResponse (fbb, status, bodyType);
+      fbb.Finish(rsp);
+    }
+    catch(const std::exception& e)
+    {
+      PLOGE << e.what();
+    }
   }
 }
 
