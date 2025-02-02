@@ -134,7 +134,7 @@ class List(ABC):
     await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListRemove)
   
 
-  async def remove_if_eq(self, name:str, *, start: int = 0, stop: int = None, val):
+  async def remove_if_eq(self, name:str, *, start: int = 0, stop: int = None, val: str|int|float):
     """ Remove if nodes in range [start,stop) equals val """
     
     raise_if_not(self._is_range_valid(start, stop), 'range invalid')
@@ -145,19 +145,17 @@ class List(ABC):
     nameOffset = fb.CreateString(name)
 
     if isinstance(val, str):
+      # note must call CreateString before fb.Start()
       stringValOffset = fb.CreateString(val)
-
-
-    if isinstance(val, int):
-      IntValue.Start(fb)
-      IntValue.AddV(fb, val)
-      valueOffset = IntValue.End(fb)
-      type = Value.Value.IntValue
-    elif isinstance(val, str):
       StringValue.Start(fb)
       StringValue.AddV(fb, stringValOffset)
       valueOffset = StringValue.End(fb)
       type = Value.Value.StringValue
+    elif isinstance(val, int):
+      IntValue.Start(fb)
+      IntValue.AddV(fb, val)
+      valueOffset = IntValue.End(fb)
+      type = Value.Value.IntValue
     elif isinstance(val, float):
       FloatValue.Start(fb)
       FloatValue.AddV(fb, val)

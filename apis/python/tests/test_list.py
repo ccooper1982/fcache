@@ -190,7 +190,7 @@ class KV(UnsortedListTest):
     self.assertListEqual(await self.list.get_n('rmv'), [10])
 
 
-  async def test_remove_if(self):
+  async def test_remove_if_int(self):
     await self.list.create('rmv', type='int')
     await self.list.add_head('rmv', [0,1,2,5,5,5,6,7,8,9,7,7,10])
     
@@ -199,6 +199,20 @@ class KV(UnsortedListTest):
 
     await self.list.remove_if_eq('rmv', start=-7, val=7)
     self.assertListEqual(await self.list.get_n('rmv'), [0,1,2,6,8,9,10])
+
+
+  async def test_remove_if_str(self):
+    await self.list.create('rmv', type='str')
+    await self.list.add_head('rmv', ['A','B','B','C','D','D','D','E'])
+
+    await self.list.remove_if_eq('rmv', val='B')
+    self.assertListEqual(await self.list.get_n('rmv'),['A','C','D','D','D','E'])
+
+    await self.list.remove_if_eq('rmv', stop=3, val='D')
+    self.assertListEqual(await self.list.get_n('rmv'),['A','C','D','D','E'])
+
+    await self.list.remove_if_eq('rmv', start=2, stop=4, val='D')
+    self.assertListEqual(await self.list.get_n('rmv'),['A','C','E'])
 
 
   async def test_remove_head(self):
