@@ -330,35 +330,34 @@ namespace fc
   struct IsEqual
   {
     using value_type = T;
-
     
     explicit IsEqual (const T v) : val(std::move(v)) {}
     bool operator()(const T& a) { return a == val; }
+    const T& value() const { return val; }
 
     // TODO or const T& val? doesn't matter for primitives, want to avoid copy strings, but
     T val; 
   };
   
 
-  template<typename Condition>
+  template<bool SortedList, typename Condition>
   struct RemoveIf
   {
-    using value_type = typename Condition::value_type;
-
-
     RemoveIf(const int64_t start, const int64_t end, Condition c) noexcept
       : start(start), end(end), hasStop(true), condition(std::move(c))
     {
     }
 
     RemoveIf(const int64_t start, Condition c) noexcept
-      : start(start), end(0), hasStop(false), condition(std::move(c))
+      : start(start), hasStop(false), condition(std::move(c))
     {
     }
     
     template<typename ListT>
     void operator()(ListT& list)
     {
+      using value_type = typename Condition::value_type;
+
       // need this because: we're visited with Condition, which is templated by its value_type, 
       // so need restrict doRemove() only being called when ListT is for the same type as the Condition -
       // i.e. we're not trying to execute a Condition<int> on a StringList.
@@ -372,20 +371,36 @@ namespace fc
     template<typename ListT>
     constexpr void doRemove (ListT& list) 
     {
-      // TODO look at alternative impl for sorted list
-
       using iterator_t = typename ListT::iterator;
 
-      if (const auto [valid, itStart, itEnd] = positionsToIterators<iterator_t>(start, end, hasStop, list); valid)
+      const auto [valid, itBegin, itEnd] = positionsToIterators<iterator_t>(start, end, hasStop, list);
+      
+      if (!valid)
+        return;
+
+      if constexpr (SortedList)
       {
-        const auto newEnd = std::remove_if(itStart, itEnd, condition);
+        // [itBegin,itEnd) represent what the user requested, but with a sorted list we can 
+        // restrict this further
+        if (const auto [itLow, itHigh] = std::equal_range(itBegin, itEnd, condition.value()) ; itLow != std::end(list))
+          list.erase(itLow, itHigh);
+          
+        // if (const auto itLow = std::lower_bound(itBegin, itEnd, condition.value()); itLow != std::end(list))
+        // {
+        //   const auto itHigh = std::upper_bound(itLow, itEnd, condition.value());
+        //   list.erase(itLow, itHigh);
+        // }
+      }
+      else
+      {
+        const auto newEnd = std::remove_if(itBegin, itEnd, condition);
         list.erase(newEnd, itEnd);
-      } 
+      }
     }
     
   private:
     const std::int64_t start;
-    std::int64_t end;
+    std::int64_t end{0};
     const bool hasStop;
     Condition condition;
   };

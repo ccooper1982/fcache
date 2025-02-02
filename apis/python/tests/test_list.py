@@ -2,7 +2,7 @@ from base import UnsortedListTest
 from fc.common import ResponseError
 
 
-class KV(UnsortedListTest):
+class UnsortedList(UnsortedListTest):
   async def test_create(self):
     # TODO add more checks when exists() available
     await self.list.create('l', type='int', fail_on_duplicate=False)

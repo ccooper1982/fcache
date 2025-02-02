@@ -2,7 +2,7 @@ from base import SortedListTest
 from fc.common import ResponseError
 
 
-class KV(SortedListTest):
+class SortedList(SortedListTest):
   """
   This doesn't test all commands, such as get_range() and reverse version.
   These are the same irrespective of sorted/unsorted.

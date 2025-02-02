@@ -206,23 +206,25 @@ namespace fc
       if (const auto listOpt = haveList(fbb, name, ResponseBody_ListRemoveIf); listOpt)  [[likely]]
       {
         const auto& fcList = (*listOpt)->second;
+        auto& list = fcList->list();
+        const bool isSorted = fcList->isSorted();
 
         switch (req.value_type())
         {
         case Value_IntValue:
-          doRemoveIf<IsEqual<fcint>>(start, stop, hasStop, req.value_as_IntValue()->v(), fcList->list());
+          doRemoveIf<IsEqual<IntList::value_type>>(start, stop, hasStop, req.value_as_IntValue()->v(), list, isSorted);
         break;
 
         case Value_UIntValue:
-          doRemoveIf<IsEqual<fcuint>>(start, stop, hasStop, req.value_as_UIntValue()->v(), fcList->list());
+          doRemoveIf<IsEqual<UIntList::value_type>>(start, stop, hasStop, req.value_as_UIntValue()->v(), list, isSorted);
         break;
 
         case Value_StringValue:
-          doRemoveIf<IsEqual<std::string>>(start, stop, hasStop, req.value_as_StringValue()->v()->str(), fcList->list());
+          doRemoveIf<IsEqual<StringList::value_type>>(start, stop, hasStop, req.value_as_StringValue()->v()->str(), list, isSorted);
         break;
 
         case Value_FloatValue:
-          doRemoveIf<IsEqual<fcfloat>>(start, stop, hasStop, req.value_as_FloatValue()->v(), fcList->list());
+          doRemoveIf<IsEqual<FloatList::value_type>>(start, stop, hasStop, req.value_as_FloatValue()->v(), list, isSorted);
         break;
 
         default:
