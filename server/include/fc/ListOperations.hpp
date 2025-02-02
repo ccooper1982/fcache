@@ -359,7 +359,7 @@ namespace fc
       using value_type = typename Condition::value_type;
 
       // need this because: we're visited with Condition, which is templated by its value_type, 
-      // so need restrict doRemove() only being called when ListT is for the same type as the Condition -
+      // so need restrict so that doRemove() is called only when ListT is for the same type as the Condition -
       // i.e. we're not trying to execute a Condition<int> on a StringList.
       if constexpr (std::is_same_v<value_type, typename ListTraits<ListT>::value_type>)
         doRemove(list);
@@ -375,32 +375,26 @@ namespace fc
 
       const auto [valid, itBegin, itEnd] = positionsToIterators<iterator_t>(start, end, hasStop, list);
       
-      if (!valid)
-        return;
-
-      if constexpr (SortedList)
+      if (valid)
       {
-        // [itBegin,itEnd) represent what the user requested, but with a sorted list we can 
-        // restrict this further
-        if (const auto [itLow, itHigh] = std::equal_range(itBegin, itEnd, condition.value()) ; itLow != std::end(list))
-          list.erase(itLow, itHigh);
-          
-        // if (const auto itLow = std::lower_bound(itBegin, itEnd, condition.value()); itLow != std::end(list))
-        // {
-        //   const auto itHigh = std::upper_bound(itLow, itEnd, condition.value());
-        //   list.erase(itLow, itHigh);
-        // }
-      }
-      else
-      {
-        const auto newEnd = std::remove_if(itBegin, itEnd, condition);
-        list.erase(newEnd, itEnd);
+        if constexpr (SortedList)
+        {
+          // [itBegin,itEnd) represent what the user requested, but with a 
+          // sorted list we can restrict this further
+          if (const auto [itLow, itHigh] = std::equal_range(itBegin, itEnd, condition.value()) ; itLow != std::end(list))
+            list.erase(itLow, itHigh);
+        }
+        else
+        {
+          const auto newEnd = std::remove_if(itBegin, itEnd, condition);
+          list.erase(newEnd, itEnd);
+        }
       }
     }
     
   private:
     const std::int64_t start;
-    std::int64_t end{0};
+    const std::int64_t end{0};
     const bool hasStop;
     Condition condition;
   };
