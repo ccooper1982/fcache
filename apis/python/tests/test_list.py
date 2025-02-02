@@ -44,7 +44,7 @@ class KV(UnsortedListTest):
     await self.list.create('l', type='int')
 
     # same as add_head
-    await self.list.add('l', [1,2,3], pos=0)
+    await self.list.add('l', [1,2,3])
     out = await self.list.get_n('l')
     self.assertListEqual(out, [1,2,3])
 
@@ -62,6 +62,28 @@ class KV(UnsortedListTest):
     await self.list.add('l', [-1,0], pos=0)
     out = await self.list.get_n('l')
     self.assertListEqual(out, [-1,0,1,2,3,4,5,6,7,8,9])
+
+    
+  async def test_add_negative(self):
+    await self.list.create('l', type='int')
+
+    # essentially add to end
+    await self.list.add('l', [7,8,9], pos=3)
+    self.assertListEqual(await self.list.get_n('l'), [7,8,9])
+
+    await self.list.add('l', [1,3], pos=-3)
+    self.assertListEqual(await self.list.get_n('l'), [1,3,7,8,9])
+
+    await self.list.add('l', [2], pos=-4)
+    self.assertListEqual(await self.list.get_n('l'), [1,2,3,7,8,9])
+
+    await self.list.add('l', [4,5,6], pos=-3)
+    self.assertListEqual(await self.list.get_n('l'), [1,2,3,4,5,6,7,8,9])
+
+    await self.list.add('l', [8], pos=-1)
+    self.assertListEqual(await self.list.get_n('l'), [1,2,3,4,5,6,7,8,8,9])
+
+    
 
 
   async def test_get_head_tail(self):
@@ -168,7 +190,7 @@ class KV(UnsortedListTest):
     self.assertListEqual(await self.list.get_n('rmv'), [10])
 
 
-  async def test_remove_if(self):
+  async def test_remove_if_int(self):
     await self.list.create('rmv', type='int')
     await self.list.add_head('rmv', [0,1,2,5,5,5,6,7,8,9,7,7,10])
     
@@ -177,6 +199,20 @@ class KV(UnsortedListTest):
 
     await self.list.remove_if_eq('rmv', start=-7, val=7)
     self.assertListEqual(await self.list.get_n('rmv'), [0,1,2,6,8,9,10])
+
+
+  async def test_remove_if_str(self):
+    await self.list.create('rmv', type='str')
+    await self.list.add_head('rmv', ['A','B','B','C','D','D','D','E'])
+
+    await self.list.remove_if_eq('rmv', val='B')
+    self.assertListEqual(await self.list.get_n('rmv'),['A','C','D','D','D','E'])
+
+    await self.list.remove_if_eq('rmv', stop=3, val='D')
+    self.assertListEqual(await self.list.get_n('rmv'),['A','C','D','D','E'])
+
+    await self.list.remove_if_eq('rmv', start=2, stop=4, val='D')
+    self.assertListEqual(await self.list.get_n('rmv'),['A','C','E'])
 
 
   async def test_remove_head(self):
@@ -203,6 +239,38 @@ class KV(UnsortedListTest):
       self.assertListEqual(await self.list.get_n('l'), data[:-(i+1)])
 
     self.assertListEqual(await self.list.get_n('l'), [])
+
+
+  async def test_set(self):
+    await self.list.create('l', type='int')
+    await self.list.add_head('l', [0,0,1,1,1,20,20,30,30])
+
+    await self.list.set('l', [2,2,3,3], pos=5)
+    self.assertListEqual(await self.list.get_n('l'), [0,0,1,1,1,2,2,3,3])
+
+    await self.list.set('l', [4], pos=-1)
+    self.assertListEqual(await self.list.get_n('l'), [0,0,1,1,1,2,2,3,4])
+
+    await self.list.set('l', [3,4,5], pos=-3)
+    self.assertListEqual(await self.list.get_n('l'), [0,0,1,1,1,2,3,4,5])
+
+
+  async def test_set_errors(self):
+    await self.list.create('l', type='int')
+    
+    # target list is empty
+    await self.list.set('l', [0,0,0], pos=0)
+    await self.list.set('l', [0,0,0], pos=10)
+
+    await self.list.add_head('l', [0,0,1,1,1,20,20,30,30])
+    
+    # partially inbounds
+    await self.list.set('l', [20,20,30,30], pos=7)
+    self.assertListEqual(await self.list.get_n('l'), [0,0,1,1,1,20,20,20,20])
+
+    # out of bounds
+    await self.list.set('l', [0,0,0], pos=50)
+    self.assertListEqual(await self.list.get_n('l'), [0,0,1,1,1,20,20,20,20])
 
 
   # TODO delete, delete_all when exists() implemented

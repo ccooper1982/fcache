@@ -174,7 +174,7 @@ async def unsorted_lists():
   # remove if  
   print('remove if int')
   await list.create('rmv_if', type='int')
-  await list.add_head('rmv_if', [0,1,2,5,5,5,6,7,8,9,7,7,10])
+  await list.add('rmv_if', [0,1,2,5,5,5,6,7,8,9,7,7,10])
   print(await list.get_n('rmv_if'))
     
   await list.remove_if_eq('rmv_if', start=0, stop=7, val=5)
@@ -187,7 +187,7 @@ async def unsorted_lists():
 
   print('remove if str')
   await list.create('rmv_if_str', type='str')
-  await list.add_head('rmv_if_str', ['abba', 'metallica', 'abba', 'mj', 'abba', 'mj', 'mj'])
+  await list.add('rmv_if_str', ['abba', 'metallica', 'abba', 'mj', 'abba', 'mj', 'mj'])
   print(await list.get_n('rmv_if_str'))
     
   await list.remove_if_eq('rmv_if_str', start=0, stop=3, val='abba')
@@ -195,6 +195,25 @@ async def unsorted_lists():
 
   await list.remove_if_eq('rmv_if_str', start=2, val='mj')
   print(await list.get_n('rmv_if_str')) # ['metallica', 'mj', 'abba']
+
+
+  # set
+  await list.create('chars', type='str')
+  await list.add('chars', ['A','B', 'X', 'Y', 'Z','F','G'])
+  print(await list.get_n('chars'))
+
+  # replace 'X'
+  await list.set('chars', ['C'], pos=2)
+  print(await list.get_n('chars'))
+
+  # replace 'Y','Z'
+  await list.set('chars', ['D','E'], pos=3)
+  print(await list.get_n('chars'))
+
+  # replace last four
+  await list.set('chars', ['H','E', 'L','O'], pos=-4)
+  print(await list.get_n('chars'))
+
 
 
 async def sorted_lists():
@@ -263,7 +282,7 @@ async def sorted_lists():
 if __name__ == "__main__":
   async def run():
     #for f in [kv, kv_blob, unsorted_lists, sorted_lists]:
-    for f in [unsorted_lists, sorted_lists]:
+    for f in [unsorted_lists]:
       print(f'---- {f.__name__} ----')
       await f()
   

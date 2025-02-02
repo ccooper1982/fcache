@@ -3,9 +3,6 @@
 ```py
 async def add_tail(name: str, items: typing.List[int|str|float]) -> None
 ```
-!!! note
-    Unsorted list only
-
 Appends items to the list. Items are added in the same order as `items`.
 
 |Param|Info|

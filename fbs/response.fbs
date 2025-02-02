@@ -11,7 +11,9 @@ enum Status : byte
   Ok = 1,
   CommandUnknown,
   ParseError,
-  Duplicate
+  Duplicate,
+  NotPermitted,
+  NotExist
 }
 
 
@@ -33,7 +35,9 @@ union ResponseBody
   ListGetRange,
   ListRemove,
   ListRemoveIf,
-  ListIntersect
+  ListIntersect,
+  ListSet,
+  ListAppend
 }
 
 

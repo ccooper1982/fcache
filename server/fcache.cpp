@@ -26,10 +26,9 @@ static void kvSigHandle(int param)
 }
 
 
-void usage(const char opt = ' ')
+void usage()
 {
-  PLOGE <<  "Incorrect switch " << opt << '\n' <<
-            "--ip <ipv4>        The IPv4 address for the server (default 127.0.0.1)\n"
+  PLOGE <<  "\n--ip <ipv4>        The IPv4 address for the server (default 127.0.0.1)\n"
             "--port <p>         Port (default: 1987)\n"
             "--maxPayload <n>   Max bytes accepted by the WebSocket server";
 }
@@ -65,22 +64,36 @@ std::tuple<bool, std::string, int, unsigned long> getCmdArgs(int argc, char ** a
       break;
       
       case 2:
-        // low: 64B, high: 2MB
-        maxPayload = std::clamp<unsigned int>(std::stoul(optarg), MinPayload, MaxPayload);  
+        if (std::string sPayload{optarg} ; std::any_of(sPayload.cbegin(), sPayload.cend(), [](const auto c){ return !std::isdigit(c);}))
+        {
+          // TODO allow 'M' suffix
+          PLOGE << "maxPayload: can only contain numbers";
+          valid = false;
+        }          
+        else
+        {
+          const auto size = std::stoul(optarg);
+
+          PLOGW_IF(size < MinPayload) << "maxPayload below minimum, setting to " << MinPayload;
+          PLOGW_IF(size > MaxPayload) << "maxPayload exceeds maximum, setting to " << MaxPayload;
+
+          maxPayload = std::clamp<unsigned int>(size, MinPayload, MaxPayload);  
+        }
       break;
 
       default:
         valid = false;
-        usage(opt);
       break;
       }
     }
   }
   catch(const std::exception& e)
   {
-    usage();
     valid = false;
   }
+
+  if (!valid)
+    usage();
 
   return {valid, ip, port, maxPayload};
 }

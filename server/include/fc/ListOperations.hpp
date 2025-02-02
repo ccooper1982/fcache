@@ -68,6 +68,17 @@ namespace fc
   }
 
 
+  template<typename It, typename ListT>
+  It positionToStartIterator(const int64_t start, ListT& list)
+  {
+    // positionsToIterators() won't let start be out of bounds, but this function does,
+    // but returns end
+    const auto [valid, s, e] = positionsToIterators<It>(start, 0, false, list);
+    return valid ? s : std::end(list); // assumes not a const_iterator
+  }
+
+
+
   // Add
   template<bool SortedList>
   struct Add
@@ -78,18 +89,35 @@ namespace fc
     }
 
     Add(const flexbuffers::TypedVector& items, const fc::request::Base base, const bool itemsSorted) requires (SortedList)
-      : items(items), base(base), pos(0), itemsSorted(itemsSorted)
+      : items(items), base(base), itemsSorted(itemsSorted)
     {
     }
+
+    
+    // apppend
+    Add(const flexbuffers::TypedVector& items) requires(!SortedList)
+      : items(items), append(true)
+    {
+
+    }
+
 
     template<typename ListT>
     void operator()(ListT& list)
     {
       using value_type = typename ListTraits<ListT>::value_type;
-      doAdd<value_type>(list);
+
+      if (append)
+      {
+        for (std::size_t i = 0 ; i < items.size() ; ++i)
+          list.emplace_back(items[i].As<value_type>()); 
+      }
+      else
+        doAdd<value_type>(list);
     }
 
   private:
+
     template<typename ItemT, typename ListT>
     void doAdd(ListT& list) requires(ListValue<ItemT>)
     {
@@ -115,26 +143,9 @@ namespace fc
       }
       else
       {
-        const auto size = std::ssize(list);
-        const auto shift = std::min<>(pos, size);
-        typename ListT::iterator it;
-        
-        if (base == Base_Head)
-          it = std::next(list.begin(), shift);
-        else          
-          it = std::next(list.rbegin(), shift).base();
+        using iterator_t = typename ListT::iterator;
 
-        /* NOTE base(), confusingly, this works because:
-            - reverse iterators are implemented in terms of forward iterators (end()/begin())
-            - a reverse iterator: rbegin()+i == end()-i
-            - rbegin() initially is: end()-1
-            - base() returns the underyling iterator (end()-i)
-            - above when shift is 0, rbegin().base() return end()
-            - allowing appending to the list even though rbegin() references the tail node
-            
-            https://stackoverflow.com/a/71366205
-            https://stackoverflow.com/a/16609146
-        */ 
+        auto it = positionToStartIterator<iterator_t>(pos, list);
 
         for (std::size_t i = 0 ; i < items.size() ; ++i)
         {
@@ -149,6 +160,7 @@ namespace fc
     template<typename ItemT,typename ListT>
     void doSourceListSortedAdd(ListT& list) requires(SortedList)
     {
+      // TODO do some quickbenching to compare approaches, i.e. removing first two checks
       const auto size = list.size();
 
       if (const auto& highestItem = items[items.size()-1].As<ItemT>(); size && highestItem <= list.front())
@@ -177,9 +189,50 @@ namespace fc
 
   private:
     const flexbuffers::TypedVector& items;
-    const fc::request::Base base;
-    const std::int64_t pos;
+    const fc::request::Base base{Base_None};
+    const std::int64_t pos{0};
     const bool itemsSorted{false};
+    const bool append{false};
+  };
+
+
+  struct Set
+  {
+    using enum fc::response::Status;
+
+    Set(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position)
+      : items(items), base(base), pos(position)
+    {
+    }
+
+    
+    template<typename ListT>
+    void operator()(ListT& list)
+    {
+      using value_t = ListTraits<ListT>::value_type;
+      using iterator_t = typename ListT::iterator;
+      
+      if (pos < 0)
+        pos = std::size(list) + pos;
+
+      const auto [valid, begin, end] = positionsToIterators<iterator_t>(pos, pos+items.size(), true, list);
+      if (!valid)
+      {
+        PLOGW_IF(!valid) << "List::Set is not valid range";
+      }
+      else
+      {
+        std::size_t i = 0;
+        for (auto it = begin ; it != end ; ++i)
+          *it++ = items[i].As<value_t>();
+      }
+    }
+    
+
+  private:
+    const flexbuffers::TypedVector& items;
+    const fc::request::Base base;
+    std::int64_t pos;    
   };
 
 
@@ -334,6 +387,8 @@ namespace fc
     template<typename ListT>
     constexpr void doRemove (ListT& list) 
     {
+      // TODO look at alternative impl for sorted list
+
       using iterator_t = typename ListT::iterator;
 
       if (const auto [valid, itStart, itEnd] = positionsToIterators<iterator_t>(start, end, hasStop, list); valid)
@@ -351,6 +406,7 @@ namespace fc
   };
   
 
+  // Intersect
   template<typename ListT>
   void doIntersectToFlexBuffer( FlexBuilder& flxb, 
                   const typename ListT::const_iterator l1Begin, const typename ListT::const_iterator l1End,

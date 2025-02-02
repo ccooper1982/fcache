@@ -13,7 +13,10 @@ namespace fc
   {
     using enum fc::response::Status;
     using enum fc::response::ResponseBody;
+    using enum fc::request::Base;
+
     using Iterator = std::unordered_map<std::string, std::unique_ptr<FcList>>::iterator;
+
 
   public:
     ListHandler() = default;
@@ -27,11 +30,18 @@ namespace fc
     void handle(FlatBuilder& fbb, const fc::request::ListRemove& req) noexcept;
     void handle(FlatBuilder& fbb, const fc::request::ListRemoveIf& req) noexcept;
     void handle(FlatBuilder& fbb, const fc::request::ListIntersect& req) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::ListSet& req) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::ListAppend& req) noexcept;
+
 
   private:
     void createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept;
+    
+    void doAddAppend( FlatBuilder& fbb, const std::string& name, const flexbuffers::TypedVector& items,
+                      const bool isAppend = true, const fc::request::Base base = Base_None, const std::int64_t pos = 0, const bool itemsSorted = false);
+    
     fc::response::Status createList(const std::string& name, const fc::common::ListType type, const bool sorted);
-
+    
 
     template<typename Condition, typename ListT>
     void doRemoveIf (const int32_t start, const int32_t stop, const bool hasStop, const typename Condition::value_type& val, ListT& list)

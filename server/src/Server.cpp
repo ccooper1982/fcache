@@ -279,6 +279,14 @@ namespace fc
     {
       m_listHandler->handle(fbb, *request.body_as_ListIntersect());
     }
+    else if (request.body_type() == fc::request::RequestBody_ListSet)
+    {
+      m_listHandler->handle(fbb, *request.body_as_ListSet());
+    }
+    else if (request.body_type() == fc::request::RequestBody_ListAppend)
+    {
+      m_listHandler->handle(fbb, *request.body_as_ListAppend());
+    }
     else
     {
       fbb.Finish(fc::response::CreateResponse(fbb, fc::response::Status_CommandUnknown));

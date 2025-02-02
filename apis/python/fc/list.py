@@ -7,7 +7,7 @@ from fc.common import raise_if, raise_if_not
 from fc.logging import logger
 from fc.fbs.fc.common import Ident, ListType
 from fc.fbs.fc.request import (Request, RequestBody,
-                               ListCreate, ListAdd, ListDelete, ListGetRange, ListRemove, ListRemoveIf, ListIntersect, Range, Base)
+                               ListCreate, ListAdd, ListDelete, ListGetRange, ListRemove, ListRemoveIf, ListIntersect, ListSet, ListAppend, Range, Base)
 from fc.fbs.fc.request import (IntValue, StringValue, FloatValue, Value)
 from fc.fbs.fc.response import (ResponseBody, ListGetRange as ListGetRangeRsp, ListIntersect as ListIntersectRsp)
 
@@ -112,6 +112,7 @@ class List(ABC):
 
   async def remove(self, name:str, *, start: int = 0, stop: int = None) -> None:
     raise_if_not(self._is_range_valid(start, stop), 'range invalid')
+    raise_if(len(name) == 0, 'list name empty')
     
     fb = flatbuffers.Builder(128)
 
@@ -133,7 +134,7 @@ class List(ABC):
     await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListRemove)
   
 
-  async def remove_if_eq(self, name:str, *, start: int = 0, stop: int = None, val):
+  async def remove_if_eq(self, name:str, *, start: int = 0, stop: int = None, val: str|int|float):
     """ Remove if nodes in range [start,stop) equals val """
     
     raise_if_not(self._is_range_valid(start, stop), 'range invalid')
@@ -144,19 +145,17 @@ class List(ABC):
     nameOffset = fb.CreateString(name)
 
     if isinstance(val, str):
+      # note must call CreateString before fb.Start()
       stringValOffset = fb.CreateString(val)
-
-
-    if isinstance(val, int):
-      IntValue.Start(fb)
-      IntValue.AddV(fb, val)
-      valueOffset = IntValue.End(fb)
-      type = Value.Value.IntValue
-    elif isinstance(val, str):
       StringValue.Start(fb)
       StringValue.AddV(fb, stringValOffset)
       valueOffset = StringValue.End(fb)
       type = Value.Value.StringValue
+    elif isinstance(val, int):
+      IntValue.Start(fb)
+      IntValue.AddV(fb, val)
+      valueOffset = IntValue.End(fb)
+      type = Value.Value.IntValue
     elif isinstance(val, float):
       FloatValue.Start(fb)
       FloatValue.AddV(fb, val)
@@ -219,14 +218,13 @@ class List(ABC):
   
   async def _do_add(self, name: str, items: typing.List[int|str|float], pos: int, base: Base.Base, items_sorted:bool) -> None:
     raise_if(len(items) == 0, 'items cannot be empty')
-    raise_if(pos < 0, 'pos negative')
 
     try:
       fbb = flatbuffers.flexbuffers.Builder()
       fbb.TypedVectorFromElements(items)
       itemsVector = fbb.Finish()
       
-      fb = flatbuffers.Builder(initialSize=1024)
+      fb = flatbuffers.Builder(initialSize=2048)
       
       nameOffset = fb.CreateString(name)
       itemOffset = fb.CreateByteVector(itemsVector)
@@ -236,7 +234,7 @@ class List(ABC):
       ListAdd.AddItems(fb, itemOffset)
       ListAdd.AddPosition(fb, pos)
       ListAdd.AddBase(fb, base)
-      ListAdd.AddItemsSorted(fb, items_sorted)
+      ListAdd.AddItemsSorted(fb, items_sorted)  # irrelevant for unsorted lists
       body = ListAdd.End(fb)
       
       self._complete_request(fb, body, RequestBody.RequestBody.ListAdd)
@@ -283,7 +281,7 @@ class UnsortedList(List):
     await super()._create(name, type, is_sorted=False, fail_on_duplicate=fail_on_duplicate)
 
 
-  async def add(self, name: str, items: typing.List[int|str|float], *, pos: int) -> None:
+  async def add(self, name: str, items: typing.List[int|str|float], *, pos:int =0) -> None:
     await self._do_add(name, items, pos, Base.Base.Tail if pos < 0 else Base.Base.Head, False)
 
 
@@ -292,7 +290,28 @@ class UnsortedList(List):
 
 
   async def add_tail(self, name: str, items: typing.List[int|str|float]) -> None:
-    await self._do_add(name, items, 0, Base.Base.Tail, False)
+    raise_if(len(items) == 0, 'items cannot be empty')
+
+    try:
+      fbb = flatbuffers.flexbuffers.Builder()
+      fbb.TypedVectorFromElements(items)
+      itemsVector = fbb.Finish()
+      
+      fb = flatbuffers.Builder(initialSize=2048)
+      
+      nameOffset = fb.CreateString(name)
+      itemOffset = fb.CreateByteVector(itemsVector)
+
+      ListAppend.Start(fb)
+      ListAppend.AddName(fb, nameOffset)
+      ListAppend.AddItems(fb, itemOffset)
+      body = ListAppend.End(fb)
+      
+      self._complete_request(fb, body, RequestBody.RequestBody.ListAppend)
+      await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListAppend)
+    except Exception as e:
+      logger.error(e)
+      raise
 
   
   async def remove_head(self, name: str) -> None:
@@ -302,6 +321,32 @@ class UnsortedList(List):
   async def remove_tail(self, name: str) -> None:
     await self.remove(name, start=-1)
 
+
+  async def set(self, name:str, items: typing.List[int|str|float], *, pos:int=0):
+    raise_if(len(items) == 0, 'items cannot be empty')
+
+    try:
+      fbb = flatbuffers.flexbuffers.Builder()
+      fbb.TypedVectorFromElements(items)
+      itemsVector = fbb.Finish()
+      
+      fb = flatbuffers.Builder(initialSize=1024)
+      
+      nameOffset = fb.CreateString(name)
+      itemOffset = fb.CreateByteVector(itemsVector)
+
+      ListSet.Start(fb)
+      ListSet.AddName(fb, nameOffset)
+      ListSet.AddItems(fb, itemOffset)
+      ListSet.AddPosition(fb, pos)
+      ListSet.AddBase(fb, Base.Base.Head)
+      body = ListSet.End(fb)
+      
+      self._complete_request(fb, body, RequestBody.RequestBody.ListSet)
+      await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListSet)
+    except Exception as e:
+      logger.error(e)
+      raise
 
 
 class SortedList(List):

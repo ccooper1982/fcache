@@ -2,55 +2,44 @@
 
 __Unsorted List__
 ```py
-async def add(name: str, items: typing.List[int|str|float], *, pos: int) -> None
+async def add(name: str, items: List[int|str|float], *, pos:int = 0) -> None
 ```
 
 __Sorted List__
 ```py
-async def add(name: str, items: typing.List[int|str|float], items_sorted:bool = False) -> None
+async def add(name: str, items: List[int|str|float], items_sorted:bool = False) -> None
 ```
 
-These functions add items to the list. The only difference being that a sorted list determines the order so the `pos` is not
-relevant.
+Both functions insert items but `pos` cannot be defined for a sorted list.
 
-|Param|Info|
-|:---|:---|
-|name|Name of the list|
-|items|The items to add to the list. Each item must be of the appropriate type for the list.|
+All elements in `items` must be the same type as when `list` was created.
 
 
 ## Unsorted
 |Param|Info|
 |:---|:---|
-|pos|The position to begin inserting. Positions begin at `0`.|
+|pos|The position to begin inserting|
 
 Inserts items into the list, starting at position `pos`, in the same order as `items`.
 
-- `pos` must be `>= 0`
-- If `pos` is higher than the list size, the items are appended
-
-
+- If `abs(pos)` is greater than the list size, the items are appended
 
 
 ## Sorted
 |Param|Info|
 |:---|:---|
-|items_sorted|`True`: set only if `items` are already sorted in __ascending__ order<br/>`False`: the server will sort during insertion|
-
-The sort order is determined by the `<` operator and is always ascending order.
+|items_sorted|`True`: set only if `items` are already sorted in __ascending__ order<br/>`False`: the server handles sorting|
 
 
 
 ## Examples
 
 ```py title='Unsorted'
-from fc.list import UnsortedList
-
-lst = UnsortedList()
+# lst is a fc.list.UnsortedList
 
 await lst.create('names', type='str')
 
-await lst.add('names', ['Arya', 'Fiona'], pos=0) # alternative to add_head()
+await lst.add('names', ['Arya', 'Fiona']) # same as add_head()
 print(await lst.get_n('names'))
 
 await lst.add('names', ['David', 'Bob', 'Charlie'], pos=1)
@@ -68,9 +57,7 @@ print(await lst.get_n('names'))
 
 
 ```py title='Sorted'
-from fc.list import SortedList
-
-lst = SortedList()
+# lst is a fc.list.SortedList
 
 await lst.create('names', type='str')
 

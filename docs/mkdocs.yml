@@ -52,9 +52,11 @@ nav:
     - List:
       - Sorted Only:
         - 'api_py/list/intersect.md'
+      - Unsorted Only:
+        - add_head: 'api_py/list/add_head.md'
+        - add_tail: 'api_py/list/add_tail.md'
+        - 'api_py/list/set.md'
       - create: 'api_py/list/create.md'
-      - add_head: 'api_py/list/add_head.md'
-      - add_tail: 'api_py/list/add_tail.md'
       - add: 'api_py/list/add.md'
       - get_head: 'api_py/list/get_head.md'
       - get_tail: 'api_py/list/get_tail.md'

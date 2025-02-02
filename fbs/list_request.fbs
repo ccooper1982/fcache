@@ -4,6 +4,7 @@ namespace fc.request;
 
 enum Base : ubyte
 {
+  None,
   Head,
   Tail
 }
@@ -11,6 +12,7 @@ enum Base : ubyte
 
 enum Condition : ubyte
 {
+  None,
   Equals
 }
 
@@ -69,7 +71,13 @@ table ListAdd
   items:[ubyte] (flexbuffer);
   position:int32;  // unlikely to have a list that requires higher range than int32
   base: Base;
-  items_sorted:bool = false;
+  items_sorted:bool = false;  // only relevant for sortedlists
+}
+
+table ListAppend
+{
+  name:string;
+  items:[ubyte] (flexbuffer);
 }
 
 table ListGetRange
@@ -104,4 +112,12 @@ table ListIntersect
   //  create list with intersected nodes but don't send new list in response
   // else: return intersected nodes in response
   new_list_name:string; 
+}
+
+table ListSet
+{
+  name:string;
+  position:int32;
+  base:Base;
+  items:[ubyte] (flexbuffer);
 }

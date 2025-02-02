@@ -78,8 +78,8 @@ namespace fc
 
 
   // Holds everything we need to know about a list.
-  // The list is a variant so we can manage a list of different
-  // types. They are interacted with via std::visit().
+  // The actual list (List m_list) is a variant so we can
+  // 
   class FcList
   {
   public:
@@ -102,6 +102,7 @@ namespace fc
     {
       return a.type() == type() && a.isSorted() == isSorted();
     }
+    
 
     bool operator!=(const FcList& a)
     {
