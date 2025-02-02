@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../create/">
+        <link rel="prev" href="../intersect/">
       
       
         <link rel="next" href="../add_tail/">
@@ -277,7 +277,7 @@
         
   
   <span class="md-ellipsis">
-    Run
+    Build and Run
   </span>
   
 
@@ -700,22 +700,38 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../create/" class="md-nav__link">
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5_3_2" id="__nav_5_3_2_label" tabindex="0">
+            
   
   <span class="md-ellipsis">
-    create
+    Unsorted Only
   </span>
   
 
-      </a>
-    </li>
-  
-
-              
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_3_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Unsorted Only
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -799,6 +815,56 @@
   
   <span class="md-ellipsis">
     add_tail
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../set/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    set
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../create/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    create
   </span>
   
 
@@ -962,6 +1028,48 @@
   
   
     <li class="md-nav__item">
+      <a href="../remove_head/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    remove_head
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../remove_tail/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    remove_tail
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../remove/" class="md-nav__link">
         
   
@@ -1105,13 +1213,9 @@
 
 
 <h1 id="add_head">add_head</h1>
-<div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">add_head</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">items</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="o">|</span><span class="nb">str</span><span class="o">|</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<p><div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">add_head</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">items</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="o">|</span><span class="nb">str</span><span class="o">|</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Unsorted list only</p>
-</div>
-<p>Adds to items to the list's head. Items are added in the same order as <code>items</code>.</p>
+Adds to items to the list's head. Items are added in the same order as <code>items</code>.</p>
 <table>
 <thead>
 <tr>

@@ -22,7 +22,7 @@
     
     
       
-        <title>Run - fcache</title>
+        <title>Build and Run - fcache</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#run" class="md-skip">
+        <a href="#build-and-run" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Run
+              Build and Run
             
           </span>
         </div>
@@ -286,7 +286,7 @@
           
   
   <span class="md-ellipsis">
-    Run
+    Build and Run
   </span>
   
 
@@ -297,7 +297,7 @@
         
   
   <span class="md-ellipsis">
-    Run
+    Build and Run
   </span>
   
 
@@ -319,11 +319,35 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#build" class="md-nav__link">
+    <span class="md-ellipsis">
+      Build
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#command-line-arguments" class="md-nav__link">
     <span class="md-ellipsis">
       Command Line Arguments
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -747,20 +771,34 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../api_py/list/create/" class="md-nav__link">
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3_2" id="__nav_5_3_2_label" tabindex="0">
+            
   
   <span class="md-ellipsis">
-    create
+    Unsorted Only
   </span>
   
 
-      </a>
-    </li>
-  
-
-              
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Unsorted Only
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -795,6 +833,56 @@
   
   <span class="md-ellipsis">
     add_tail
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_py/list/set/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    set
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_py/list/create/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    create
   </span>
   
 
@@ -958,6 +1046,48 @@
   
   
     <li class="md-nav__item">
+      <a href="../api_py/list/remove_head/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    remove_head
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_py/list/remove_tail/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    remove_tail
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../api_py/list/remove/" class="md-nav__link">
         
   
@@ -1077,11 +1207,35 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#build" class="md-nav__link">
+    <span class="md-ellipsis">
+      Build
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#command-line-arguments" class="md-nav__link">
     <span class="md-ellipsis">
       Command Line Arguments
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1100,15 +1254,32 @@
                   
 
 
-<h1 id="run">Run</h1>
-<p>If building from source, the binary is in <code>server/release</code>.</p>
-<h2 id="command-line-arguments">Command Line Arguments</h2>
+<h1 id="build-and-run">Build and Run</h1>
+<h2 id="build">Build</h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul>
+<li>C++20 required</li>
+<li>Tested on GCC 13.2 and GCC 14.2</li>
+</ul>
+</div>
+<ol>
+<li>From the repo root: <code>./build.sh</code> <ul>
+<li>Clones then builds the submodules</li>
+<li>Generates Flatbuffers code</li>
+</ul>
+</li>
+<li>Binary is in <code>server/release</code></li>
+</ol>
+<h2 id="run">Run</h2>
+<h3 id="command-line-arguments">Command Line Arguments</h3>
 <table>
 <thead>
 <tr>
 <th>Name</th>
 <th>Description</th>
 <th style="text-align: center;">Default</th>
+<th>Notes</th>
 </tr>
 </thead>
 <tbody>
@@ -1116,25 +1287,37 @@
 <td>ip</td>
 <td>The IP address the server will listen on</td>
 <td style="text-align: center;">127.0.0.1</td>
+<td></td>
 </tr>
 <tr>
 <td>port</td>
 <td>The port</td>
 <td style="text-align: center;">1987</td>
+<td></td>
 </tr>
 <tr>
 <td>maxPayload</td>
-<td>Max size, in bytes, of the WebSocket payload. Messages exceeding this are ignored</td>
-<td style="text-align: center;">2048</td>
+<td>Max size, in bytes, of the WebSocket payload</td>
+<td style="text-align: center;">16,384</td>
+<td>Min: 64 bytes<br/>Max: 8 MB</td>
 </tr>
 </tbody>
 </table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<ul>
+<li>If a message exceeds <code>maxPayload</code> the client is disconnected</li>
+<li>Increase this value on the command line to avoid disconnections</li>
+<li>The absolute max is set in <code>fcache.cpp</code>. There is no particular reason for this value, other than it seems reasonable for most uses cases</li>
+</ul>
+</div>
 <p>Custom IP:
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>./fcache --ip=192.168.1.120
 </span></code></pre></div></p>
-<p>Custom port and max payload:
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>./fcache --port=2000 --maxPayload=8192
+<p>Default IP, custom port and max payload:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>./fcache --port=2000 --maxPayload=1048576
 </span></code></pre></div></p>
+<p>Note, no unit suffixes permitted (i.e. "1MB", etc).</p>
 
 
 

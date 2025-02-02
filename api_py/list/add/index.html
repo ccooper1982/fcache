@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../add_tail/">
+        <link rel="prev" href="../create/">
       
       
         <link rel="next" href="../get_head/">
@@ -277,7 +277,7 @@
         
   
   <span class="md-ellipsis">
-    Run
+    Build and Run
   </span>
   
 
@@ -702,20 +702,34 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../create/" class="md-nav__link">
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3_2" id="__nav_5_3_2_label" tabindex="0">
+            
   
   <span class="md-ellipsis">
-    create
+    Unsorted Only
   </span>
   
 
-      </a>
-    </li>
-  
-
-              
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Unsorted Only
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -750,6 +764,56 @@
   
   <span class="md-ellipsis">
     add_tail
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../set/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    set
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../create/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    create
   </span>
   
 
@@ -980,6 +1044,48 @@
   
   
     <li class="md-nav__item">
+      <a href="../remove_head/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    remove_head
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../remove_tail/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    remove_tail
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../remove/" class="md-nav__link">
         
   
@@ -1142,31 +1248,13 @@
 
 <h1 id="add">add</h1>
 <p><strong>Unsorted List</strong>
-<div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">items</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="o">|</span><span class="nb">str</span><span class="o">|</span><span class="nb">float</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">pos</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="o">|</span><span class="nb">str</span><span class="o">|</span><span class="nb">float</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">pos</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div></p>
 <p><strong>Sorted List</strong>
-<div class="language-py highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">items</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="o">|</span><span class="nb">str</span><span class="o">|</span><span class="nb">float</span><span class="p">],</span> <span class="n">items_sorted</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<div class="language-py highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="o">|</span><span class="nb">str</span><span class="o">|</span><span class="nb">float</span><span class="p">],</span> <span class="n">items_sorted</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div></p>
-<p>These functions add items to the list. The only difference being that a sorted list determines the order so the <code>pos</code> is not
-relevant.</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Param</th>
-<th style="text-align: left;">Info</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;">name</td>
-<td style="text-align: left;">Name of the list</td>
-</tr>
-<tr>
-<td style="text-align: left;">items</td>
-<td style="text-align: left;">The items to add to the list. Each item must be of the appropriate type for the list.</td>
-</tr>
-</tbody>
-</table>
+<p>Both functions insert items but <code>pos</code> cannot be defined for a sorted list.</p>
+<p>All elements in <code>items</code> must be the same type as when <code>list</code> was created.</p>
 <h2 id="unsorted">Unsorted</h2>
 <table>
 <thead>
@@ -1178,14 +1266,13 @@ relevant.</p>
 <tbody>
 <tr>
 <td style="text-align: left;">pos</td>
-<td style="text-align: left;">The position to begin inserting. Positions begin at <code>0</code>.</td>
+<td style="text-align: left;">The position to begin inserting</td>
 </tr>
 </tbody>
 </table>
 <p>Inserts items into the list, starting at position <code>pos</code>, in the same order as <code>items</code>.</p>
 <ul>
-<li><code>pos</code> must be <code>&gt;= 0</code></li>
-<li>If <code>pos</code> is higher than the list size, the items are appended</li>
+<li>If <code>abs(pos)</code> is greater than the list size, the items are appended</li>
 </ul>
 <h2 id="sorted">Sorted</h2>
 <table>
@@ -1198,45 +1285,40 @@ relevant.</p>
 <tbody>
 <tr>
 <td style="text-align: left;">items_sorted</td>
-<td style="text-align: left;"><code>True</code>: set only if <code>items</code> are already sorted in <strong>ascending</strong> order<br/><code>False</code>: the server will sort during insertion</td>
+<td style="text-align: left;"><code>True</code>: set only if <code>items</code> are already sorted in <strong>ascending</strong> order<br/><code>False</code>: the server handles sorting</td>
 </tr>
 </tbody>
 </table>
-<p>The sort order is determined by the <code>&lt;</code> operator and is always ascending order.</p>
 <h2 id="examples">Examples</h2>
-<div class="language-py highlight"><span class="filename">Unsorted</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fc.list</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnsortedList</span>
+<div class="language-py highlight"><span class="filename">Unsorted</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># lst is a fc.list.UnsortedList</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">lst</span> <span class="o">=</span> <span class="n">UnsortedList</span><span class="p">()</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;str&#39;</span><span class="p">)</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;str&#39;</span><span class="p">)</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Arya&#39;</span><span class="p">,</span> <span class="s1">&#39;Fiona&#39;</span><span class="p">],</span> <span class="n">pos</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># alternative to add_head()</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">))</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;David&#39;</span><span class="p">,</span> <span class="s1">&#39;Bob&#39;</span><span class="p">,</span> <span class="s1">&#39;Charlie&#39;</span><span class="p">],</span> <span class="n">pos</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">))</span>
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Emma&#39;</span><span class="p">],</span> <span class="n">pos</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">))</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Arya&#39;</span><span class="p">,</span> <span class="s1">&#39;Fiona&#39;</span><span class="p">])</span> <span class="c1"># same as add_head()</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">))</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;David&#39;</span><span class="p">,</span> <span class="s1">&#39;Bob&#39;</span><span class="p">,</span> <span class="s1">&#39;Charlie&#39;</span><span class="p">],</span> <span class="n">pos</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">))</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Emma&#39;</span><span class="p">],</span> <span class="n">pos</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">))</span>
 </span></code></pre></div>
 <div class="language-bash highlight"><span class="filename">Output</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="o">[</span><span class="s1">&#39;Arya&#39;</span>,<span class="w"> </span><span class="s1">&#39;Fiona&#39;</span><span class="o">]</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="o">[</span><span class="s1">&#39;Arya&#39;</span>,<span class="w"> </span><span class="s1">&#39;David&#39;</span>,<span class="w"> </span><span class="s1">&#39;Bob&#39;</span>,<span class="w"> </span><span class="s1">&#39;Charlie&#39;</span>,<span class="w"> </span><span class="s1">&#39;Fiona&#39;</span><span class="o">]</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="o">[</span><span class="s1">&#39;Arya&#39;</span>,<span class="w"> </span><span class="s1">&#39;David&#39;</span>,<span class="w"> </span><span class="s1">&#39;Bob&#39;</span>,<span class="w"> </span><span class="s1">&#39;Emma&#39;</span>,<span class="w"> </span><span class="s1">&#39;Charlie&#39;</span>,<span class="w"> </span><span class="s1">&#39;Fiona&#39;</span><span class="o">]</span>
 </span></code></pre></div>
-<div class="language-py highlight"><span class="filename">Sorted</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fc.list</span><span class="w"> </span><span class="kn">import</span> <span class="n">SortedList</span>
+<div class="language-py highlight"><span class="filename">Sorted</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># lst is a fc.list.SortedList</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">lst</span> <span class="o">=</span> <span class="n">SortedList</span><span class="p">()</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;str&#39;</span><span class="p">)</span>
 </span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;str&#39;</span><span class="p">)</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Arya&#39;</span><span class="p">,</span> <span class="s1">&#39;Fiona&#39;</span><span class="p">],</span> <span class="n">items_sorted</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">))</span>
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;David&#39;</span><span class="p">,</span> <span class="s1">&#39;Bob&#39;</span><span class="p">,</span> <span class="s1">&#39;Charlie&#39;</span><span class="p">])</span>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">))</span>
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
-</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Emma&#39;</span><span class="p">])</span>
-</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">))</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Arya&#39;</span><span class="p">,</span> <span class="s1">&#39;Fiona&#39;</span><span class="p">],</span> <span class="n">items_sorted</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">))</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;David&#39;</span><span class="p">,</span> <span class="s1">&#39;Bob&#39;</span><span class="p">,</span> <span class="s1">&#39;Charlie&#39;</span><span class="p">])</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">))</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Emma&#39;</span><span class="p">])</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">lst</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">))</span>
 </span></code></pre></div>
 <div class="language-bash highlight"><span class="filename">Output</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="o">[</span><span class="s1">&#39;Arya&#39;</span>,<span class="w"> </span><span class="s1">&#39;Fiona&#39;</span><span class="o">]</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="o">[</span><span class="s1">&#39;Arya&#39;</span>,<span class="w"> </span><span class="s1">&#39;Bob&#39;</span>,<span class="w"> </span><span class="s1">&#39;Charlie&#39;</span>,<span class="w"> </span><span class="s1">&#39;David&#39;</span>,<span class="w"> </span><span class="s1">&#39;Fiona&#39;</span><span class="o">]</span>
