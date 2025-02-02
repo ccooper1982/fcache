@@ -355,29 +355,14 @@ namespace fc
       : start(start), end(0), hasStop(false), condition(std::move(c))
     {
     }
-
-    // TODO list traits here so we can do ListTraits<IntList>::value_type
-    void operator()(IntList& list)
+    
+    template<typename ListT>
+    void operator()(ListT& list)
     {
-      if constexpr (std::is_same_v<value_type, fcint>)
-        doRemove(list);
-    }
-
-    void operator()(UIntList& list)
-    {
-      if constexpr (std::is_same_v<value_type, fcuint>)
-        doRemove(list);
-    }
-
-    void operator()(FloatList& list)
-    {
-      if constexpr (std::is_same_v<value_type, fcfloat>)
-        doRemove(list);
-    }
-
-    void operator()(StringList& list)
-    {
-      if constexpr (std::is_same_v<value_type, std::string>)
+      // need this because: we're visited with Condition, which is templated by its value_type, 
+      // so need restrict doRemove() only being called when ListT is for the same type as the Condition -
+      // i.e. we're not trying to execute a Condition<int> on a StringList.
+      if constexpr (std::is_same_v<value_type, typename ListTraits<ListT>::value_type>)
         doRemove(list);
     }
 
