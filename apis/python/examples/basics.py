@@ -198,22 +198,22 @@ async def unsorted_lists():
 
 
   # set
-  await list.create('set', type='str')
-  await list.add_head('set', ['A','B', 'X', 'Y', 'Z','F','G'])
-  print(await list.get_n('set'))
+  await list.create('chars', type='str')
+  await list.add_head('chars', ['A','B', 'X', 'Y', 'Z','F','G'])
+  print(await list.get_n('chars'))
 
   # replace 'X'
-  await list.set('set', ['C'], pos=2)
-  print(await list.get_n('set'))
+  await list.set('chars', ['C'], pos=2)
+  print(await list.get_n('chars'))
 
   # replace 'Y','Z'
-  await list.set('set', ['D','E'], pos=3)
-  print(await list.get_n('set'))
+  await list.set('chars', ['D','E'], pos=3)
+  print(await list.get_n('chars'))
 
-  # items is length 3, but pos=5 leaves only 2 items, so last two
-  # list nodes are replaced, no error
-  await list.set('set', ['A','D'], pos=5)
-  print(await list.get_n('set'))
+  # replace last four
+  await list.set('chars', ['H','E', 'L','O'], pos=-4)
+  print(await list.get_n('chars'))
+
 
 
 async def sorted_lists():

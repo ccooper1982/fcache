@@ -210,9 +210,13 @@ namespace fc
     void operator()(ListT& list)
     {
       using value_t = ListTraits<ListT>::value_type;
-      const auto [valid, begin, end] = positionsToIterators<typename ListT::iterator>(pos, pos+items.size(), true, list);
+      using iterator_t = typename ListT::iterator;
+      
+      if (pos < 0)
+        pos = std::size(list) + pos;
 
-      if (!valid || begin == end)
+      const auto [valid, begin, end] = positionsToIterators<iterator_t>(pos, pos+items.size(), true, list);
+      if (!valid)
       {
         PLOGW_IF(!valid) << "List::Set is not valid range";
       }
@@ -228,7 +232,7 @@ namespace fc
   private:
     const flexbuffers::TypedVector& items;
     const fc::request::Base base;
-    const std::int64_t pos;    
+    std::int64_t pos;    
   };
 
 
@@ -383,6 +387,8 @@ namespace fc
     template<typename ListT>
     constexpr void doRemove (ListT& list) 
     {
+      // TODO look at alternative impl for sorted list
+
       using iterator_t = typename ListT::iterator;
 
       if (const auto [valid, itStart, itEnd] = positionsToIterators<iterator_t>(start, end, hasStop, list); valid)

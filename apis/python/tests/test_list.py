@@ -234,6 +234,12 @@ class KV(UnsortedListTest):
     await self.list.set('l', [2,2,3,3], pos=5)
     self.assertListEqual(await self.list.get_n('l'), [0,0,1,1,1,2,2,3,3])
 
+    await self.list.set('l', [4], pos=-1)
+    self.assertListEqual(await self.list.get_n('l'), [0,0,1,1,1,2,2,3,4])
+
+    await self.list.set('l', [3,4,5], pos=-3)
+    self.assertListEqual(await self.list.get_n('l'), [0,0,1,1,1,2,3,4,5])
+
 
   async def test_set_errors(self):
     await self.list.create('l', type='int')

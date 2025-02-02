@@ -326,7 +326,6 @@ class UnsortedList(List):
 
   async def set(self, name:str, items: typing.List[int|str|float], *, pos:int=0):
     raise_if(len(items) == 0, 'items cannot be empty')
-    raise_if(pos < 0, 'pos negative')
 
     try:
       fbb = flatbuffers.flexbuffers.Builder()

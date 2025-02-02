@@ -70,7 +70,7 @@ namespace fc
             case FlexType::FBT_VECTOR_FLOAT:
             case FlexType::FBT_VECTOR_KEY:
             {
-              std::visit(Set{itemsVector, req.base(), std::abs(req.position())}, fcList->list());
+              std::visit(Set{itemsVector, req.base(), req.position()}, fcList->list());
             }
             break;
 
