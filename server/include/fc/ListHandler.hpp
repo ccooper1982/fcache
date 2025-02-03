@@ -37,29 +37,21 @@ namespace fc
   private:
     void createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept;
     
+    
     void doAddAppend( FlatBuilder& fbb, const std::string& name, const flexbuffers::TypedVector& items,
                       const bool isAppend = true, const fc::request::Base base = Base_None, const std::int64_t pos = 0, const bool itemsSorted = false);
     
+
     fc::response::Status createList(const std::string& name, const fc::common::ListType type, const bool sorted);
     
 
     template<typename Condition, typename ListT>
     void doRemoveIf (const int32_t start, const int32_t stop, const bool hasStop, const typename Condition::value_type& val, ListT& list, const bool isSorted)
     {
-      if (hasStop)
-      {
-        if (isSorted)
-          std::visit(RemoveIf<true, Condition>{start, stop, Condition{val}}, list);
-        else
-          std::visit(RemoveIf<false, Condition>{start, stop, Condition{val}}, list);
-      }
+      if (isSorted)
+        std::visit(makeSortedRemoveIfEquals(start, stop, val, hasStop), list);
       else
-      {
-        if (isSorted)
-          std::visit(RemoveIf<true, Condition>{start, Condition{val}}, list);
-        else
-          std::visit(RemoveIf<false, Condition>{start, Condition{val}}, list);
-      }
+        std::visit(makeUnsortedRemoveIfEquals(start, stop, val, hasStop), list);
     }
 
     

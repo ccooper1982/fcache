@@ -72,7 +72,7 @@ namespace fc
   It positionToStartIterator(const int64_t start, ListT& list)
   {
     // positionsToIterators() won't let start be out of bounds, but this function does,
-    // but returns end
+    // returning list.end()
     const auto [valid, s, e] = positionsToIterators<It>(start, 0, false, list);
     return valid ? s : std::end(list); // assumes not a const_iterator
   }
@@ -192,24 +192,8 @@ namespace fc
     const bool append{false};
   };
 
-  inline Add<false> makeUnsortedAdd(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position)
-  {
-    return Add<false>{items, base, position};
-  }
-
-  inline Add<false> makeUnsortedAppend(const flexbuffers::TypedVector& items)
-  {
-    return Add<false>{items};
-  }
-
-  inline Add<true> makeSortedAdd(const flexbuffers::TypedVector& items, const fc::request::Base base, const bool itemSorted)
-  {
-    return Add<true>{items, base, itemSorted};
-  }
-  
 
   // Set
-
   struct Set
   {
     using enum fc::response::Status;
@@ -371,9 +355,9 @@ namespace fc
     {
       using value_type = typename Condition::value_type;
 
-      // need this because: we're visited with Condition, which is templated by its value_type, 
+      // need this because: RemoveIf has Condition template arg, which is templated by its value_type, 
       // so need restrict so that doRemove() is called only when ListT is for the same type as the Condition -
-      // i.e. we're not trying to execute a Condition<int> on a StringList.
+      // i.e. avoid executing a Condition<int> on a StringList.
       if constexpr (std::is_same_v<value_type, typename ListTraits<ListT>::value_type>)
         doRemove(list);
     }
@@ -489,5 +473,74 @@ namespace fc
     {
       doIntersectToFlexBuffer<ListT>(flxb, l1Begin, l1Last, l2Begin, l2Last);
     }
+  }
+
+
+
+  // helpers
+  
+  // Add
+  inline Add<false> makeUnsortedAdd(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position)
+  {
+    return Add<false>{items, base, position};
+  }
+
+  inline Add<false> makeUnsortedAppend(const flexbuffers::TypedVector& items)
+  {
+    return Add<false>{items};
+  }
+
+  inline Add<true> makeSortedAdd(const flexbuffers::TypedVector& items, const fc::request::Base base, const bool itemSorted)
+  {
+    return Add<true>{items, base, itemSorted};
+  }
+
+  // Set
+  inline Set makeSet(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position)
+  {
+    return Set{items, base, position};
+  }
+
+  // Get
+  inline GetByRange makeGetFullRange (FlexBuilder& flxb, const int64_t start, const int64_t end, const fc::request::Base base)
+  {
+    return GetByRange{flxb, start, end, base};
+  }
+
+  inline GetByRange makeGetPartialRange (FlexBuilder& flxb, const int64_t start, const fc::request::Base base)
+  {
+    return GetByRange{flxb, start, base};
+  }
+
+
+  // Remove  
+  inline Remove makeRemoveFullRange(const int64_t start, const int64_t end)
+  {
+    return Remove{start, end};
+  }
+
+  inline Remove makeRemovePartialRange(const int64_t start)
+  {
+    return Remove{start};
+  }
+
+
+  // RemoveIf
+  template<typename ValueT>
+  inline RemoveIf<true, IsEqual<ValueT>> makeSortedRemoveIfEquals (const int64_t start, const int64_t end, const ValueT& val, const bool hasEnd)
+  {
+    if (hasEnd)
+      return RemoveIf<true, IsEqual<ValueT>>{start, end, IsEqual{val}};
+    else
+      return RemoveIf<true, IsEqual<ValueT>>{start, IsEqual{val}};
+  }
+
+  template<typename ValueT>
+  inline RemoveIf<false, IsEqual<ValueT>> makeUnsortedRemoveIfEquals (const int64_t start, const int64_t end, const ValueT& val, const bool hasEnd)
+  {
+    if (hasEnd)
+      return RemoveIf<false, IsEqual<ValueT>>{start, end, IsEqual{val}};
+    else
+      return RemoveIf<false, IsEqual<ValueT>>{start, IsEqual{val}};
   }
 }
