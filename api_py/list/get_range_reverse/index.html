@@ -1231,27 +1231,20 @@
 <h1 id="get_range_reverse">get_range_reverse</h1>
 <p><div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_range_reverse</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
 </span></code></pre></div>
-Get items using the range <code>[start, stop)</code>, but in reverse (tail to head).</p>
-<p>This is the same as <a href="../get_range/">get_range()</a> but it iterates the list from tail to head:</p>
+Get items in range <code>[start, stop)</code>, but iterates from <strong>tail to head</strong>.</p>
+<p>This is the same as <a href="../get_range/">get_range()</a> but positions are relative to the tail, i.e.:</p>
 <ul>
-<li>positive indices are relative to the tail<ul>
-<li><code>start=0</code> is the tail    </li>
-</ul>
-</li>
-<li>negative indices are relative to the head<ul>
-<li><code>stop=-1</code> is the head</li>
-</ul>
-</li>
+<li><code>start = 0</code> is the tail node</li>
+<li><code>start = -1</code> is the head node</li>
 </ul>
 <p>If <code>stop</code> is <code>None</code>, returns all remaining.</p>
-<p><code>start</code> and <code>stop</code> can be negative, similar to Python slicing:</p>
-<ul>
-<li><code>-1</code> is the head</li>
-<li><code>-2</code> is the second node (the node after the head)</li>
-</ul>
 <p>Either or both <code>start</code> and <code>stop</code> can be negative/positive, but they must represent indices such that <code>start &lt; stop</code>.</p>
 <h2 id="returns">Returns</h2>
-<p>A list of node values, or an empty list if the range is invalid of if <code>start == stop</code>.</p>
+<p>A list of node values. The list will be empty if:</p>
+<ul>
+<li>the range is invalid</li>
+<li><code>start == stop</code></li>
+</ul>
 <h2 id="examples">Examples</h2>
 <div class="language-py highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s1">&#39;list&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;str&#39;</span><span class="p">)</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">await</span> <span class="nb">list</span><span class="o">.</span><span class="n">add_head</span><span class="p">(</span><span class="s1">&#39;list&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">])</span>
