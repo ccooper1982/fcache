@@ -362,6 +362,7 @@ namespace fc
       if (const auto listOpt = haveList(fbb, name, bodyType); listOpt && items.size()) [[likely]]
       {
         const auto& fcList = (*listOpt)->second;
+        std::size_t size = 0;
 
         switch (fcList->type())
         {
@@ -370,11 +371,11 @@ namespace fc
           case FlexType::FBT_VECTOR_FLOAT:
           case FlexType::FBT_VECTOR_KEY:
             if (isAppend && !fcList->isSorted())
-              std::visit(makeUnsortedAppend(items), fcList->list());
+              size = std::visit(makeUnsortedAppend(items), fcList->list());
             else if (fcList->isSorted())
-              std::visit(makeSortedAdd(items, base, itemsSorted), fcList->list());
+              size = std::visit(makeSortedAdd(items, base, itemsSorted), fcList->list());
             else
-              std::visit(makeUnsortedAdd(items, base, pos), fcList->list());
+              size = std::visit(makeUnsortedAdd(items, base, pos), fcList->list());
           break;
 
           default:  [[unlikely]]
@@ -382,8 +383,19 @@ namespace fc
             status = Status_Fail;
           break;
         }      
-      
-        createEmptyBodyResponse(fbb, status, bodyType);  
+
+        if (isAppend)
+        {
+          const auto body = fc::response::CreateListAppend(fbb, size);
+          const auto rsp = fc::response::CreateResponse (fbb, status, bodyType, body.Union());
+          fbb.Finish(rsp);
+        }
+        else
+        {
+          const auto body = fc::response::CreateListAdd(fbb, size);
+          const auto rsp = fc::response::CreateResponse (fbb, status, bodyType, body.Union());
+          fbb.Finish(rsp);
+        }
       }
     }
     catch(const std::exception& e)

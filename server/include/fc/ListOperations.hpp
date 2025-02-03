@@ -100,7 +100,7 @@ namespace fc
     }
 
     template<typename ListT>
-    void operator()(ListT& list)
+    typename ListT::size_type operator()(ListT& list)
     {
       using value_type = typename ListTraits<ListT>::value_type;
 
@@ -111,6 +111,8 @@ namespace fc
       }
       else
         doAdd<value_type>(list);
+    
+      return list.size();
     }
 
   private:
@@ -247,7 +249,7 @@ namespace fc
     }
 
     GetByRange(FlexBuilder& flxb, const int64_t start, const fc::request::Base base) noexcept
-      : flxb(flxb), start(start), end(0), hasStop(false), base(base)
+      : flxb(flxb), start(start), hasStop(false), base(base)
     {
     }
 
@@ -276,8 +278,8 @@ namespace fc
 
   private:
     FlexBuilder& flxb;
-    std::int64_t start;
-    std::int64_t end;
+    const std::int64_t start;
+    const std::int64_t end{0};
     const bool hasStop;
     const fc::request::Base base;
   };
