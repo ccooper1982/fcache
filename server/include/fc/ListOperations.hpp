@@ -93,14 +93,11 @@ namespace fc
     {
     }
 
-    
-    // apppend
     Add(const flexbuffers::TypedVector& items) requires(!SortedList)
       : items(items), append(true)
     {
 
     }
-
 
     template<typename ListT>
     void operator()(ListT& list)
@@ -195,6 +192,23 @@ namespace fc
     const bool append{false};
   };
 
+  inline Add<false> makeUnsortedAdd(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position)
+  {
+    return Add<false>{items, base, position};
+  }
+
+  inline Add<false> makeUnsortedAppend(const flexbuffers::TypedVector& items)
+  {
+    return Add<false>{items};
+  }
+
+  inline Add<true> makeSortedAdd(const flexbuffers::TypedVector& items, const fc::request::Base base, const bool itemSorted)
+  {
+    return Add<true>{items, base, itemSorted};
+  }
+  
+
+  // Set
 
   struct Set
   {

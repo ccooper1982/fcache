@@ -369,11 +369,11 @@ namespace fc
           case FlexType::FBT_VECTOR_FLOAT:
           case FlexType::FBT_VECTOR_KEY:
             if (isAppend && !fcList->isSorted())
-              std::visit(Add<false>{items}, fcList->list());
+              std::visit(makeUnsortedAppend(items), fcList->list());
             else if (fcList->isSorted())
-              std::visit(Add<true>{items, base, itemsSorted}, fcList->list());
+              std::visit(makeSortedAdd(items, base, itemsSorted), fcList->list());
             else
-              std::visit(Add<false>{items, base, pos}, fcList->list());
+              std::visit(makeUnsortedAdd(items, base, pos), fcList->list());
           break;
 
           default:  [[unlikely]]
