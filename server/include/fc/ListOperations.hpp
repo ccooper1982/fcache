@@ -331,12 +331,11 @@ namespace fc
   {
     using value_type = T;
     
-    explicit IsEqual (const T v) : val(std::move(v)) {}
+    explicit IsEqual (const T& v) : val(v) {}
     bool operator()(const T& a) { return a == val; }
     const T& value() const { return val; }
 
-    // TODO or const T& val? doesn't matter for primitives, want to avoid copy strings, but
-    T val; 
+    const T& val; 
   };
   
 
