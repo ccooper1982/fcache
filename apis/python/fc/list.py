@@ -9,7 +9,12 @@ from fc.fbs.fc.common import Ident, ListType
 from fc.fbs.fc.request import (Request, RequestBody,
                                ListCreate, ListAdd, ListDelete, ListGetRange, ListRemove, ListRemoveIf, ListIntersect, ListSet, ListAppend, Range, Base)
 from fc.fbs.fc.request import (IntValue, StringValue, FloatValue, Value)
-from fc.fbs.fc.response import (ResponseBody, ListGetRange as ListGetRangeRsp, ListIntersect as ListIntersectRsp)
+from fc.fbs.fc.response import (ResponseBody,
+                                ListGetRange as ListGetRangeRsp,
+                                ListIntersect as ListIntersectRsp,
+                                ListAdd as ListAddRsp,
+                                ListAppend as ListAppendRsp,
+                                ListRemoveIf as ListRemoveIfRsp)
 
 
 class List(ABC):
@@ -134,7 +139,7 @@ class List(ABC):
     await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListRemove)
   
 
-  async def remove_if_eq(self, name:str, *, start: int = 0, stop: int = None, val: str|int|float):
+  async def remove_if_eq(self, name:str, *, start: int = 0, stop: int = None, val: str|int|float) -> int:
     """ Remove if nodes in range [start,stop) equals val """
     
     raise_if_not(self._is_range_valid(start, stop), 'range invalid')
@@ -179,7 +184,10 @@ class List(ABC):
     body = ListRemove.End(fb)
 
     self._complete_request(fb, body, RequestBody.RequestBody.ListRemoveIf)
-    await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListRemoveIf)
+    rsp = await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListRemoveIf)
+    union_body = ListRemoveIfRsp.ListRemoveIf()
+    union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
+    return union_body.Size()
 
 
   ### helpers
@@ -216,7 +224,7 @@ class List(ABC):
       raise
 
   
-  async def _do_add(self, name: str, items: typing.List[int|str|float], pos: int, base: Base.Base, items_sorted:bool) -> None:
+  async def _do_add(self, name: str, items: typing.List[int|str|float], pos: int, base: Base.Base, items_sorted:bool) -> int:
     raise_if(len(items) == 0, 'items cannot be empty')
 
     try:
@@ -238,7 +246,10 @@ class List(ABC):
       body = ListAdd.End(fb)
       
       self._complete_request(fb, body, RequestBody.RequestBody.ListAdd)
-      await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListAdd)
+      rsp = await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListAdd)
+      union_body = ListAddRsp.ListAdd()
+      union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
+      return union_body.Size()
     except Exception as e:
       logger.error(e)
       raise
@@ -281,15 +292,15 @@ class UnsortedList(List):
     await super()._create(name, type, is_sorted=False, fail_on_duplicate=fail_on_duplicate)
 
 
-  async def add(self, name: str, items: typing.List[int|str|float], *, pos:int =0) -> None:
-    await self._do_add(name, items, pos, Base.Base.Tail if pos < 0 else Base.Base.Head, False)
+  async def add(self, name: str, items: typing.List[int|str|float], *, pos:int =0) -> int:
+    return await self._do_add(name, items, pos, Base.Base.Tail if pos < 0 else Base.Base.Head, False)
 
 
-  async def add_head(self, name: str, items: typing.List[int|str|float]) -> None:
-    await self._do_add(name, items, 0, Base.Base.Head, False)
+  async def add_head(self, name: str, items: typing.List[int|str|float]) -> int:
+    return await self._do_add(name, items, 0, Base.Base.Head, False)
 
 
-  async def add_tail(self, name: str, items: typing.List[int|str|float]) -> None:
+  async def add_tail(self, name: str, items: typing.List[int|str|float]) -> int:
     raise_if(len(items) == 0, 'items cannot be empty')
 
     try:
@@ -308,7 +319,10 @@ class UnsortedList(List):
       body = ListAppend.End(fb)
       
       self._complete_request(fb, body, RequestBody.RequestBody.ListAppend)
-      await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListAppend)
+      rsp = await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListAppend)
+      union_body = ListAppendRsp.ListAppend()
+      union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
+      return union_body.Size()
     except Exception as e:
       logger.error(e)
       raise
@@ -358,8 +372,8 @@ class SortedList(List):
     await super()._create(name, type, is_sorted=True, fail_on_duplicate=fail_on_duplicate)
 
 
-  async def add(self, name: str, items: typing.List[int|str|float], items_sorted:bool = False) -> None:
-    await self._do_add(name, items, 0, Base.Base.Head, items_sorted)  # pos and Base irrelevant for sorted list
+  async def add(self, name: str, items: typing.List[int|str|float], items_sorted:bool = False) -> int:
+    return await self._do_add(name, items, 0, Base.Base.Head, items_sorted)  # pos and Base irrelevant for sorted list
 
 
   async def intersect(self, list1: str, list2: str, *,

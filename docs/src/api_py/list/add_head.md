@@ -1,7 +1,7 @@
 # add_head
 
 ```py
-async def add_head(name: str, items: typing.List[int|str|float]) -> None
+async def add_head(name: str, items: typing.List[int|str|float]) -> int
 ```
 Adds to items to the list's head. Items are added in the same order as `items`.
 
@@ -9,6 +9,9 @@ Adds to items to the list's head. Items are added in the same order as `items`.
 |:---|:---|
 |name|Name of the list|
 |items|The items to add to the list. Each item must be of the appropriate type for the list.|
+
+## Returns
+The length of the list after adding `items`.
 
 ## Examples
 

@@ -4,7 +4,7 @@
 async def remove_if_eq( name:str, *,
                         start: int = 0,
                         stop: int = None,
-                        val: str|int|float)
+                        val: str|int|float) -> int
 ```
 Search items in range: `[start, stop)`, removing those with value equal to `val`.
 
@@ -14,6 +14,10 @@ and positive values are permitted, but they must translate to indices where `sta
 !!! note 
     No gaurantees on behaviour if `val` is not the same type as when the list was created.
     This will be addressed in a future release.
+
+
+## Returns
+Length of the list after nodes removed.
 
 
 ## Examples

@@ -55,9 +55,9 @@ namespace fc
     try
     {
       const auto& name = req.name()->str();
-      const auto& itemsVector = req.items_flexbuffer_root().AsTypedVector();
+      const auto& items = req.items_flexbuffer_root().AsTypedVector();
 
-      if (const auto listOpt = haveList(fbb, name, ResponseBody_ListSet); listOpt && itemsVector.size())
+      if (const auto listOpt = haveList(fbb, name, ResponseBody_ListSet); listOpt && items.size())
       {
         if (const auto& fcList = (*listOpt)->second; fcList->isSorted())
           status = Status_NotPermitted;
@@ -70,7 +70,7 @@ namespace fc
             case FlexType::FBT_VECTOR_FLOAT:
             case FlexType::FBT_VECTOR_KEY:
             {
-              std::visit(Set{itemsVector, req.base(), req.position()}, fcList->list());
+              std::visit(makeSet(items, req.base(), req.position()), fcList->list());
             }
             break;
 
@@ -135,13 +135,14 @@ namespace fc
 
         FlexBuilder flxb{4096U}; 
 
-        const bool createdBuffer = hasStop ?  std::visit(GetByRange{flxb, start, stop, base}, fcList->list()) :
-                                              std::visit(GetByRange{flxb, start, base}, fcList->list());
+        const bool createdBuffer = hasStop ?  std::visit(makeGetFullRange(flxb, start, stop, base), fcList->list()) :
+                                              std::visit(makeGetPartialRange(flxb, start, base), fcList->list());
         
         if (!createdBuffer)
           flxb.TypedVector([]{}); // return empty vector
 
         flxb.Finish();
+        
         const auto vec = fbb.CreateVector(flxb.GetBuffer());
         const auto body = fc::response::CreateListGetRange(fbb, vec);
         
@@ -173,9 +174,9 @@ namespace fc
         const auto& fcList = (*listOpt)->second;
 
         if (hasStop)
-          std::visit(Remove{start, stop}, fcList->list());
+          std::visit(makeRemoveFullRange(start, stop), fcList->list());
         else
-          std::visit(Remove{start}, fcList->list());
+          std::visit(makeRemovePartialRange(start), fcList->list());
       }
     }
     catch(const std::exception& e)
@@ -201,28 +202,30 @@ namespace fc
       const int32_t start = req.range()->start();
       const int32_t stop = req.range()->stop();
       const bool hasStop = req.range()->has_stop();
-      // const auto condition = req.condition();  // not used, only one condition at the moment
 
       if (const auto listOpt = haveList(fbb, name, ResponseBody_ListRemoveIf); listOpt)  [[likely]]
       {
         const auto& fcList = (*listOpt)->second;
+        auto& list = fcList->list();
+        const bool isSorted = fcList->isSorted();
+        std::size_t size{0};
 
         switch (req.value_type())
         {
         case Value_IntValue:
-          doRemoveIf<IsEqual<fcint>>(start, stop, hasStop, req.value_as_IntValue()->v(), fcList->list());
+          size = doRemoveIfEquals(start, stop, hasStop, req.value_as_IntValue()->v(), list, isSorted);
         break;
 
         case Value_UIntValue:
-          doRemoveIf<IsEqual<fcuint>>(start, stop, hasStop, req.value_as_UIntValue()->v(), fcList->list());
+          size = doRemoveIfEquals(start, stop, hasStop, req.value_as_UIntValue()->v(), list, isSorted);
         break;
 
         case Value_StringValue:
-          doRemoveIf<IsEqual<std::string>>(start, stop, hasStop, req.value_as_StringValue()->v()->str(), fcList->list());
+          size = doRemoveIfEquals(start, stop, hasStop, req.value_as_StringValue()->v()->str(), list, isSorted);
         break;
 
         case Value_FloatValue:
-          doRemoveIf<IsEqual<fcfloat>>(start, stop, hasStop, req.value_as_FloatValue()->v(), fcList->list());
+          size = doRemoveIfEquals(start, stop, hasStop, req.value_as_FloatValue()->v(), list, isSorted);
         break;
 
         default:
@@ -231,15 +234,17 @@ namespace fc
         }
         break;
         }
+      
+        const auto body = fc::response::CreateListRemoveIf(fbb, size);
+        const auto rsp = fc::response::CreateResponse (fbb, status, ResponseBody_ListRemoveIf, body.Union());
+        fbb.Finish(rsp);
       }
     }
     catch(const std::exception& e)
     {
       PLOGE << e.what();
-      status = Status_Fail;
+      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListRemoveIf);
     }
-
-    createEmptyBodyResponse(fbb, status, ResponseBody_ListRemoveIf);
   }
   
 
@@ -359,6 +364,7 @@ namespace fc
       if (const auto listOpt = haveList(fbb, name, bodyType); listOpt && items.size()) [[likely]]
       {
         const auto& fcList = (*listOpt)->second;
+        std::size_t size = 0;
 
         switch (fcList->type())
         {
@@ -367,11 +373,11 @@ namespace fc
           case FlexType::FBT_VECTOR_FLOAT:
           case FlexType::FBT_VECTOR_KEY:
             if (isAppend && !fcList->isSorted())
-              std::visit(Add<false>{items}, fcList->list());
+              size = std::visit(makeUnsortedAppend(items), fcList->list());
             else if (fcList->isSorted())
-              std::visit(Add<true>{items, base, itemsSorted}, fcList->list());
+              size = std::visit(makeSortedAdd(items, base, itemsSorted), fcList->list());
             else
-              std::visit(Add<false>{items, base, pos}, fcList->list());
+              size = std::visit(makeUnsortedAdd(items, base, pos), fcList->list());
           break;
 
           default:  [[unlikely]]
@@ -379,8 +385,19 @@ namespace fc
             status = Status_Fail;
           break;
         }      
-      
-        createEmptyBodyResponse(fbb, status, bodyType);  
+
+        if (isAppend)
+        {
+          const auto body = fc::response::CreateListAppend(fbb, size);
+          const auto rsp = fc::response::CreateResponse (fbb, status, bodyType, body.Union());
+          fbb.Finish(rsp);
+        }
+        else
+        {
+          const auto body = fc::response::CreateListAdd(fbb, size);
+          const auto rsp = fc::response::CreateResponse (fbb, status, bodyType, body.Union());
+          fbb.Finish(rsp);
+        }
       }
     }
     catch(const std::exception& e)

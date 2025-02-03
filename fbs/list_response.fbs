@@ -5,18 +5,27 @@ namespace fc.response;
 
 table ListCreate{}
 
-table ListAdd{}
-
 table ListDelete{}
 
 table ListRemove{}
 
-table ListRemoveIf{}
 
 table ListSet{}
 
-table ListAppend {}
+table ListAdd
+{
+  size:uint32 = 0;  // size of list after additions
+}
 
+table ListAppend
+{
+  size:uint32 = 0;  // size of list after additions
+}
+
+table ListRemoveIf
+{
+  size:uint32 = 0;  // size of list after additions
+}
 
 table ListGetRange
 {

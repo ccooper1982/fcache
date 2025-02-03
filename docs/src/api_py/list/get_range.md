@@ -17,7 +17,10 @@ If `stop` is `None`, returns all remaining.
 Either or both `start` and `stop` can be negative/positive, but they must represent indices such that `start < stop`.
 
 ## Returns
-A list of node values, or an empty list if the range is invalid of if `start == stop`.
+A list of node values. The list will be empty if:
+
+- the range is invalid
+- `start == stop`
 
 ## Examples
 
@@ -25,11 +28,11 @@ A list of node values, or an empty list if the range is invalid of if `start == 
 await list.create('list', type='str')
 await list.add_head('list', ['A', 'B', 'C', 'D', 'E'])
 
-print(await list.get_range('list', start=0))    # all from head
-print(await list.get_range('list', start=2))    # all from 3rd item
-print(await list.get_range('list', start=-2))   # all from 'D'
-print(await list.get_range('list', start=1, stop=-2))   # 2nd item to 'D' exclusive
-print(await list.get_range('list', start=-4, stop=-1))  # 'B' to tail exclusive
+print(await list.get_range('list', start=0))
+print(await list.get_range('list', start=2))
+print(await list.get_range('list', start=-2))
+print(await list.get_range('list', start=1, stop=-2))
+print(await list.get_range('list', start=-4, stop=-1))
 
 # invalid: [3,1)
 print(await list.get_range('list', start=-2, stop=1))

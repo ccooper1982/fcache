@@ -3,26 +3,23 @@
 ```py
 async def get_range_reverse(name: str, *, start:int, stop: int = None) -> list:
 ```
-Get items using the range `[start, stop)`, but in reverse (tail to head).
+Get items in range `[start, stop)`, but iterates from __tail to head__.
 
-This is the same as [get_range()](./get_range.md) but it iterates the list from tail to head:
+This is the same as [get_range()](./get_range.md) but positions are relative to the tail, i.e.:
 
-- positive indices are relative to the tail
-    - `start=0` is the tail    
-- negative indices are relative to the head
-    - `stop=-1` is the head
+- `start = 0` is the tail node
+- `start = -1` is the head node
+
 
 If `stop` is `None`, returns all remaining.
-
-`start` and `stop` can be negative, similar to Python slicing:
-
-- `-1` is the head
-- `-2` is the second node (the node after the head)
 
 Either or both `start` and `stop` can be negative/positive, but they must represent indices such that `start < stop`.
 
 ## Returns
-A list of node values, or an empty list if the range is invalid of if `start == stop`.
+A list of node values. The list will be empty if:
+
+- the range is invalid
+- `start == stop`
 
 ## Examples
 

@@ -2,12 +2,16 @@
 
 __Unsorted List__
 ```py
-async def add(name: str, items: List[int|str|float], *, pos:int = 0) -> None
+async def add(name: str,
+              items: List[int|str|float], *,
+              pos:int = 0) -> int
 ```
 
 __Sorted List__
 ```py
-async def add(name: str, items: List[int|str|float], items_sorted:bool = False) -> None
+async def add(name: str,
+              items: List[int|str|float],
+              items_sorted:bool = False) -> int
 ```
 
 Both functions insert items but `pos` cannot be defined for a sorted list.
@@ -31,6 +35,9 @@ Inserts items into the list, starting at position `pos`, in the same order as `i
 |items_sorted|`True`: set only if `items` are already sorted in __ascending__ order<br/>`False`: the server handles sorting|
 
 
+## Returns
+Both functions return the length of the list after adding `items`.
+
 
 ## Examples
 
@@ -45,7 +52,8 @@ print(await lst.get_n('names'))
 await lst.add('names', ['David', 'Bob', 'Charlie'], pos=1)
 print(await lst.get_n('names'))
 
-await lst.add('names', ['Emma'], pos=3)
+finalSize = await lst.add('names', ['Emma'], pos=3)
+print(f'Final size: {finalSize}')
 print(await lst.get_n('names'))
 ```
 
@@ -53,6 +61,7 @@ print(await lst.get_n('names'))
 ['Arya', 'Fiona']
 ['Arya', 'David', 'Bob', 'Charlie', 'Fiona']
 ['Arya', 'David', 'Bob', 'Emma', 'Charlie', 'Fiona']
+Final size: 6
 ```
 
 

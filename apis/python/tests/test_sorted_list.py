@@ -2,7 +2,7 @@ from base import SortedListTest
 from fc.common import ResponseError
 
 
-class KV(SortedListTest):
+class SortedList(SortedListTest):
   """
   This doesn't test all commands, such as get_range() and reverse version.
   These are the same irrespective of sorted/unsorted.
@@ -18,21 +18,21 @@ class KV(SortedListTest):
   async def test_add(self):
     await self.list.create('l', type='int')
 
-    await self.list.add('l', [1,2,3])
-    out = await self.list.get_n('l')
-    self.assertListEqual(out, [1,2,3])
+    size = await self.list.add('l', [1,2,3])
+    self.assertEqual(size, 3)
+    self.assertListEqual(await self.list.get_n('l'), [1,2,3])
 
-    await self.list.add('l', [8,7,9])
-    out = await self.list.get_n('l')
-    self.assertListEqual(out, [1,2,3,7,8,9])
+    size = await self.list.add('l', [8,7,9])
+    self.assertEqual(size, 6)
+    self.assertListEqual(await self.list.get_n('l'), [1,2,3,7,8,9])
 
-    await self.list.add('l', [4,5,6], items_sorted=True)
-    out = await self.list.get_n('l')
-    self.assertListEqual(out, [1,2,3,4,5,6,7,8,9])
+    size = await self.list.add('l', [4,5,6], items_sorted=True)
+    self.assertEqual(size, 9)
+    self.assertListEqual(await self.list.get_n('l'), [1,2,3,4,5,6,7,8,9])
 
-    await self.list.add('l', [-1,0])
-    out = await self.list.get_n('l')
-    self.assertListEqual(out, [-1,0,1,2,3,4,5,6,7,8,9])
+    size = await self.list.add('l', [-1,0])
+    self.assertEqual(size, 11)
+    self.assertListEqual(await self.list.get_n('l'), [-1,0,1,2,3,4,5,6,7,8,9])
 
 
   async def test_get_head_tail(self):
@@ -78,10 +78,12 @@ class KV(SortedListTest):
     await self.list.add('rmv', [0,1,2,5,5,5,6,7,8,9,7,7,10])
     # [0,1,2,5,5,5,6,7,7,7,8,9,10]
     
-    await self.list.remove_if_eq('rmv', start=0, stop=7, val=5)
+    size = await self.list.remove_if_eq('rmv', start=0, stop=7, val=5)
+    self.assertEqual(size, 10)
     self.assertListEqual(await self.list.get_n('rmv'), [0,1,2,6,7,7,7,8,9,10])
 
-    await self.list.remove_if_eq('rmv', start=-7, val=7)
+    size = await self.list.remove_if_eq('rmv', start=-7, val=7)
+    self.assertEqual(size, 7)
     self.assertListEqual(await self.list.get_n('rmv'), [0,1,2,6,8,9,10])
   
 
