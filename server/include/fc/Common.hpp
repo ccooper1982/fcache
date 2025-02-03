@@ -25,6 +25,7 @@ namespace fc
   using fcdouble = double;
   using fcbool = bool;
   using fcblobsize = std::uint32_t;
+  using fcstring = std::string;
 
 
   // TODO remind myself why we have connected flag, it is never used after being set. 

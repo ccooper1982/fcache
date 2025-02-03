@@ -260,52 +260,15 @@ namespace fc
         const auto& fcList1 = (*list1Opt)->second;
         const auto& fcList2 = (*list2Opt)->second;
 
-        // TODO: allow intersecting of IntList and UIntlist
-
+        // TODO: allow intersecting IntList with UIntlist
         // check sorted and types
         if (!fcList1->canIntersectWith(*fcList2))
           createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListIntersect);        
         else
         {
-          const auto& range1 = *(req.list1_range());
-          const auto& range2 = *(req.list2_range());
-          const bool createNewList = req.new_list_name() && !req.new_list_name()->str().empty();
-
           FlexBuilder flxb{4096U};
 
-          if (fc::common::ListType listType; createNewList && flexTypeToListType(fcList1->type(), listType))
-          {
-            const auto& newListName = req.new_list_name()->str(); 
-            if (createList(newListName, listType, true) == Status_Ok)
-            {
-              if (const auto newListOpt = getList(newListName) ; newListOpt)
-              {
-                auto& newList = (*newListOpt)->second->list();
-                std::visit([&flxb, &range1, &range2, &l1list = fcList1->list(), &l2list = fcList2->list()](auto& newList) mutable
-                {
-                  // list1, list2 and newList are same type but newList is not const
-                  const auto& l1 = std::get<std::remove_cvref_t<decltype(newList)>>(l1list);
-                  const auto& l2 = std::get<std::remove_cvref_t<decltype(newList)>>(l2list);
-                  intersect<std::remove_cvref_t<decltype(newList)>>(newList, l1, l2, range1, range2);                  
-                },
-                newList);
-              }
-            }
-            
-            // always return a valid/non-empty flexbuffer
-            flxb.TypedVector([]{}); 
-            flxb.Finish();
-          }
-          else
-          {
-            std::visit([&flxb, &range1, &range2, &other = fcList2->list()](const auto& l1)
-            {
-              // list1 and list2 are same type, checked above
-              const auto& l2 = std::get<std::remove_cvref_t<decltype(l1)>>(other);  
-              intersect(flxb, l1, l2, range1, range2);
-            },
-            fcList1->list());
-          }
+          doIntersect(fbb, flxb, req, *fcList1, *fcList2);
 
           // intersect() finishes the FlexBuilder
           const auto vec = fbb.CreateVector(flxb.GetBuffer());
@@ -404,6 +367,50 @@ namespace fc
     {
       PLOGE << e.what();
       createEmptyBodyResponse(fbb, Status_Fail, bodyType);
+    }
+  }
+
+
+  void ListHandler::doIntersect(FlatBuilder& fb, FlexBuilder& flxb, const fc::request::ListIntersect& req, FcList& fcList1, FcList& fcList2)
+  {
+    const auto& range1 = *(req.list1_range());
+    const auto& range2 = *(req.list2_range());
+    const bool createNewList = req.new_list_name() && !req.new_list_name()->str().empty();
+    
+    if (fc::common::ListType listType; createNewList && flexTypeToListType(fcList1.type(), listType))
+    {
+      const auto& newListName = req.new_list_name()->str(); 
+      if (createList(newListName, listType, true) == Status_Ok)
+      {
+        if (const auto newListOpt = getList(newListName) ; newListOpt)
+        {
+          auto& newList = (*newListOpt)->second->list();
+          std::visit([&flxb, &range1, &range2, &l1list = fcList1.list(), &l2list = fcList2.list()](auto& newList)
+          {
+            // list1, list2 and newList are same the type, but newList is not const
+            using ListT = std::remove_cvref_t<decltype(newList)>;
+
+            const auto& l1 = std::get<ListT>(l1list);
+            const auto& l2 = std::get<ListT>(l2list);
+            intersect<ListT>(newList, l1, l2, range1, range2);                  
+          },
+          newList);
+        }
+      }
+      
+      // always return a valid/non-empty flexbuffer
+      flxb.TypedVector([]{}); 
+      flxb.Finish();
+    }
+    else
+    {
+      std::visit([&flxb, &range1, &range2, &other = fcList2.list()](const auto& l1)
+      {
+        // list1 and list2 are same type, checked above
+        const auto& l2 = std::get<std::remove_cvref_t<decltype(l1)>>(other);  
+        intersect(flxb, l1, l2, range1, range2);
+      },
+      fcList1.list());
     }
   }
 
