@@ -55,9 +55,9 @@ namespace fc
     try
     {
       const auto& name = req.name()->str();
-      const auto& itemsVector = req.items_flexbuffer_root().AsTypedVector();
+      const auto& items = req.items_flexbuffer_root().AsTypedVector();
 
-      if (const auto listOpt = haveList(fbb, name, ResponseBody_ListSet); listOpt && itemsVector.size())
+      if (const auto listOpt = haveList(fbb, name, ResponseBody_ListSet); listOpt && items.size())
       {
         if (const auto& fcList = (*listOpt)->second; fcList->isSorted())
           status = Status_NotPermitted;
@@ -70,7 +70,7 @@ namespace fc
             case FlexType::FBT_VECTOR_FLOAT:
             case FlexType::FBT_VECTOR_KEY:
             {
-              std::visit(Set{itemsVector, req.base(), req.position()}, fcList->list());
+              std::visit(makeSet(items, req.base(), req.position()), fcList->list());
             }
             break;
 
@@ -135,13 +135,14 @@ namespace fc
 
         FlexBuilder flxb{4096U}; 
 
-        const bool createdBuffer = hasStop ?  std::visit(GetByRange{flxb, start, stop, base}, fcList->list()) :
-                                              std::visit(GetByRange{flxb, start, base}, fcList->list());
+        const bool createdBuffer = hasStop ?  std::visit(makeGetFullRange(flxb, start, stop, base), fcList->list()) :
+                                              std::visit(makeGetPartialRange(flxb, start, base), fcList->list());
         
         if (!createdBuffer)
           flxb.TypedVector([]{}); // return empty vector
 
         flxb.Finish();
+        
         const auto vec = fbb.CreateVector(flxb.GetBuffer());
         const auto body = fc::response::CreateListGetRange(fbb, vec);
         
@@ -173,9 +174,9 @@ namespace fc
         const auto& fcList = (*listOpt)->second;
 
         if (hasStop)
-          std::visit(Remove{start, stop}, fcList->list());
+          std::visit(makeRemoveFullRange(start, stop), fcList->list());
         else
-          std::visit(Remove{start}, fcList->list());
+          std::visit(makeRemovePartialRange(start), fcList->list());
       }
     }
     catch(const std::exception& e)

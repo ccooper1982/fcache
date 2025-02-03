@@ -4,10 +4,9 @@
 async def get_n_reverse(name: str, *, start: int = 0, count: int = None) -> list:
 ```
 
-Returns `count` number of items, beginning from `start` position.
+Returns `count` number of items, beginning from `start` position, iterating from __tail to head__.
 
-This is the same as [get_n()](./get_n.md) but `start` is from the tail, i.e. `start=0` is the tail,
-rather than the head.
+This is the same as [get_n()](./get_n.md) but`start` is relative to the tail: i.e. `start = 0` is the tail.
 
 - `count`
     - `None` will get to and including the head
@@ -16,20 +15,16 @@ rather than the head.
 - `start` cannot be negative
 
 
-!!! note
-    `start` is zero based. The __tail__ is `0`.
-
-
 ## Examples
 
 ```py
-await list.create('list', type='str')
-await list.add_head('list', ['A', 'B', 'C', 'D', 'E'])
+await lst.create('chars', type='str')
+await lst.add('chars', ['A', 'B', 'C', 'D', 'E'])
 
-print(await list.get_n_reverse('list'))           # all from tail
-print(await list.get_n_reverse('list', start=3))  # all from 4th item
-print(await list.get_n_reverse('list', start=1, count=2)) # 2 from 2nd item
-print(await list.get_n_reverse('list', count=3))          # 3 from tail
+print(await lst.get_n_reverse('chars'))           
+print(await lst.get_n_reverse('chars', start=3))  
+print(await lst.get_n_reverse('chars', start=1, count=2)) 
+print(await lst.get_n_reverse('chars', count=3))          
 ```
 
 ```bash title='Output'

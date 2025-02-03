@@ -12,5 +12,8 @@ To delete all lists without specifying each name, use [delete_all()](./delete_al
 ```py
 await list.create('scores', type='int')
 await list.create('usernames', type='str')
+await list.create('foo', type='int')
+
 await list.delete(['scores', 'usernames'])
+# now only 'foo' list exists
 ```
