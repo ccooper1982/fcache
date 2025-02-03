@@ -73,11 +73,14 @@ async def unsorted_lists():
   # create list for integers
   await list.create('scores', type='int')
   # add these items to head
-  await list.add_head('scores', [25,35,45,55])
+  size = await list.add_head('scores', [25,35,45,55])
+  print(f'A: {size}')
   # insert in between 35 and 45 (at position 2)
-  await list.add('scores', [40], pos=2)
+  size = await list.add('scores', [40], pos=2)
+  print(f'B: {size}')
   # add two more to the tail
-  await list.add_tail('scores', [60, 65])
+  size = await list.add_tail('scores', [60, 65])
+  print(f'C: {size}')
   
   # get everything from the first item
   print(f"a. {await list.get_n('scores')}")
@@ -106,7 +109,8 @@ async def unsorted_lists():
   print(await list.get_n('names'))
   await list.add('names', ['David', 'Bob', 'Charlie'], pos=1)
   print(await list.get_n('names'))
-  await list.add('names', ['Emma'], pos=3)
+  finalSize = await list.add('names', ['Emma'], pos=3)
+  print(f'Final size: {finalSize}')
   print(await list.get_n('names'))
 
 
