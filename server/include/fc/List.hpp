@@ -10,27 +10,27 @@
 
 namespace fc
 { 
-  using IntList = std::list<fcint>;
-  using UIntList = std::list<fcuint>;
-  using FloatList = std::list<fcfloat>;
-  using StringList = std::list<std::string>;
+  using IntList     = std::list<fcint>;
+  using UIntList    = std::list<fcuint>;
+  using FloatList   = std::list<fcfloat>;
+  using StringList  = std::list<fcstring>;
   using List = std::variant<IntList, UIntList, StringList, FloatList>;
+  
   using enum fc::request::Base;
-
 
   template<typename V>
   concept ListValue = std::disjunction_v< std::is_same<V, fcint>,
                                           std::is_same<V, fcuint>,
                                           std::is_same<V, fcfloat>,
-                                          std::is_same<V, std::string>,
+                                          std::is_same<V, fcstring>,
                                           std::false_type>;
 
 
   template<typename T>
-  struct ListTraits
+  struct ListTraitsImpl
   {
+    // ListT is the list, i.e. IntList, UIntList, etc
     // value_type is what the std::list<T> stores
-    // ListT is the variant in List
     // flexType() returns the FlexBuffer type for the list in requests/responses
 
     static constexpr FlexType flexType()
@@ -46,40 +46,46 @@ namespace fc
   {
     using ListT = T;
     using Iterator = typename T::iterator;
+    using ConstIterator = typename T::const_iterator;
   };
 
   template<>
-  struct ListTraits<IntList> : public ListCommonTraits<IntList>
+  struct ListTraitsImpl<IntList> : public ListCommonTraits<IntList>
   {
-    using value_type = int64_t;
+    using value_type = fcint;
     static constexpr FlexType flexType() { return FlexType::FBT_VECTOR_INT; }
   };
 
   template<>
-  struct ListTraits<UIntList> : public ListCommonTraits<UIntList>
+  struct ListTraitsImpl<UIntList> : public ListCommonTraits<UIntList>
   {
-    using value_type = uint64_t;
+    using value_type = fcuint;
     static constexpr FlexType flexType() { return FlexType::FBT_VECTOR_UINT; }
   };
 
   template<>
-  struct ListTraits<FloatList> : public ListCommonTraits<FloatList>
+  struct ListTraitsImpl<FloatList> : public ListCommonTraits<FloatList>
   {
-    using value_type = float;
+    using value_type = fcfloat;
     static constexpr FlexType flexType() { return FlexType::FBT_VECTOR_FLOAT; }
   };
 
   template<>
-  struct ListTraits<StringList> : public ListCommonTraits<StringList>
+  struct ListTraitsImpl<StringList> : public ListCommonTraits<StringList>
   {
-    using value_type = std::string;
+    using value_type = fcstring;
     static constexpr FlexType flexType() { return FlexType::FBT_VECTOR_KEY; }
   };
 
+  template<typename T>
+  using ListTraits = ListTraitsImpl<std::decay_t<T>>;
+
 
   // Holds everything we need to know about a list.
-  // The actual list (List m_list) is a variant so we can
-  // 
+  // User created lists can be a list of int, uint, float or string.
+  // They are stored in a map<std::string, List>, where List is a variant.
+  // Actions on a list is handled using std::visit(), with handlers in 
+  // ListOperations.hpp.
   class FcList
   {
   public:
@@ -117,7 +123,7 @@ namespace fc
 
   private:
     List m_list;
-    FlexType m_flexType;    
+    const FlexType m_flexType;    
     const bool m_sorted;
   };
 }

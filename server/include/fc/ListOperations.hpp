@@ -42,8 +42,8 @@ namespace fc
   template<typename It, typename ListT>
   std::tuple<bool, It, It> positionsToIterators(const int64_t start, const int64_t end, const bool hasStop, ListT& list)
   {
-    using ListIt = typename ListT::iterator;
-    using ListConstIt = typename ListT::const_iterator;
+    using ListIt = ListTraits<ListT>::Iterator;
+    using ListConstIt = ListTraits<ListT>::ConstIterator;
 
     constexpr bool IsConst = std::is_same_v<It, ListConstIt>;
     using Iterator = std::conditional_t<IsConst, ListConstIt, ListIt>;
@@ -404,30 +404,26 @@ namespace fc
   // Intersect
   template<typename ListT>
   void doIntersectToFlexBuffer( FlexBuilder& flxb, 
-                  const typename ListT::const_iterator l1Begin, const typename ListT::const_iterator l1End,
-                  const typename ListT::const_iterator l2Begin, const typename ListT::const_iterator l2End)
+                                const typename ListT::const_iterator l1Begin, const typename ListT::const_iterator l1End,
+                                const typename ListT::const_iterator l2Begin, const typename ListT::const_iterator l2End)
   {
     using value_t = typename ListTraits<ListT>::value_type;
 
-    // TODO std::vector<value_t> with a sensible reserve()?
-    //      I don't think we can insert directly to the flexbuffer
-    std::list<value_t> result;  
-
-    std::set_intersection(l1Begin, l1End,
-                          l2Begin, l2End,
-                          std::back_inserter(result));
-
-    
-    if (result.empty())    [[unlikely]]
-      flxb.TypedVector([]{}); // create empty vector for clients
-    else
+    // NOTE (1) we can't insert directly to the flexbuffer
+    //      (2) briefly benchmarked using list vs vector for results.
+    //          vector always lost, I think due to not many intersected values,
+    //          so vector was allocating (reserve()) for no reason. Needs
+    //          further investigation.
+    flxb.TypedVector([&]()
     {
-      flxb.TypedVector([&flxb, &result]
-      {
-        for (const auto& v : result)
-          flxb.Add(v);
-      });
-    }
+      std::list<value_t> result; 
+      std::set_intersection(l1Begin, l1End,
+                            l2Begin, l2End,
+                            std::back_inserter(result));
+
+      for (const auto& v : result)
+        flxb.Add(v);
+    });
 
     flxb.Finish();
   }
