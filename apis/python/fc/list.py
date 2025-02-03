@@ -9,7 +9,12 @@ from fc.fbs.fc.common import Ident, ListType
 from fc.fbs.fc.request import (Request, RequestBody,
                                ListCreate, ListAdd, ListDelete, ListGetRange, ListRemove, ListRemoveIf, ListIntersect, ListSet, ListAppend, Range, Base)
 from fc.fbs.fc.request import (IntValue, StringValue, FloatValue, Value)
-from fc.fbs.fc.response import (ResponseBody, ListGetRange as ListGetRangeRsp, ListIntersect as ListIntersectRsp, ListAdd as ListAddRsp, ListAppend as ListAppendRsp)
+from fc.fbs.fc.response import (ResponseBody,
+                                ListGetRange as ListGetRangeRsp,
+                                ListIntersect as ListIntersectRsp,
+                                ListAdd as ListAddRsp,
+                                ListAppend as ListAppendRsp,
+                                ListRemoveIf as ListRemoveIfRsp)
 
 
 class List(ABC):
@@ -134,7 +139,7 @@ class List(ABC):
     await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListRemove)
   
 
-  async def remove_if_eq(self, name:str, *, start: int = 0, stop: int = None, val: str|int|float):
+  async def remove_if_eq(self, name:str, *, start: int = 0, stop: int = None, val: str|int|float) -> int:
     """ Remove if nodes in range [start,stop) equals val """
     
     raise_if_not(self._is_range_valid(start, stop), 'range invalid')
@@ -179,7 +184,10 @@ class List(ABC):
     body = ListRemove.End(fb)
 
     self._complete_request(fb, body, RequestBody.RequestBody.ListRemoveIf)
-    await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListRemoveIf)
+    rsp = await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListRemoveIf)
+    union_body = ListRemoveIfRsp.ListRemoveIf()
+    union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
+    return union_body.Size()
 
 
   ### helpers

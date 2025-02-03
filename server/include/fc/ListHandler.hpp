@@ -45,13 +45,13 @@ namespace fc
     fc::response::Status createList(const std::string& name, const fc::common::ListType type, const bool sorted);
     
 
-    template<typename Condition, typename ListT>
-    void doRemoveIf (const int32_t start, const int32_t stop, const bool hasStop, const typename Condition::value_type& val, ListT& list, const bool isSorted)
+    template<typename ListT>
+    std::size_t doRemoveIfEquals (const int32_t start, const int32_t stop, const bool hasStop, const auto&& val, ListT& list, const bool isSorted)
     {
       if (isSorted)
-        std::visit(makeSortedRemoveIfEquals(start, stop, val, hasStop), list);
+        return std::visit(makeSortedRemoveIfEquals(start, stop, std::forward<decltype(val)>(val), hasStop), list);
       else
-        std::visit(makeUnsortedRemoveIfEquals(start, stop, val, hasStop), list);
+        return std::visit(makeUnsortedRemoveIfEquals(start, stop, std::forward<decltype(val)>(val), hasStop), list);
     }
 
     

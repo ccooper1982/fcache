@@ -353,7 +353,7 @@ namespace fc
     }
     
     template<typename ListT>
-    void operator()(ListT& list)
+    typename ListT::size_type operator()(ListT& list)
     {
       using value_type = typename Condition::value_type;
 
@@ -361,7 +361,9 @@ namespace fc
       // so need restrict so that doRemove() is called only when ListT is for the same type as the Condition -
       // i.e. avoid executing a Condition<int> on a StringList.
       if constexpr (std::is_same_v<value_type, typename ListTraits<ListT>::value_type>)
-        doRemove(list);
+        doRemove(list);        
+      
+      return std::size(list);
     }
 
 

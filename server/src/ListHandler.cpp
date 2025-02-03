@@ -202,30 +202,30 @@ namespace fc
       const int32_t start = req.range()->start();
       const int32_t stop = req.range()->stop();
       const bool hasStop = req.range()->has_stop();
-      // const auto condition = req.condition();  // not used, only one condition at the moment
 
       if (const auto listOpt = haveList(fbb, name, ResponseBody_ListRemoveIf); listOpt)  [[likely]]
       {
         const auto& fcList = (*listOpt)->second;
         auto& list = fcList->list();
         const bool isSorted = fcList->isSorted();
+        std::size_t size{0};
 
         switch (req.value_type())
         {
         case Value_IntValue:
-          doRemoveIf<IsEqual<IntList::value_type>>(start, stop, hasStop, req.value_as_IntValue()->v(), list, isSorted);
+          size = doRemoveIfEquals(start, stop, hasStop, req.value_as_IntValue()->v(), list, isSorted);
         break;
 
         case Value_UIntValue:
-          doRemoveIf<IsEqual<UIntList::value_type>>(start, stop, hasStop, req.value_as_UIntValue()->v(), list, isSorted);
+          size = doRemoveIfEquals(start, stop, hasStop, req.value_as_UIntValue()->v(), list, isSorted);
         break;
 
         case Value_StringValue:
-          doRemoveIf<IsEqual<StringList::value_type>>(start, stop, hasStop, req.value_as_StringValue()->v()->str(), list, isSorted);
+          size = doRemoveIfEquals(start, stop, hasStop, req.value_as_StringValue()->v()->str(), list, isSorted);
         break;
 
         case Value_FloatValue:
-          doRemoveIf<IsEqual<FloatList::value_type>>(start, stop, hasStop, req.value_as_FloatValue()->v(), list, isSorted);
+          size = doRemoveIfEquals(start, stop, hasStop, req.value_as_FloatValue()->v(), list, isSorted);
         break;
 
         default:
@@ -234,15 +234,17 @@ namespace fc
         }
         break;
         }
+      
+        const auto body = fc::response::CreateListRemoveIf(fbb, size);
+        const auto rsp = fc::response::CreateResponse (fbb, status, ResponseBody_ListRemoveIf, body.Union());
+        fbb.Finish(rsp);
       }
     }
     catch(const std::exception& e)
     {
       PLOGE << e.what();
-      status = Status_Fail;
+      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListRemoveIf);
     }
-
-    createEmptyBodyResponse(fbb, status, ResponseBody_ListRemoveIf);
   }
   
 

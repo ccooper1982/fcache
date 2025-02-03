@@ -9,7 +9,6 @@ table ListDelete{}
 
 table ListRemove{}
 
-table ListRemoveIf{}
 
 table ListSet{}
 
@@ -19,6 +18,11 @@ table ListAdd
 }
 
 table ListAppend
+{
+  size:uint32 = 0;  // size of list after additions
+}
+
+table ListRemoveIf
 {
   size:uint32 = 0;  // size of list after additions
 }
