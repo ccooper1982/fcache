@@ -41,7 +41,7 @@ namespace fc
     void doAddAppend( FlatBuilder& fbb, const std::string& name, const flexbuffers::TypedVector& items,
                       const bool isAppend = true, const fc::request::Base base = Base_None, const std::int64_t pos = 0, const bool itemsSorted = false);
     
-    void doIntersect(FlatBuilder& fb, FlexBuilder& flxb, const fc::request::ListIntersect& req, FcList& fcList1, FcList& fcList2);
+    fc::response::Status doIntersect(FlatBuilder& fb, FlexBuilder& flxb, const fc::request::ListIntersect& req, FcList& fcList1, FcList& fcList2);
 
 
     fc::response::Status createList(const std::string& name, const fc::common::ListType type, const bool sorted);

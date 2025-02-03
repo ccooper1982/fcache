@@ -261,9 +261,8 @@ namespace fc
         const auto& fcList2 = (*list2Opt)->second;
 
         // TODO: allow intersecting IntList with UIntlist
-        // check sorted and types
         if (!fcList1->canIntersectWith(*fcList2))
-          createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListIntersect);        
+          createEmptyBodyResponse(fbb, Status_NotPermitted, ResponseBody_ListIntersect);        
         else
         {
           FlexBuilder flxb{4096U};
@@ -371,16 +370,18 @@ namespace fc
   }
 
 
-  void ListHandler::doIntersect(FlatBuilder& fb, FlexBuilder& flxb, const fc::request::ListIntersect& req, FcList& fcList1, FcList& fcList2)
+  fc::response::Status ListHandler::doIntersect(FlatBuilder& fb, FlexBuilder& flxb, const fc::request::ListIntersect& req, FcList& fcList1, FcList& fcList2)
   {
+    fc::response::Status status = Status_Ok;
+
     const auto& range1 = *(req.list1_range());
     const auto& range2 = *(req.list2_range());
     const bool createNewList = req.new_list_name() && !req.new_list_name()->str().empty();
-    
+        
     if (fc::common::ListType listType; createNewList && flexTypeToListType(fcList1.type(), listType))
     {
       const auto& newListName = req.new_list_name()->str(); 
-      if (createList(newListName, listType, true) == Status_Ok)
+      if (status = createList(newListName, listType, true) ; status == Status_Ok)
       {
         if (const auto newListOpt = getList(newListName) ; newListOpt)
         {
@@ -402,6 +403,11 @@ namespace fc
       flxb.TypedVector([]{}); 
       flxb.Finish();
     }
+    else if (createNewList)
+    {
+      PLOGE << "Should't happen: cannot get flex type from existing list";
+      status = Status_NotPermitted;
+    }
     else
     {
       std::visit([&flxb, &range1, &range2, &other = fcList2.list()](const auto& l1)
@@ -412,6 +418,8 @@ namespace fc
       },
       fcList1.list());
     }
+
+    return status;
   }
 
 
