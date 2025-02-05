@@ -582,6 +582,48 @@
   
   
     <li class="md-nav__item">
+      <a href="../clear_group/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    clear_group
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clear_groups/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    clear_groups
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../clear_set/" class="md-nav__link">
         
   
@@ -1211,17 +1253,13 @@
 
 
 <h1 id="add">add</h1>
-<div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">kv</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">kv</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">group</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div>
-<p>Sets new key(s) but unlike <a href="../set/">set</a>, if a key already exists, the value is <strong>not</strong> replaced.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If value is a <code>list</code>, all items must be the same type.</p>
-</div>
+<p>The same as <a href="../set/">set</a> except if a key already exists, the value is <strong>not</strong> replaced.</p>
 <h2 id="examples">Examples</h2>
 <div class="language-py highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="n">kv</span><span class="o">.</span><span class="n">set</span><span class="p">({</span><span class="s1">&#39;user&#39;</span><span class="p">:</span><span class="s1">&#39;user1&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">:</span><span class="mi">25</span><span class="p">,</span> <span class="s1">&#39;active&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">})</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># calling add() will not update age</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">await</span> <span class="n">kv</span><span class="o">.</span><span class="n">add</span><span class="p">({</span><span class="s1">&#39;age&#39;</span><span class="p">:</span><span class="mi">25</span><span class="p">})</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">await</span> <span class="n">kv</span><span class="o">.</span><span class="n">add</span><span class="p">({</span><span class="s1">&#39;age&#39;</span><span class="p">:</span><span class="mi">35</span><span class="p">})</span>
 </span></code></pre></div>
 
 

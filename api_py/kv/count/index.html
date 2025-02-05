@@ -533,6 +533,48 @@
   
   
     <li class="md-nav__item">
+      <a href="../clear_group/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    clear_group
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clear_groups/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    clear_groups
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../clear_set/" class="md-nav__link">
         
   
@@ -1229,11 +1271,12 @@
 
 
 <h1 id="count">count</h1>
-<div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">count</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span>
+<div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">count</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">group</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span>
 </span></code></pre></div>
 <p>Gets the number of keys.</p>
+<p>If <code>group</code> is set, the count only applies to that group.</p>
 <h2 id="returns">Returns</h2>
-<p>The number of keys that exist.</p>
+<p>The number of keys that exist. If <code>group</code> is set but does not exist, <code>0</code> is returned.</p>
 <h2 id="examples">Examples</h2>
 <div class="language-py highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="n">kv</span><span class="o">.</span><span class="n">set</span><span class="p">({</span><span class="s1">&#39;user&#39;</span><span class="p">:</span><span class="s1">&#39;user1&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">:</span><span class="mi">25</span><span class="p">,</span> <span class="s1">&#39;active&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;city&#39;</span><span class="p">:</span><span class="s1">&#39;London&#39;</span><span class="p">})</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">count</span> <span class="o">=</span> <span class="k">await</span> <span class="n">kv</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="c1"># 4</span>

@@ -14,7 +14,7 @@
         <link rel="prev" href="../remove/">
       
       
-        <link rel="next" href="../clear_set/">
+        <link rel="next" href="../clear_group/">
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
@@ -570,6 +570,48 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clear_group/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    clear_group
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clear_groups/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    clear_groups
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -1213,7 +1255,7 @@
 <h1 id="clear">clear</h1>
 <div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">clear</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </span></code></pre></div>
-<p>Deletes all keys.</p>
+<p>Deletes all keys and all groups.</p>
 <p>You can also use <a href="../clear_set/"><code>clear_set()</code></a> to delete all keys then set new keys in a single call.</p>
 <h2 id="examples">Examples</h2>
 <div class="language-py highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="n">kv</span><span class="o">.</span><span class="n">set</span><span class="p">({</span><span class="s1">&#39;user&#39;</span><span class="p">:</span><span class="s1">&#39;user1&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">:</span><span class="mi">25</span><span class="p">,</span> <span class="s1">&#39;active&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;city&#39;</span><span class="p">:</span><span class="s1">&#39;London&#39;</span><span class="p">})</span>
