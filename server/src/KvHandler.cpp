@@ -154,19 +154,4 @@ namespace fc
       createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVClearSet);
     }
   }
-
-
-  void KvHandler::createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept
-  {
-    // TODO this function is also in ListHandler. Move to Common.hpp or create Handler base class
-    try
-    {
-      const auto rsp = fc::response::CreateResponse (fbb, status, bodyType);
-      fbb.Finish(rsp);
-    }
-    catch(const std::exception& e)
-    {
-      PLOGE << e.what();
-    }
-  }
 }

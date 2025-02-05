@@ -12,12 +12,11 @@ namespace fc
 {
   #define fc_always_inline inline __attribute__((always_inline))
 
-  #ifndef NDEBUG
-    #define FC_DEBUG
-  #else
+  #ifdef NDEBUG
     #define FC_RELEASE
+  #else
+    #define FC_DEBUG
   #endif
-
 
   using fcint = std::int64_t;
   using fcuint = std::uint64_t;
@@ -54,7 +53,7 @@ namespace fc
 
 
   template<class Formatter>
-  static inline void initLogger (plog::ConsoleAppender<Formatter>& appender)
+  inline void initLogger (plog::ConsoleAppender<Formatter>& appender)
   {
     static bool init = false;
 
@@ -63,7 +62,7 @@ namespace fc
       #ifdef FC_DEBUG
         plog::init(plog::verbose, &appender);
       #else
-        plog::init(plog::info, &appender);    
+        plog::init(plog::info, &appender);
       #endif
     }
     
@@ -71,11 +70,6 @@ namespace fc
   }
   
 
-  static inline bool setThreadAffinity(const std::thread::native_handle_type handle, const size_t core)
-  {
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(core, &cpuset);
-    return pthread_setaffinity_np(handle, sizeof(cpu_set_t), &cpuset) == 0;
-  }
+  bool setThreadAffinity(const std::thread::native_handle_type handle, const size_t core);
+  
 }

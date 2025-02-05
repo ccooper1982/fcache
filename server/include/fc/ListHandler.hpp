@@ -35,8 +35,6 @@ namespace fc
 
 
   private:
-    void createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept;
-    
     
     void doAddAppend( FlatBuilder& fbb, const std::string& name, const flexbuffers::TypedVector& items,
                       const bool isAppend = true, const fc::request::Base base = Base_None, const std::int64_t pos = 0, const bool itemsSorted = false);

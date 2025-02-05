@@ -47,7 +47,8 @@ add_executable(fcache
   "src/Server.cpp"
   "src/KvHandler.cpp"
   "src/ListHandler.cpp"
-  "src/Map.cpp")
+  "src/Map.cpp"
+  "src/Common.cpp")
 
 #add_dependencies(fcache libflatbuffers)
 

@@ -28,8 +28,6 @@ namespace fc
 
 
   private:
-    void createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept;
-
 
     template<bool IsSet>
     bool setOrAdd (const flexbuffers::TypedVector& keys, const flexbuffers::Vector& values)
