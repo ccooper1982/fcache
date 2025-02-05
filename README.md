@@ -75,20 +75,21 @@ if __name__ == "__main__":
 
 <br/>
 
-## KV
+# KV
 
 - Keys must be a string
 - Values can be:
   - string, int, unsigned int, float, bool
   - list/array of the above
 
-A list of values can only contain values of the same type (i.e. a list of integers, a list of strings, but not a list containing different types).
+KV also supports groups, which is a simple method to separate related keys. A group is identified by a unique string, 
+such as an email address, in to which keys for that group are stored.
 
 [Read more](https://ccooper1982.github.io/fcache/kv/).
 
 <br/>
 
-## Lists
+# Lists
 
 Sorted and unsorted lists of integers, string and floats are supported. Sorted lists can also be intersected.
 
