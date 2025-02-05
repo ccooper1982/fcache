@@ -97,7 +97,7 @@ namespace fc
             m_clients.erase(ws);
         }
       })
-      .listen(ip, port, [this, port, &listening, &startLatch](auto * listenSocket)
+      .listen(ip, port, [this, &listening, &startLatch](auto * listenSocket)
       {
         if (listenSocket)
         {

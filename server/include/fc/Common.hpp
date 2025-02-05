@@ -2,7 +2,16 @@
 
 #define PLOG_OMIT_LOG_DEFINES // must be prior to including plog
 
-#include <uWebSockets/App.h>
+#if defined(__GNUC__) && (__GNUC__ >= 14)
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wnrvo"
+  #include <uWebSockets/App.h>
+  #pragma GCC diagnostic pop
+#elif defined(__clang__)
+  #include <uWebSockets/App.h>
+#endif
+
+#include <cstdint>
 #include <plog/Init.h>
 #include <plog/Log.h>
 #include <plog/Appenders/ColorConsoleAppender.h>

@@ -11,9 +11,7 @@ namespace fc
 {
   class ListHandler
   {
-    using enum fc::response::Status;
-    using enum fc::response::ResponseBody;
-    using enum fc::request::Base;
+    
 
     using Iterator = std::unordered_map<std::string, std::unique_ptr<FcList>>::iterator;
 

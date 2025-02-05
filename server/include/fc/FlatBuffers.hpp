@@ -17,6 +17,9 @@ namespace fc
   using BufferVector = flatbuffers::Vector<uint8_t>;
   using FlexType = flexbuffers::Type;
 
+  using enum fc::response::Status;
+  using enum fc::response::ResponseBody;
+  using enum fc::request::Base;
 
   inline void createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept
   {

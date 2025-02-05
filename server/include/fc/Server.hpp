@@ -5,7 +5,12 @@
 #include <thread>
 #include <fstream>
 #include <filesystem>
-#include <uWebSockets/App.h>
+
+// #pragma GCC diagnostic push 
+// #pragma GCC diagnostic ignored "-Wnrvo"
+//   #include <uWebSockets/App.h>
+// #pragma GCC diagnostic push
+
 #include <fc/Common.hpp>
 #include <fc/FlatBuffers.hpp>
 #include <fc/KvHandler.hpp>

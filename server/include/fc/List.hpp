@@ -16,8 +16,6 @@ namespace fc
   using StringList  = std::list<fcstring>;
   using List = std::variant<IntList, UIntList, StringList, FloatList>;
   
-  using enum fc::request::Base;
-
   template<typename V>
   concept ListValue = std::disjunction_v< std::is_same<V, fcint>,
                                           std::is_same<V, fcuint>,

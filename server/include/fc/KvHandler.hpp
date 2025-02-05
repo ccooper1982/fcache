@@ -8,10 +8,6 @@ namespace fc
 {
   class KvHandler
   {
-    using enum fc::response::Status;
-    using enum fc::response::ResponseBody;
-
-
   public:
     KvHandler() = default;
 

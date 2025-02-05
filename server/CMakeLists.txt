@@ -17,26 +17,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-# build Flatbuffers
-# set(FLATBUFFERS_SRC_DIR ${CMAKE_SOURCE_DIR}/externals/flatbuffers)
 
-# add_custom_command(
-#   OUTPUT Makefile
-#   COMMAND cmake -G "Unix Makefiles" -D FLATBUFFERS_STATIC_FLATC=ON -D FLATBUFFERS_BUILD_TESTS=OFF
-#   WORKING_DIRECTORY ${FLATBUFFERS_SRC_DIR}
-#   COMMENT "Configuring flatbuffers"
-#   )
-
-# add_custom_target(libflatbuffers
-#   COMMAND make -j
-#   DEPENDS Makefile
-#   BYPRODUCTS libflatbuffers.a  
-#   WORKING_DIRECTORY ${FLATBUFFERS_SRC_DIR}
-#   COMMENT "Building flatbuffers"
-#   )
-
-
-## fcache
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_SOURCE_DIR}/debug)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_SOURCE_DIR}/release)
 set(CMAKE_CXX_STANDARD_REQUIRED)
@@ -50,8 +31,12 @@ add_executable(fcache
   "src/Map.cpp"
   "src/Common.cpp")
 
-#add_dependencies(fcache libflatbuffers)
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  target_compile_options(fcache PRIVATE -Wall -flto -Wnrvo -march=native)
+else()
+  target_compile_options(fcache PRIVATE -Wall -flto -march=native)
+endif()
 
-target_compile_options(fcache PRIVATE -Wall)
-target_link_libraries(fcache PRIVATE "" -l:uSockets.a -lflatbuffers -lz)
+
+target_link_libraries(fcache PRIVATE "" -flto -l:uSockets.a -lflatbuffers -lz)
 

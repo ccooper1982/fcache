@@ -198,10 +198,8 @@ namespace fc
   // Set
   struct Set
   {
-    using enum fc::response::Status;
-
-    Set(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position)
-      : items(items), base(base), pos(position)
+    Set(const flexbuffers::TypedVector& items, const std::int64_t position)
+      : items(items), pos(position)
     {
     }
 
@@ -231,7 +229,6 @@ namespace fc
 
   private:
     const flexbuffers::TypedVector& items;
-    const fc::request::Base base;
     std::int64_t pos;    
   };
 
@@ -496,9 +493,9 @@ namespace fc
   }
 
   // Set
-  inline Set makeSet(const flexbuffers::TypedVector& items, const fc::request::Base base, const std::int64_t position)
+  inline Set makeSet(const flexbuffers::TypedVector& items, const std::int64_t position)
   {
-    return Set{items, base, position};
+    return Set{items, position};
   }
 
   // Get

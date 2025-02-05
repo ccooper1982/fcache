@@ -70,7 +70,7 @@ namespace fc
             case FlexType::FBT_VECTOR_FLOAT:
             case FlexType::FBT_VECTOR_KEY:
             {
-              std::visit(makeSet(items, req.base(), req.position()), fcList->list());
+              std::visit(makeSet(items, req.position()), fcList->list());
             }
             break;
 
@@ -385,7 +385,7 @@ namespace fc
         if (const auto newListOpt = getList(newListName) ; newListOpt)
         {
           auto& newList = (*newListOpt)->second->list();
-          std::visit([&flxb, &range1, &range2, &l1list = fcList1.list(), &l2list = fcList2.list()](auto& newList)
+          std::visit([&range1, &range2, &l1list = fcList1.list(), &l2list = fcList2.list()](auto& newList)
           {
             // list1, list2 and newList are same the type, but newList is not const
             using ListT = std::remove_cvref_t<decltype(newList)>;
