@@ -125,34 +125,21 @@ async def more():
   print(await kv.get(keys=keys))
 
 
-async def lists():
+async def groups():
   if (client := await connect()) is None:
     return
   
   kv = KV(client)
 
-  # strings
-  await kv.set({'s':['hello', 'wurluld']})
-  print(await kv.get(key='s'))
+  await kv.set({'username':'user1', 'city':'London'}, group='a@xyz.com')
+  await kv.set({'username':'user2', 'city':'Paris'}, group='b@xyz.com')
+  
+  print(await kv.get(key='username', group='a@xyz.com'))
+  print(await kv.get(key='username', group='b@xyz.com'))
 
+  print(await kv.get(keys=['username', 'city'], group='a@xyz.com'))
+  print(await kv.get(keys=['username', 'city'], group='b@xyz.com'))
 
-  # int
-  await kv.set({'i':[123,456]})
-  print(await kv.get(key='i'))
-
-  # float
-  await kv.set({'f':[12.5,45.5]})
-  print(await kv.get(key='f'))
-
-  # bool
-  await kv.set({'b':[True, False, True]})
-  print(await kv.get(key='b'))
-
-  # empty:
-  try:
-    await kv.set({'s_empty':[]})
-  except ValueError as ve:
-    print(f'Good fail: {ve}')
 
 
 async def blob():
@@ -178,7 +165,8 @@ async def blob():
 
 if __name__ == "__main__":
   async def run():
-    for f in [test, test2, more, lists, blob]:
+    #for f in [test, test2, more, groups, blob]:
+    for f in [groups]:
       print(f'---- {f.__name__} ----')
       await f()
   

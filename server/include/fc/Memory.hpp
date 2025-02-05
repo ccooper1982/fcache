@@ -4,6 +4,7 @@
 #include <functional>
 #include <plog/Log.h>
 #include <format>
+#include <fc/Common.hpp>
 
 namespace fc
 {
@@ -134,16 +135,14 @@ namespace fc
   {
   private:
     #ifdef FC_DEBUG
-      MapMemory() : //m_mapFixedResource(m_buffer.data(), m_buffer.size(), std::pmr::null_memory_resource()),
-                    m_mapFixedResource(1024),
+      MapMemory() : m_mapFixedResource(1024),
                     m_mapFixedPrint("Map Mono", &m_mapFixedResource),
                     m_mapPoolResource(&m_mapFixedPrint),
                     m_mapPoolPrint("Map Pool", &m_mapPoolResource)
       {
       }
     #else
-      MapMemory() : //m_mapFixedResource(m_buffer.data(), m_buffer.size()),
-                    m_mapFixedResource(1024),
+      MapMemory() : m_mapFixedResource(1024),
                     m_mapPoolResource(&m_mapFixedResource)
       {
       }
@@ -179,13 +178,11 @@ namespace fc
 
   private:
     #ifdef FC_DEBUG
-      //std::array<std::uint8_t, 32768> m_buffer;
       std::pmr::monotonic_buffer_resource m_mapFixedResource;
       PrintResource m_mapFixedPrint;
       std::pmr::unsynchronized_pool_resource m_mapPoolResource;
       PrintResource m_mapPoolPrint;
     #else
-      //std::array<std::uint8_t, 32768> m_buffer;
       std::pmr::monotonic_buffer_resource m_mapFixedResource;
       std::pmr::unsynchronized_pool_resource m_mapPoolResource;
     #endif

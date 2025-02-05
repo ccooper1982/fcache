@@ -81,7 +81,9 @@
     "*.inc": "cpp",
     "complex": "cpp",
     "stdfloat": "cpp",
-    "text_encoding": "cpp"
+    "text_encoding": "cpp",
+    "hash_map": "cpp",
+    "hash_set": "cpp"
   },
   "makefile.configureOnOpen": false,
   "C_Cpp.default.compilerPath": "/usr/bin/g++"

@@ -1,11 +1,12 @@
 import flatbuffers
 import flatbuffers.flexbuffers
+import typing
 from fc.client import Client
 from fc.common import raise_if, createKvMap, ResponseError
 from fc.logging import logger
 from typing import Any
 from fc.fbs.fc.common import Ident
-from fc.fbs.fc.request import (Request, RequestBody,
+from fc.fbs.fc.request import (Request, RequestBody, ClearOperation,
                                KVSet,
                                KVGet,
                                KVRmv,                               
@@ -27,15 +28,15 @@ class KV:
     self.client = client
 
 
-  async def set(self, kv: dict) -> None:
-    await self._do_set_add(kv, RequestBody.RequestBody.KVSet)
+  async def set(self, kv: dict, group: str = None) -> None:
+    await self._do_set_add(kv, RequestBody.RequestBody.KVSet, group)
 
 
-  async def add(self, kv: dict) -> None:
-    await self._do_set_add(kv, RequestBody.RequestBody.KVAdd)
+  async def add(self, kv: dict, group: str = None) -> None:
+    await self._do_set_add(kv, RequestBody.RequestBody.KVAdd, group)
   
 
-  async def get(self, *, key=None, keys=[]) -> dict | Any:
+  async def get(self, *, key=str|None, keys:typing.List[str] = [], group:str=None) -> dict | Any:
     """Get a single key or multiple keys.
     
     @param: key To get a single key. Only the value is returned.
@@ -43,17 +44,24 @@ class KV:
 
     """
     raise_if(key is None and len(keys) == 0, 'key or keys must be set')
+    raise_if(group and len(group) == 0, 'group name cannot be empty')
 
     isSingleKey = len(keys) == 0
+
     if isSingleKey:
       keys = [key]
 
     try:
       fb = flatbuffers.Builder(initialSize=1024)
-      keysOff = self._create_strings(fb, keys)
+      keysOff = self._create_key_strings(fb, keys)
+
+      if group:
+        groupOffset = fb.CreateString(group)
 
       KVGet.Start(fb)
       KVGet.AddKeys(fb, keysOff)
+      if group:
+        KVGet.AddGroup(fb, groupOffset)
       body = KVGet.End(fb)
 
       self._complete_request(fb, body, RequestBody.RequestBody.KVGet)
@@ -74,18 +82,24 @@ class KV:
       logger.error(e)
 
 
-  async def remove(self, *, key='', keys=[]) -> None:
-    raise_if(len(key) == 0 and len(keys) == 0, 'key or keys must be set')
+  async def remove(self, *, key: str=None, keys:typing.List[str]=list(), group: str = None) -> None:
+    raise_if(key is None and len(keys) == 0, 'key or keys must be set')
+    raise_if(key is not None and len(key) == 0, 'key or keys must be set')
 
-    if len(keys) == 0:
+    if key is not None:
       keys = [key]
 
     try:
       fb = flatbuffers.Builder(initialSize=1024)
-      keysOff = self._create_strings(fb, keys)
+      keysOff = self._create_key_strings(fb, keys)
+
+      if group:
+        groupOffset = fb.CreateString(group)
 
       KVRmv.Start(fb)
       KVRmv.AddKeys(fb, keysOff)
+      if group:
+        KVRmv.AddGroup(fb, groupOffset)
       body = KVRmv.End(fb)
 
       self._complete_request(fb, body, RequestBody.RequestBody.KVRmv)
@@ -95,10 +109,17 @@ class KV:
       logger.error(e)
 
 
-  async def count(self) -> int:
+  async def count(self, *, group: str = None) -> int:
     fb = flatbuffers.Builder(initialSize=1024)
-    KVCount.Start(fb)    
+    
+    if group:
+      groupOffset = fb.CreateString(group)
+
+    KVCount.Start(fb)
+    if group:
+      KVCount.AddGroup(fb, groupOffset)
     body = KVCount.End(fb)
+
     self._complete_request(fb, body, RequestBody.RequestBody.KVCount)
 
     rsp = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVCount)
@@ -107,15 +128,20 @@ class KV:
     return union_body.Count()
 
 
-  async def contains(self, keys: list) -> set:
+  async def contains(self, keys: list, *, group: str = None) -> set:
     raise_if(len(keys) == 0, 'keys is empty')
 
     try:
       fb = flatbuffers.Builder(initialSize=1024)
-      keysOff = self._create_strings(fb, keys)
+      keysOff = self._create_key_strings(fb, keys)
+
+      if group:
+        groupOffset = fb.CreateString(group)
 
       KVContains.Start(fb)
       KVContains.AddKeys(fb, keysOff)
+      if group:
+        KVContains.AddGroup(fb, groupOffset)
       body = KVContains.End(fb)
 
       self._complete_request(fb, body, RequestBody.RequestBody.KVContains)
@@ -125,26 +151,35 @@ class KV:
       union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
       
       result = flatbuffers.flexbuffers.Loads(union_body.KeysAsNumpy().tobytes())
-      return result
+      return result if len(result) > 0 else {}
     except Exception as e:
       logger.error(e)
 
 
   async def clear(self) -> None:
-    fb = flatbuffers.Builder(initialSize=1024)
-    KVClear.Start(fb)    
-    body = KVClear.End(fb)
-    self._complete_request(fb, body, RequestBody.RequestBody.KVClear)
+    await self.clear_all()
+  
 
-    await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVClear)
+  async def clear_all(self) -> None:
+    await self._do_clear(op=ClearOperation.ClearOperation.All)
+
+
+  async def clear_group(self, name:str, delete_group:bool = True) -> None:
+    op = ClearOperation.ClearOperation.Group if delete_group else ClearOperation.ClearOperation.GroupKeysOnly
+    await self._do_clear(op=op, group=name)
+
+
+  async def clear_groups(self, delete_groups:bool = True) -> None:
+    op = ClearOperation.ClearOperation.Groups if delete_groups else ClearOperation.ClearOperation.GroupsKeysOnly
+    await self._do_clear(op=op)
 
   
-  async def clear_set(self, kv:dict):
-    await self._do_set_add(kv, RequestBody.RequestBody.KVClearSet)
+  async def clear_set(self, kv:dict, group:str = None) -> None:
+    await self._do_set_add(kv, RequestBody.RequestBody.KVClearSet, group)
     
 
   ## Helpers ##
-  def _create_strings (self, fb: flatbuffers.Builder, strings: list) -> int:
+  def _create_key_strings (self, fb: flatbuffers.Builder, strings: list) -> int:
     keysOffsets = []
     for key in strings:
       keysOffsets.append(fb.CreateString(key))
@@ -169,7 +204,7 @@ class KV:
       fb.Clear()
 
 
-  async def _do_set_add(self, kv: dict, requestType: RequestBody.RequestBody) -> None:
+  async def _do_set_add(self, kv: dict, requestType: RequestBody.RequestBody, group: str = None) -> None:
     """KVSet, KVAdd and KVClearSet all use a flexbuffer map, so they all 
     use this function to populate the map from `kv`"""
 
@@ -177,19 +212,29 @@ class KV:
 
     try:
       fb = flatbuffers.Builder(initialSize=1024)
-      kvVec = fb.CreateByteVector(createKvMap(kv))
+      
+      kvOffset = fb.CreateByteVector(createKvMap(kv))
+
+      if group:
+        groupOffset = fb.CreateString(group)
 
       if requestType is RequestBody.RequestBody.KVSet:
         KVSet.Start(fb)
-        KVSet.AddKv(fb, kvVec)
+        KVSet.AddKv(fb, kvOffset)
+        if group:
+          KVSet.AddGroup(fb, groupOffset)
         body = KVSet.End(fb)
       elif requestType is RequestBody.RequestBody.KVAdd:
         KVAdd.Start(fb)
-        KVAdd.AddKv(fb, kvVec)
+        KVAdd.AddKv(fb, kvOffset)
+        if group:
+          KVAdd.AddGroup(fb, groupOffset)
         body = KVAdd.End(fb)
       elif requestType is RequestBody.RequestBody.KVClearSet:
         KVClearSet.Start(fb)
-        KVClearSet.AddKv(fb, kvVec)
+        KVClearSet.AddKv(fb, kvOffset)
+        if group:
+         KVClearSet.AddGroup(fb, groupOffset)
         body = KVClearSet.End(fb)
       else:
         raise ValueError("RequestBody not permitted")
@@ -204,4 +249,18 @@ class KV:
       raise
 
 
+  async def _do_clear(self, *, op:ClearOperation.ClearOperation, group: str = None) -> None:
+    fb = flatbuffers.Builder(initialSize=64)
 
+    if op == ClearOperation.ClearOperation.Group or op == ClearOperation.ClearOperation.GroupKeysOnly:    
+      raise_if (group is None or len(group) == 0, 'group name required')
+      groupOffset = fb.CreateString(group)
+    
+    KVClear.Start(fb)
+    KVClear.AddOp(fb, op)
+    if group:
+      KVClear.AddGroup(fb, groupOffset)
+    body = KVClear.End(fb)
+
+    self._complete_request(fb, body, RequestBody.RequestBody.KVClear)
+    await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVClear)

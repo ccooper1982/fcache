@@ -2,43 +2,58 @@ include "common.fbs";
 
 namespace fc.request;
 
-
+enum ClearOperation : ubyte
+{
+  All,
+  Groups,           // delete all groups (and keys)
+  Group,            // delete a group (and keys)
+  GroupsKeysOnly,   // delete keys in all groups (groups retained)
+  GroupKeysOnly     // delete keys in a group (group retained)
+}
 
 table KVSet
 {  
   kv:[ubyte] (flexbuffer);
+  group:string;
 }
 
 table KVGet
 {
   keys:[string];
+  group:string;
 }
 
 table KVRmv
 {
   keys:[string];
+  group:string;
 }
 
 table KVAdd
 {
   kv:[ubyte] (flexbuffer);
+  group:string;
 }
 
 table KVCount
 {
+  group:string;
 }
 
 table KVContains
 {
   keys:[string];
+  group:string;
 }
 
 table KVClear
 {
-
+  op:ClearOperation;
+  group:string;
 }
 
 table KVClearSet
 {
   kv:[ubyte] (flexbuffer);
+  group:string;
 }

@@ -5,16 +5,27 @@
 
 namespace fc
 {
-  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVSet& set) noexcept
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVSet& req) noexcept
   { 
     bool valid = false;
 
     try
     {      
-      const auto& keys = set.kv_flexbuffer_root().AsMap().Keys();
-      const auto& values = set.kv_flexbuffer_root().AsMap().Values();
+      const auto& keys = req.kv_flexbuffer_root().AsMap().Keys();
+      const auto& values = req.kv_flexbuffer_root().AsMap().Values();
+      const auto group = req.group();
 
-      valid = setOrAdd<true>(keys, values);
+      if (group && !group->empty())
+      {
+        if (const auto opt = getOrCreateGroup(group->str()); opt)
+        {
+          valid = setOrAdd<true>((*opt)->second.kv, keys, values);
+        }
+      }
+      else
+      {
+        valid = setOrAdd<true>(keys, values);
+      }        
     }
     catch(const std::exception& e)
     {
@@ -25,15 +36,25 @@ namespace fc
   }
   
 
-  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVAdd& add) noexcept
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVAdd& req) noexcept
   { 
     bool valid = false;
     try
     {
-      const auto& keys = add.kv_flexbuffer_root().AsMap().Keys();
-      const auto& values = add.kv_flexbuffer_root().AsMap().Values();
+      const auto& keys = req.kv_flexbuffer_root().AsMap().Keys();
+      const auto& values = req.kv_flexbuffer_root().AsMap().Values();
 
-      valid = setOrAdd<false>(keys, values);
+      if (const auto group = req.group(); group && !group->empty())
+      {
+        if (const auto opt = getOrCreateGroup(group->str()); opt)
+        {
+          valid = setOrAdd<false>((*opt)->second.kv, keys, values);
+        }
+      }
+      else
+      {
+        valid = setOrAdd<false>(keys, values);
+      }  
     }
     catch(const std::exception& e)
     {
@@ -44,23 +65,38 @@ namespace fc
   }
 
 
-  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVGet& get) noexcept
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVGet& req) noexcept
   {
     try
     {
-      if (!get.keys())
+      if (!req.keys())
       {
         createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVGet);
       }
       else
       {
-        FlexBuilder flxb;
-        m_map.get(*get.keys(), flxb);
+        FlexBuilder flxb{4096U};
+
+        if (const auto group = req.group(); group && !group->empty())
+        {
+          if (const auto opt = getGroup(group->str()); opt)
+          {
+            (*opt)->second.kv.get(*req.keys(), flxb);
+          }
+          else
+          {
+            // TODO Status_NotExist or
+            flxb.Map([]{}); // best to return an existing but empty map 
+          }          
+        }
+        else
+        {
+          m_map.get(*req.keys(), flxb);
+        }
+
         flxb.Finish();
 
-        const auto buff = flxb.GetBuffer();
-
-        const auto vec = fbb.CreateVector(buff);  // place the flex buffer vector in the flat buffer
+        const auto vec = fbb.CreateVector(flxb.GetBuffer());  // place the flex buffer vector in the flat buffer
         const auto body = fc::response::CreateKVGet(fbb, vec);
         
         auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_KVGet, body.Union());
@@ -75,12 +111,27 @@ namespace fc
   }
 
 
-  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVRmv& rmv) noexcept
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVRmv& req) noexcept
   {
     try
     {
-      if (rmv.keys())
-        m_map.remove(*rmv.keys());
+      // API shouldn't permit non-existent vector but confirm
+      if (req.keys())
+      {
+        const auto group = req.group();
+
+        if (group && !group->empty())
+        {
+          if (const auto opt = getGroup(group->str()); opt)
+          {
+            (*opt)->second.kv.remove(*req.keys());
+          }
+        }
+        else
+        {
+          m_map.remove(*req.keys());
+        }
+      }
 
       createEmptyBodyResponse(fbb, Status_Ok, ResponseBody_KVRmv);
     }
@@ -92,22 +143,48 @@ namespace fc
   }
 
 
-  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVCount& count) noexcept
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVCount& req) noexcept
   {
-    const auto body = fc::response::CreateKVCount(fbb, m_map.count());
+    std::size_t count = 0;
+
+    if (const auto group = req.group(); group && !group->empty())
+    {
+      if (const auto opt = getGroup(group->str()); opt)
+      {
+        count = (*opt)->second.kv.count();
+      }
+    }
+    else
+      count = m_map.count();
+    
+    const auto body = fc::response::CreateKVCount(fbb, count);
     const auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_KVCount, body.Union());
     fbb.Finish(rsp);
   }
 
   
-  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVContains& contains) noexcept
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVContains& req) noexcept
   {
-    if (!contains.keys())
+    if (!req.keys())
       createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVContains);
     else
     {
       FlexBuilder flxb;
-      m_map.contains(flxb, *contains.keys());
+
+      if (const auto group = req.group(); group && !group->empty())
+      {
+        if (const auto opt = getGroup(group->str()); opt)
+        {
+          (*opt)->second.kv.contains(flxb, *req.keys());
+        }
+        else
+        {
+          flxb.Map([]{});
+        }
+      }
+      else
+        m_map.contains(flxb, *req.keys());
+
       flxb.Finish();
 
       const auto vec = fbb.CreateVector(flxb.GetBuffer());
@@ -119,39 +196,88 @@ namespace fc
   }
 
 
-  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVClear& clear) noexcept
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVClear& req) noexcept
   {
-    bool valid = false;
+    bool valid = true;
+
     try
     {
-      valid = m_map.clear();
+      switch (req.op())
+      {
+        using enum fc::request::ClearOperation;
+
+        case ClearOperation_All:
+          m_groups.clear();
+          valid = m_map.clear();
+        break;
+
+        case ClearOperation_Groups:
+          m_groups.clear();
+        break;
+
+        case ClearOperation_GroupsKeysOnly:
+        {
+          for (auto& group : m_groups)
+            group.second.kv.clear();
+        }
+        break;
+
+        case ClearOperation_GroupKeysOnly:
+        case ClearOperation_Group:
+        {
+          if (const auto group = req.group(); group && !group->empty())
+          {
+            if (const auto opt = getGroup(group->str()); opt)
+            {
+              if (req.op() == ClearOperation_GroupKeysOnly)
+                valid = (*opt)->second.kv.clear();
+              else
+                m_groups.erase(group->str());
+            }
+          }
+        }
+        break;
+      }
     }
     catch(const std::exception& e)
     {
       PLOGE << e.what();
+      valid = false;
     }
 
     createEmptyBodyResponse(fbb, valid ? Status_Ok : Status_Fail, ResponseBody_KVClear);
   }
   
   
-  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVClearSet& clearSet) noexcept
+  void KvHandler::handle(FlatBuilder& fbb, const fc::request::KVClearSet& req) noexcept
   {
+    bool valid = false;
+
     try
     {
-      m_map.clear();
+      const auto& keys = req.kv_flexbuffer_root().AsMap().Keys();
+      const auto& values = req.kv_flexbuffer_root().AsMap().Values();
 
-      const auto& keys = clearSet.kv_flexbuffer_root().AsMap().Keys();
-      const auto& values = clearSet.kv_flexbuffer_root().AsMap().Values();
-
-      const auto valid = setOrAdd<false>(keys, values);
-
-      createEmptyBodyResponse(fbb, valid ? Status_Ok : Status_Fail, ResponseBody_KVClearSet);
+      if (const auto group = req.group(); group && !group->empty())
+      {
+        if (const auto opt = getGroup(group->str()); opt)
+        {
+          (*opt)->second.kv.clear();
+          valid = setOrAdd<true>((*opt)->second.kv, keys, values);
+        }
+      }
+      else
+      {
+        m_map.clear();
+        valid = setOrAdd<true>(keys, values);
+      }
     }
     catch(const std::exception& e)
     {
       PLOGE << e.what();
-      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVClearSet);
+      valid = false;
     }
+
+    createEmptyBodyResponse(fbb, valid ? Status_Ok : Status_Fail, ResponseBody_KVClearSet);
   }
 }

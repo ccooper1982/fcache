@@ -32,7 +32,7 @@ add_executable(fcache
   "src/Common.cpp")
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  target_compile_options(fcache PRIVATE -Wall -flto -Wnrvo -march=native)
+  target_compile_options(fcache PRIVATE -Wall -flto=auto -Wnrvo -march=native)
 else()
   target_compile_options(fcache PRIVATE -Wall -flto -march=native)
 endif()

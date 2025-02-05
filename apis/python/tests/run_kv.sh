@@ -16,7 +16,7 @@ else
 
   run_server
     
-  python3 -m unittest -v test_kv
+  python3 -m unittest -v test_kv test_kv_groups
 
   kill_server
   

@@ -8,25 +8,31 @@ namespace fc
 {
   class KvHandler
   {
+    struct Group
+    {
+      CacheMap kv;
+    };
+
+    using GroupMap = ankerl::unordered_dense::map<std::string, Group>;
+  
   public:
     KvHandler() = default;
 
 
   public:
-    void handle(FlatBuilder& fbb, const fc::request::KVSet& set) noexcept;
-    void handle(FlatBuilder& fbb, const fc::request::KVAdd& add) noexcept;
-    void handle(FlatBuilder& fbb, const fc::request::KVGet& get) noexcept;
-    void handle(FlatBuilder& fbb, const fc::request::KVRmv& rmv) noexcept;
-    void handle(FlatBuilder& fbb, const fc::request::KVCount& count) noexcept;
-    void handle(FlatBuilder& fbb, const fc::request::KVContains& contains) noexcept;
-    void handle(FlatBuilder& fbb, const fc::request::KVClear& clear) noexcept;
-    void handle(FlatBuilder& fbb, const fc::request::KVClearSet& clearSet) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::KVSet& req) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::KVAdd& req) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::KVGet& req) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::KVRmv& req) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::KVCount& req) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::KVContains& req) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::KVClear& req) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::KVClearSet& req) noexcept;
 
 
   private:
-
     template<bool IsSet>
-    bool setOrAdd (const flexbuffers::TypedVector& keys, const flexbuffers::Vector& values)
+    bool setOrAdd (CacheMap& map, const flexbuffers::TypedVector& keys, const flexbuffers::Vector& values)
     {
       bool valid = true;
       for (std::size_t i = 0 ; i < values.size() && valid; ++i)
@@ -38,47 +44,47 @@ namespace fc
           using enum FlexType;
 
           case FBT_INT:
-            valid = m_map.setOrAdd<IsSet, FBT_INT>(key, values[i].AsInt64());
+            valid = map.setOrAdd<IsSet, FBT_INT>(key, values[i].AsInt64());
           break;
           
           case FBT_UINT:
-            valid = m_map.setOrAdd<IsSet, FBT_UINT>(key, values[i].AsUInt64());
+            valid = map.setOrAdd<IsSet, FBT_UINT>(key, values[i].AsUInt64());
           break;
 
           case FBT_BOOL:
-            valid = m_map.setOrAdd<IsSet, FBT_BOOL>(key, values[i].AsBool());
+            valid = map.setOrAdd<IsSet, FBT_BOOL>(key, values[i].AsBool());
           break;
 
           case FBT_FLOAT:
-            valid = m_map.setOrAdd<IsSet, FBT_FLOAT>(key, values[i].AsFloat());
+            valid = map.setOrAdd<IsSet, FBT_FLOAT>(key, values[i].AsFloat());
           break;
 
           case FBT_STRING:
-            valid = m_map.setOrAdd<IsSet>(key, values[i].AsString().c_str());
+            valid = map.setOrAdd<IsSet>(key, values[i].AsString().c_str());
           break;
 
           case FBT_BLOB:
-            valid = m_map.setOrAdd<IsSet>(key, values[i].AsBlob());
+            valid = map.setOrAdd<IsSet>(key, values[i].AsBlob());
           break;
 
           case FBT_VECTOR_INT:
-            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_INT>(key, values[i].AsTypedVector());
+            valid = map.setOrAdd<IsSet, FBT_VECTOR_INT>(key, values[i].AsTypedVector());
           break;
 
           case FBT_VECTOR_UINT:
-            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_UINT>(key, values[i].AsTypedVector());
+            valid = map.setOrAdd<IsSet, FBT_VECTOR_UINT>(key, values[i].AsTypedVector());
           break;
 
           case FBT_VECTOR_FLOAT:
-            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_FLOAT>(key, values[i].AsTypedVector());
+            valid = map.setOrAdd<IsSet, FBT_VECTOR_FLOAT>(key, values[i].AsTypedVector());
           break;
 
           case FBT_VECTOR_BOOL:
-            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_BOOL>(key, values[i].AsTypedVector());
+            valid = map.setOrAdd<IsSet, FBT_VECTOR_BOOL>(key, values[i].AsTypedVector());
           break;
 
           case FBT_VECTOR_KEY:  // for vector of strings
-            valid = m_map.setOrAdd<IsSet, FBT_VECTOR_KEY>(key, values[i].AsTypedVector());
+            valid = map.setOrAdd<IsSet, FBT_VECTOR_KEY>(key, values[i].AsTypedVector());
           break;
 
           default:
@@ -92,8 +98,40 @@ namespace fc
     }
 
 
+    template<bool IsSet>
+    bool setOrAdd (const flexbuffers::TypedVector& keys, const flexbuffers::Vector& values)
+    {
+      return setOrAdd<IsSet>(m_map, keys, values);
+    }
+
+
+    std::optional<GroupMap::iterator> getGroup (const std::string& name)
+    {
+      if (const auto it = m_groups.find(name) ; it == m_groups.end())
+        return {};
+      else
+        return it;
+    }
+
+
+    std::optional<GroupMap::iterator> getOrCreateGroup (const std::string& name)
+    {
+      if (const auto it = m_groups.find(name) ; it == m_groups.end())
+        return createGroup(name);
+      else
+        return it;
+    }
+
+
+    GroupMap::iterator createGroup (const std::string& name)
+    {
+      const auto it = m_groups.try_emplace(name, CacheMap{});
+      return it.first;
+    }
+
+
   private:
     CacheMap m_map;
+    GroupMap m_groups;
   };
-
 }
