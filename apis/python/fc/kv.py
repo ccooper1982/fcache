@@ -36,7 +36,7 @@ class KV:
     await self._do_set_add(kv, RequestBody.RequestBody.KVAdd, group)
   
 
-  async def get(self, *, key=str|None, keys:typing.List[str] = [], group:str=None) -> dict | Any:
+  async def get(self, *, key:str=None, keys:typing.List[str] = [], group:str=None) -> dict | Any:
     """Get a single key or multiple keys.
     
     @param: key To get a single key. Only the value is returned.
