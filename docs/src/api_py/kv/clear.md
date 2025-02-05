@@ -4,7 +4,7 @@
 async def clear() -> None
 ```
 
-Deletes all keys.
+Deletes all keys and all groups.
 
 You can also use [`clear_set()`](./clear_set.md) to delete all keys then set new keys in a single call.
 

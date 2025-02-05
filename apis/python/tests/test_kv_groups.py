@@ -95,6 +95,11 @@ class KVGroups(KvTest):
     self.assertEqual(await self.kv.count(group='g2'), 0)
     self.assertEqual(await self.kv.count(group='g3'), 0)
 
+    # recreate groups/keys then delete all
+    await self.kv.set({'name':'Bob', 'age':25}, group='g1')
+    await self.kv.clear_groups()
+    self.assertEqual(await self.kv.get(key='name',group='g1'), None)
+
 
   async def test_remove(self):
     await self.kv.set({'name':'Bob', 'age':25, 'city':'Paris', 'active':True}, group='g1')

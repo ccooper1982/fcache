@@ -1,7 +1,9 @@
 # get
 
 ```py
-async def get(key=None, keys=[]) -> dict | Any
+async def get(*,  key:str = None,
+                  keys:List[str] = [],
+                  group:str = None) -> dict | Any
 ```
 
 Gets a single key or multiple keys.
@@ -10,7 +12,7 @@ Gets a single key or multiple keys.
 Called with:
 
 - `key`: if key exists the value is returned, otherwise `None`
-- `keys`: all key values in a `dict`
+- `keys`: all key values in a `dict`. If no keys exist, an empty `dict` is returned
 
 
 ## Examples

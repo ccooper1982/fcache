@@ -1,7 +1,9 @@
 # remove
 
 ```py
-async def remove(key='', keys=[]) -> None
+async def remove(*, key:str = None,
+                    keys:List[str] = list(),
+                    group: str = None) -> None:
 ```
 
 Deletes one or multiple keys.

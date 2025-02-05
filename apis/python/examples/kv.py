@@ -141,6 +141,11 @@ async def groups():
   print(await kv.get(keys=['username', 'city'], group='b@xyz.com'))
 
 
+  print('Clear Set')
+  await kv.clear_set({'username':'user1', 'city':'London', 'age':55}, group='a@xyz.com')
+  print(await kv.get(keys=['username', 'city'], group='a@xyz.com'))
+
+
 
 async def blob():
   # Requires fcache is started with maxPayload to the size

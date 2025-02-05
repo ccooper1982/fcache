@@ -1,14 +1,15 @@
 # count
 
 ```py
-async def count() -> int
+async def count(*, group: str = None) -> int
 ```
 
 Gets the number of keys.
 
+If `group` is set, the count only applies to that group.
 
 ## Returns
-The number of keys that exist.
+The number of keys that exist. If `group` is set but does not exist, `0` is returned.
 
 
 ## Examples

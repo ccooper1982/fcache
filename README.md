@@ -10,6 +10,12 @@ fcache docs available [here](https://ccooper1982.github.io/fcache/).
 
 <br/>
 
+> [!IMPORTANT]
+> This is a new project, starting in late December 2024, but development is still active.
+> Changes may include breaking changes.
+
+<br/>
+
 
 # Python Client
 The client API hides the FlatBuffers details:
@@ -90,7 +96,7 @@ Sorted and unsorted lists of integers, string and floats are supported. Sorted l
 
 <br/>
 
-## Build
+# Build
 
 - GCC required
 - Tested on GCC 13.2 and 14.2
@@ -105,7 +111,7 @@ Binary is in `server/release`.
 
 <br/>
 
-## Run
+# Run
 
 
 |Param|Default|Cmd Line|
