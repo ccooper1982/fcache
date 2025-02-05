@@ -92,8 +92,11 @@ Sorted and unsorted lists of integers, string and floats are supported. Sorted l
 
 ## Build
 
+- GCC required
+- Tested on GCC 13.2 and 14.2
+
 ```
-git clone git@github.com:ccooper1982/fcache.git
+git clone https://github.com/ccooper1982/fcache.git
 cd fcache
 ./build.sh
 ```
@@ -115,7 +118,7 @@ Binary is in `server/release`.
 
 Override IP and port:
 
-`./fcache --ip=192.168.0.10 -p 4321`
+`./fcache --ip=192.168.0.10 -port=4321`
 
 Override max payload:
 
