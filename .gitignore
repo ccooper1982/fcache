@@ -9,6 +9,8 @@ apis/python/fc/fbs/fc/__pycache__/*
 apis/python/tests/__pycache__/*
 docs/site/*
 apis/python/examples/cat_rsp.jpg
+apis/python/examples/fred@email.com_img.jpg
+apis/python/examples/bob@email.com_img.jpg
 memtest/debug/*
 memtest/release/*
 apis/python/fc/fbs/fc/common/__pycache__/*
