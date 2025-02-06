@@ -56,8 +56,6 @@ namespace fc
     bool listening{false};
     std::latch startLatch (1);
 
-    // TODO consider using path per command type, i.e. all kv commands go to /kv and similar for /sh and /sv
-    //      will this reduce checks, if not then don't bother (command has to be checked anyway)
     auto listen = [this, ip, port, &listening, &startLatch, maxPayload]()
     {
       auto wsApp = uWS::App().ws<WsSession>("/*",
@@ -136,7 +134,6 @@ namespace fc
       }
       else
       {
-        //PLOGI << "CPU Core: " << core;
         started = true;
       }
     }
@@ -192,104 +189,99 @@ namespace fc
 
   void Server::handleKv(WebSocket * ws, FlatBuilder& fbb, const fc::request::Request& request)
   {
-    // TODO tidy this. Each body inherits from flatbuffers::Table but it is private inheritance.
-    //      maybe array of lambdas, indexed by fc::request::RequestBody which calls appropriate body_as_() func.
-    //      or a templated lambda and use request.body_as<T>():
-    //
-    // auto call = [&request, &fbb, this]<typename T>()
-    // {
-    //   const auto * p = static_cast<const T *>(request.body_as<T>());
-    //   m_kvHandler->handle(fbb, *p);
-    // };
-    // call.operator()<fc::request::KVSet>();
+    switch (request.body_type())
+    {
+      case RequestBody_KVSet:
+        callKvHandler<fc::request::KVSet>(fbb, request);
+      break;
 
+      case RequestBody_KVGet:
+        callKvHandler<fc::request::KVGet>(fbb, request);
+      break;
 
-    if (request.body_type() == fc::request::RequestBody_KVSet)
-    {
-      const auto& kvRequest = *(request.body_as_KVSet());
-      m_kvHandler->handle(fbb, kvRequest);
-    }
-    else if (request.body_type() == fc::request::RequestBody_KVGet)
-    {
-      const auto& kvRequest = *(request.body_as_KVGet());
-      m_kvHandler->handle(fbb, kvRequest);
-    }
-    else if (request.body_type() == fc::request::RequestBody_KVRmv)
-    {
-      const auto& kvRequest = *(request.body_as_KVRmv());
-      m_kvHandler->handle(fbb, kvRequest);
-    }
-    else if (request.body_type() == fc::request::RequestBody_KVAdd)
-    {
-      const auto& kvRequest = *(request.body_as_KVAdd());
-      m_kvHandler->handle(fbb, kvRequest);
-    }
-    else if (request.body_type() == fc::request::RequestBody_KVCount)
-    {
-      const auto& kvRequest = *(request.body_as_KVCount());
-      m_kvHandler->handle(fbb, kvRequest);
-    }
-    else if (request.body_type() == fc::request::RequestBody_KVContains)
-    {
-      const auto& kvRequest = *(request.body_as_KVContains());
-      m_kvHandler->handle(fbb, kvRequest);
-    }
-    else if (request.body_type() == fc::request::RequestBody_KVClear)
-    {
-      const auto& kvRequest = *(request.body_as_KVClear());
-      m_kvHandler->handle(fbb, kvRequest);
-    }
-    else if (request.body_type() == fc::request::RequestBody_KVClearSet)
-    {
-      const auto& kvRequest = *(request.body_as_KVClearSet());
-      m_kvHandler->handle(fbb, kvRequest);
-    }
+      case RequestBody_KVRmv:
+        callKvHandler<fc::request::KVRmv>(fbb, request);
+      break;
 
+      case RequestBody_KVAdd:
+        callKvHandler<fc::request::KVAdd>(fbb, request);
+      break;
+
+      case RequestBody_KVCount:
+        callKvHandler<fc::request::KVCount>(fbb, request);
+      break;
+    
+      case RequestBody_KVContains:
+        callKvHandler<fc::request::KVContains>(fbb, request);
+      break;
+
+      case RequestBody_KVClear:
+        callKvHandler<fc::request::KVClear>(fbb, request);
+      break;
+
+      case RequestBody_KVClearSet:
+        callKvHandler<fc::request::KVClearSet>(fbb, request);
+      break;
+
+      default:
+      {
+        PLOGE << "KV command unknown";
+        createEmptyBodyResponse(fbb, Status_CommandUnknown, ResponseBody_NONE);
+      }        
+      break;
+    }
+    
     send(ws, fbb);
   }
   
 
   void Server::handleList(WebSocket * ws, FlatBuilder& fbb, const fc::request::Request& request)
   {
-    if (request.body_type() == fc::request::RequestBody_ListCreate)
+
+    switch (request.body_type())
     {
-      m_listHandler->handle(fbb, *request.body_as_ListCreate());
-    }
-    else if (request.body_type() == fc::request::RequestBody_ListAdd)
-    {
-      m_listHandler->handle(fbb, *request.body_as_ListAdd());
-    }
-    else if (request.body_type() == fc::request::RequestBody_ListDelete)
-    {
-      m_listHandler->handle(fbb, *request.body_as_ListDelete());
-    }
-    else if (request.body_type() == fc::request::RequestBody_ListGetRange)
-    {
-      m_listHandler->handle(fbb, *request.body_as_ListGetRange());
-    }
-    else if (request.body_type() == fc::request::RequestBody_ListRemove)
-    {
-      m_listHandler->handle(fbb, *request.body_as_ListRemove());
-    }
-    else if (request.body_type() == fc::request::RequestBody_ListRemoveIf)
-    {
-      m_listHandler->handle(fbb, *request.body_as_ListRemoveIf());
-    }
-    else if (request.body_type() == fc::request::RequestBody_ListIntersect)
-    {
-      m_listHandler->handle(fbb, *request.body_as_ListIntersect());
-    }
-    else if (request.body_type() == fc::request::RequestBody_ListSet)
-    {
-      m_listHandler->handle(fbb, *request.body_as_ListSet());
-    }
-    else if (request.body_type() == fc::request::RequestBody_ListAppend)
-    {
-      m_listHandler->handle(fbb, *request.body_as_ListAppend());
-    }
-    else
-    {
-      fbb.Finish(fc::response::CreateResponse(fbb, fc::response::Status_CommandUnknown));
+      case RequestBody_ListCreate:
+        callListHandler<fc::request::ListCreate>(fbb, request);
+      break;
+
+      case RequestBody_ListAdd:
+        callListHandler<fc::request::ListAdd>(fbb, request);
+      break;
+
+      case RequestBody_ListDelete:
+        callListHandler<fc::request::ListDelete>(fbb, request);
+      break;
+
+      case RequestBody_ListGetRange:
+        callListHandler<fc::request::ListGetRange>(fbb, request);
+      break;
+
+      case RequestBody_ListRemove:
+        callListHandler<fc::request::ListRemove>(fbb, request);
+      break;
+
+      case RequestBody_ListRemoveIf:
+        callListHandler<fc::request::ListRemoveIf>(fbb, request);
+      break;
+
+      case RequestBody_ListIntersect:
+        callListHandler<fc::request::ListIntersect>(fbb, request);
+      break;
+
+      case RequestBody_ListSet:
+        callListHandler<fc::request::ListSet>(fbb, request);
+      break;
+
+      case RequestBody_ListAppend:
+        callListHandler<fc::request::ListAppend>(fbb, request);
+      break;
+
+      default:
+      {
+        PLOGE << "List command unknown";
+        createEmptyBodyResponse(fbb, Status_CommandUnknown, ResponseBody_NONE);
+      }        
+      break;
     }
 
     send(ws, fbb);

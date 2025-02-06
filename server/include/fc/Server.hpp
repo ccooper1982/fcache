@@ -27,7 +27,6 @@ namespace fc
       
     }
 
-
     ~Server()
     {
       stop();
@@ -45,6 +44,20 @@ namespace fc
 
     void handleKv(WebSocket * ws, FlatBuilder& fbb, const fc::request::Request& request);
     void handleList(WebSocket * ws, FlatBuilder& fbb, const fc::request::Request& request);
+
+    template<typename BodyT>
+    void callKvHandler(FlatBuilder& fbb, const fc::request::Request& request)
+    {
+      const BodyT * body = request.body_as<BodyT>();
+      m_kvHandler->handle(fbb, *body);
+    }
+
+    template<typename BodyT>
+    void callListHandler(FlatBuilder& fbb, const fc::request::Request& request)
+    {
+      const BodyT * body = request.body_as<BodyT>();
+      m_listHandler->handle(fbb, *body);
+    }
 
   private:
     struct TimerData

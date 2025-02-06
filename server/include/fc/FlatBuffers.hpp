@@ -20,6 +20,8 @@ namespace fc
   using enum fc::response::Status;
   using enum fc::response::ResponseBody;
   using enum fc::request::Base;
+  using enum fc::request::RequestBody;
+  
 
   inline void createEmptyBodyResponse (FlatBuilder& fbb, const fc::response::Status status, const fc::response::ResponseBody bodyType) noexcept
   {
