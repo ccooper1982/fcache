@@ -554,6 +554,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../api_py/kv/get_all/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    get_all
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../api_py/kv/remove/" class="md-nav__link">
         
   
@@ -1309,7 +1330,7 @@
 </span></code></pre></div>
 <p>Storing <code>animals</code> and <code>scores</code> will succeed but <code>anything</code> will fail.</p>
 <h2 id="groups">Groups</h2>
-<p>Groups is a simple solution to separating related keys. Rather than using delimiters in keys such as <code>user1:name</code> and <code>user1:age</code>, you create a group for <code>user1</code> then store the <code>name</code> and <code>age</code> in that group.</p>
+<p>Groups is a simple solution to separating related keys. Rather than using delimiters in keys such as <code>user1:name</code>, <code>user1:age</code>, <code>user2:name</code> and <code>user2:age</code> you create a group for <code>user1</code> and a group for <code>user2</code>, then store their <code>name</code> and <code>age</code> keys in the appropriate group.</p>
 <p>The group is a string that unique identifies an entity. For example for a user that could be an email address or user ID, or for hardware it could be a device ID or a MAC address.</p>
 <h2 id="caching-json">Caching JSON</h2>
 <p>There is no native JSON support, so JSON must be stored as either as a string or converting to a compatible dictionary/map structure.</p>
