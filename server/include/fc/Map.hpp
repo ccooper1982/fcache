@@ -173,7 +173,32 @@ namespace fc
             }
           }
         }      
-      });      
+      }); 
+    }
+
+    
+    // Get all keys in map
+    inline void get(FlexBuilder& fb)
+    {
+      fb.Map([&]
+      {
+        for (const auto& kv : m_map)
+        {
+          const auto& cachedValue = kv.second;
+          const auto& key = kv.first;
+
+          if (cachedValue.valueType == CachedValue::FIXED)
+          {
+            const auto& fixedValue = std::get<FixedValue>(cachedValue.value);
+            fixedValue.extract(fb, key.c_str(), fixedValue);
+          }
+          else if (cachedValue.valueType == CachedValue::VEC)
+          {
+            const auto& vecValue = std::get<VectorValue>(cachedValue.value);
+            vecValue.extract(fb, key.c_str(), vecValue);
+          }
+        }
+      });
     }
 
 

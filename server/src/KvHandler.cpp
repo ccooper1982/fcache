@@ -69,29 +69,41 @@ namespace fc
   {
     try
     {
-      if (!req.keys())
+      const auto group = req.group(); 
+
+      if (!req.keys() && !group)
       {
-        createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_KVGet);
+        createEmptyBodyResponse(fbb, Status_NotPermitted, ResponseBody_KVGet);
       }
       else
       {
         FlexBuilder flxb{4096U};
 
-        if (const auto group = req.group(); group && !group->empty())
+        CacheMap * map{nullptr};
+
+        if (group && !group->empty())
         {
-          if (const auto opt = getGroup(group->str()); opt)
-          {
-            (*opt)->second.kv.get(*req.keys(), flxb);
-          }
+          if (const auto optGroup = getGroup(group->str()); optGroup)
+            map = &(*optGroup)->second.kv;
           else
           {
-            // TODO Status_NotExist or
-            flxb.Map([]{}); // best to return an existing but empty map 
-          }          
+            // TODO Status_NotExist?
+          }
+        }
+        else
+          map = &m_map;
+
+
+        if (map)
+        {
+          if (req.keys())
+            map->get(*req.keys(), flxb);
+          else
+            map->get(flxb);
         }
         else
         {
-          m_map.get(*req.keys(), flxb);
+          flxb.Map([]{}); // best to return an existing but empty map 
         }
 
         flxb.Finish();

@@ -45,27 +45,47 @@ class KV:
     """
     raise_if(key is None and len(keys) == 0, 'key or keys must be set')
     raise_if(group and len(group) == 0, 'group name cannot be empty')
+    return await self._do_get(key=key, keys=keys, group=group)
+    
 
-    isSingleKey = len(keys) == 0
 
+  async def get_all(self, group:str) -> dict:
+    """
+    Get all keys in `group`.
+    """
+    raise_if(len(group) == 0, 'group name cannot be empty')
+    return await self._do_get(group=group)
+
+
+  async def _do_get(self, *, key:str=None, keys:typing.List[str] = None, group:str=None):
+    raise_if(key is None and keys is None and group is None, 'invalid _do_get() call')
+
+    isGetAll = key is None and keys is None
+    isSingleKey = not isGetAll and len(keys) == 0
+    
     if isSingleKey:
       keys = [key]
 
     try:
       fb = flatbuffers.Builder(initialSize=1024)
-      keysOff = self._create_key_strings(fb, keys)
+
+
+      if not isGetAll:
+        keysOff = self._create_key_strings(fb, keys)
 
       if group:
         groupOffset = fb.CreateString(group)
 
       KVGet.Start(fb)
-      KVGet.AddKeys(fb, keysOff)
+      
+      if not isGetAll:
+        KVGet.AddKeys(fb, keysOff)
       if group:
         KVGet.AddGroup(fb, groupOffset)
+      
       body = KVGet.End(fb)
 
       self._complete_request(fb, body, RequestBody.RequestBody.KVGet)
-      
       rsp = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVGet)
 
       union_body = KVGetRsp.KVGet()

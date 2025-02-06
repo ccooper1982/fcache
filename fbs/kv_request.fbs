@@ -19,7 +19,7 @@ table KVSet
 
 table KVGet
 {
-  keys:[string];
+  keys:[string];    // if empty and group is set, get all in group
   group:string;
 }
 
