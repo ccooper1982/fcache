@@ -11,14 +11,14 @@ fcache docs available [here](https://ccooper1982.github.io/fcache/).
 <br/>
 
 > [!IMPORTANT]
-> This is a new project, starting in late December 2024, but development is still active.
-> Changes may include breaking changes.
+> This is a new project, starting in late December 2024. It is in active development so 
+> breaking changes to the Python API are quite likely.
 
 <br/>
 
 
-# Python Client
-The client API hides the FlatBuffers details:
+# Python API
+The API hides the FlatBuffers details:
 
 ```py
 import fc
@@ -36,7 +36,7 @@ async def connect() -> fc.Client:
   return client
 
 
-async def kv():
+async def example():
   if (client := await connect()) is None:
     return
   
@@ -49,8 +49,8 @@ async def kv():
                 'perks':['Armour','Kilt']})
 
   # get single key, returns the value
-  age = await kv.get(key='level')
-  print(f'Age: {age}')
+  level = await kv.get(key='level')
+  print(f'Age: {level}')
 
   # get multiple keys, returns dict
   rsp = await kv.get(keys=['player', 'active'])
@@ -58,19 +58,18 @@ async def kv():
 
   print(await kv.get(key='perks'))
 
-
   # Unsorted list API. There's also SortedList
   lst = UnsortedList(client)
 
   await lst.create('scores', type='int')
-  await lst.add_head('scores', [1,2,3,5,5,6,8])
+  await lst.add('scores', [1,2,3,5,5,6,8])
   await lst.get_n('scores', start=3, count=2) # [5,5]
   await lst.get_range('scores', start=1, stop=-2)  # [2,3,5,5]
   await lst.remove_if_eq('scores', val=5)  # [1,2,3,6,8]
 
 
 if __name__ == "__main__":
-  asio.run(kv())
+  asio.run(example())
 ```
 
 <br/>
@@ -82,8 +81,7 @@ if __name__ == "__main__":
   - string, int, unsigned int, float, bool
   - list/array of the above
 
-KV also supports groups, which is a simple method to separate related keys. A group is identified by a unique string, 
-such as an email address, in to which keys for that group are stored.
+KV also supports groups, which is a simple method to separate related keys. A group is identified by a unique string into which keys for that group are stored. For example, you could create a group per user using their email address as a group name.
 
 [Read more](https://ccooper1982.github.io/fcache/kv/).
 

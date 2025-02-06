@@ -137,14 +137,12 @@ async def groups():
   print(await kv.get(key='username', group='a@xyz.com'))
   print(await kv.get(key='username', group='b@xyz.com'))
 
-  print(await kv.get(keys=['username', 'city'], group='a@xyz.com'))
-  print(await kv.get(keys=['username', 'city'], group='b@xyz.com'))
-
+  print(await kv.get_all('a@xyz.com'))
 
   print('Clear Set')
   await kv.clear_set({'username':'user1', 'city':'London', 'age':55}, group='a@xyz.com')
   print(await kv.get(keys=['username', 'city'], group='a@xyz.com'))
-
+  print(await kv.get_all('a@xyz.com'))
 
 
 async def blob():

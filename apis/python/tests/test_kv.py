@@ -8,21 +8,25 @@ class KV(KvTest):
     input = {'k1':123, 'k2':True, 'k3':123.5, 'k4':'stringaling'}
     await self.kv.set(input)
 
-    out = await self.kv.get(key='k1')
+    out = await self.kv.get_key('k1')
     self.assertIsInstance(out, int)
     self.assertEqual(out, input['k1'])
 
-    out = await self.kv.get(key='k2')
+    out = await self.kv.get_key('k2')
     self.assertIsInstance(out, bool)
     self.assertEqual(out, input['k2'])
 
-    out = await self.kv.get(key='k3')
+    out = await self.kv.get_key('k3')
     self.assertIsInstance(out, float)
     self.assertEqual(out, input['k3'])
 
-    out = await self.kv.get(key='k4')
+    out = await self.kv.get_key('k4')
     self.assertIsInstance(out, str)
     self.assertEqual(out, input['k4'])
+
+    # not exist
+    self.assertIsNone(await self.kv.get_key('__xyz__'))
+
 
 
   async def test_set_get_keys(self):
@@ -30,14 +34,14 @@ class KV(KvTest):
     keys = ['k1','k2','k3','k4']
 
     await self.kv.set(input)
-    out = await self.kv.get(keys=keys)
+    out = await self.kv.get_keys(keys)
 
     self.assertDictEqual(input, out)
 
     for k in keys:
       self.assertEqual(type(out[k]), type(input[k]))
 
-  
+
   async def test_add(self):
     input = {'k1':123, 'k2':True, 'k3':123.5, 'k4':'stringaling'}
     keys = ['k1','k2','k3','k4']

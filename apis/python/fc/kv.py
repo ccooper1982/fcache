@@ -48,7 +48,6 @@ class KV:
     return await self._do_get(key=key, keys=keys, group=group)
     
 
-
   async def get_all(self, group:str) -> dict:
     """
     Get all keys in `group`.
@@ -57,50 +56,15 @@ class KV:
     return await self._do_get(group=group)
 
 
-  async def _do_get(self, *, key:str=None, keys:typing.List[str] = None, group:str=None):
-    raise_if(key is None and keys is None and group is None, 'invalid _do_get() call')
-
-    isGetAll = key is None and keys is None
-    isSingleKey = not isGetAll and len(keys) == 0
-    
-    if isSingleKey:
-      keys = [key]
-
-    try:
-      fb = flatbuffers.Builder(initialSize=1024)
+  async def get_key(self, key:str, group:str = None) -> Any:
+    raise_if(len(key) == 0, 'key is empty')
+    return await self._do_get(key=key, group=group)
 
 
-      if not isGetAll:
-        keysOff = self._create_key_strings(fb, keys)
-
-      if group:
-        groupOffset = fb.CreateString(group)
-
-      KVGet.Start(fb)
-      
-      if not isGetAll:
-        KVGet.AddKeys(fb, keysOff)
-      if group:
-        KVGet.AddGroup(fb, groupOffset)
-      
-      body = KVGet.End(fb)
-
-      self._complete_request(fb, body, RequestBody.RequestBody.KVGet)
-      rsp = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVGet)
-
-      union_body = KVGetRsp.KVGet()
-      union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
-
-      # this is how we get a flexbuffer from a flatbuffer
-      result = flatbuffers.flexbuffers.Loads(union_body.KvAsNumpy().tobytes())
-      if isSingleKey:
-        return result[key] if key in result else None  # single key, so return value
-      else:
-        return result # multiple keys, return dict
-    except Exception as e:
-      print(e)
-      logger.error(e)
-
+  async def get_keys(self, keys:typing.List[str], group:str = None) -> Any:
+    raise_if(len(keys) == 0, 'keys is empty')
+    return await self._do_get(keys=keys, group=group)
+  
 
   async def remove(self, *, key: str=None, keys:typing.List[str]=list(), group: str = None) -> None:
     raise_if(key is None and len(keys) == 0, 'key or keys must be set')
@@ -208,7 +172,7 @@ class KV:
     for off in keysOffsets:
         fb.PrependUOffsetTRelative(off)
     return fb.EndVector()
-    
+
 
   def _complete_request(self, fb: flatbuffers.Builder, body: int, bodyType: RequestBody.RequestBody):
     try:
@@ -224,6 +188,51 @@ class KV:
       fb.Clear()
 
 
+  async def _do_get(self, *, key:str=None, keys:typing.List[str] = None, group:str=None):
+    raise_if(key is None and keys is None and group is None, 'invalid _do_get() call')
+
+    isGetAll = key is None and keys is None
+    isSingleKey = not isGetAll and (key is not None and len(key))
+    
+    if isSingleKey:
+      keys = [key]
+
+    try:
+      fb = flatbuffers.Builder(initialSize=1024)
+
+
+      if not isGetAll:
+        keysOff = self._create_key_strings(fb, keys)
+
+      if group:
+        groupOffset = fb.CreateString(group)
+
+      KVGet.Start(fb)
+      
+      if not isGetAll:
+        KVGet.AddKeys(fb, keysOff)
+      if group:
+        KVGet.AddGroup(fb, groupOffset)
+      
+      body = KVGet.End(fb)
+
+      self._complete_request(fb, body, RequestBody.RequestBody.KVGet)
+      rsp = await self.client.sendCmd(fb.Output(), RequestBody.RequestBody.KVGet)
+
+      union_body = KVGetRsp.KVGet()
+      union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
+
+      # this is how we get a flexbuffer from a flatbuffer
+      result = flatbuffers.flexbuffers.Loads(union_body.KvAsNumpy().tobytes())
+      if isSingleKey:
+        return result[key] if key in result else None  # single key, so return value
+      else:
+        return result # multiple keys, return dict
+    except Exception as e:
+      print(e)
+      logger.error(e)
+
+  
   async def _do_set_add(self, kv: dict, requestType: RequestBody.RequestBody, group: str = None) -> None:
     """KVSet, KVAdd and KVClearSet all use a flexbuffer map, so they all 
     use this function to populate the map from `kv`"""

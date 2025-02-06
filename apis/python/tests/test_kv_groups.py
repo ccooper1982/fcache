@@ -57,6 +57,19 @@ class KVGroups(KvTest):
     self.assertDictEqual(await self.kv.get_all('g2'), {'name':'Fred', 'age':50})
 
 
+  async def test_get_key(self):
+    await self.kv.set({'name':'Bob', 'age':25}, group='g1')
+    await self.kv.set({'name':'Fred', 'age':50}, group='g2')
+
+    self.assertEqual(await self.kv.get_key('name','g1'), 'Bob')
+    self.assertEqual(await self.kv.get_key('name','g2'), 'Fred')
+
+
+  async def test_get_keys(self):
+    await self.kv.set({'a':'A', 'b':'B', 'c':'C'}, group='g1')
+    self.assertDictEqual(await self.kv.get_keys(['a','c'],'g1'), {'a':'A','c':'C'})
+
+
   async def test_count(self):
     await self.kv.set({'name':'Bob', 'age':25}, group='g1')
     await self.kv.set({'name':'Fred', 'age':50, 'city':'London'}, group='g2')
