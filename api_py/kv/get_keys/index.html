@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../remove_head/">
+        <link rel="prev" href="../get_key/">
       
       
-        <link rel="next" href="../remove/">
+        <link rel="next" href="../get_all/">
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>remove_tail - fcache</title>
+        <title>get_keys - fcache</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#remove_tail" class="md-skip">
+        <a href="#get_keys" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              remove_tail
+              get_keys
             
           </span>
         </div>
@@ -388,17 +388,19 @@
                 
   
   
+    
   
   
+  
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" checked>
         
           
           <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
@@ -412,7 +414,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5_2">
             <span class="md-nav__icon md-icon"></span>
             KV
@@ -426,7 +428,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/set/" class="md-nav__link">
+      <a href="../set/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -447,7 +449,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/set_key/" class="md-nav__link">
+      <a href="../set_key/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -468,7 +470,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/add/" class="md-nav__link">
+      <a href="../add/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -489,7 +491,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/get_key/" class="md-nav__link">
+      <a href="../get_key/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -507,10 +509,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../kv/get_keys/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    get_keys
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -519,6 +541,44 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -531,7 +591,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/get_all/" class="md-nav__link">
+      <a href="../get_all/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -552,7 +612,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/get/" class="md-nav__link">
+      <a href="../get/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -573,7 +633,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/remove/" class="md-nav__link">
+      <a href="../remove/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -594,7 +654,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/clear/" class="md-nav__link">
+      <a href="../clear/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -615,7 +675,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/clear_group/" class="md-nav__link">
+      <a href="../clear_group/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -636,7 +696,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/clear_groups/" class="md-nav__link">
+      <a href="../clear_groups/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -657,7 +717,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/clear_set/" class="md-nav__link">
+      <a href="../clear_set/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -678,7 +738,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/contains/" class="md-nav__link">
+      <a href="../contains/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -699,7 +759,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../kv/count/" class="md-nav__link">
+      <a href="../count/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -725,19 +785,17 @@
                 
   
   
-    
   
   
-  
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
         
           
           <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
@@ -751,7 +809,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5_3">
             <span class="md-nav__icon md-icon"></span>
             List
@@ -800,7 +858,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../intersect/" class="md-nav__link">
+      <a href="../../list/intersect/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -864,7 +922,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../add_head/" class="md-nav__link">
+      <a href="../../list/add_head/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -885,7 +943,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../add_tail/" class="md-nav__link">
+      <a href="../../list/add_tail/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -906,7 +964,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../set/" class="md-nav__link">
+      <a href="../../list/set/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -935,7 +993,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../create/" class="md-nav__link">
+      <a href="../../list/create/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -956,7 +1014,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../add/" class="md-nav__link">
+      <a href="../../list/add/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -977,7 +1035,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get_head/" class="md-nav__link">
+      <a href="../../list/get_head/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -998,7 +1056,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get_tail/" class="md-nav__link">
+      <a href="../../list/get_tail/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1019,7 +1077,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get_n/" class="md-nav__link">
+      <a href="../../list/get_n/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1040,7 +1098,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get_n_reverse/" class="md-nav__link">
+      <a href="../../list/get_n_reverse/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1061,7 +1119,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get_range/" class="md-nav__link">
+      <a href="../../list/get_range/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1082,7 +1140,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get_range_reverse/" class="md-nav__link">
+      <a href="../../list/get_range_reverse/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1103,7 +1161,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../remove_head/" class="md-nav__link">
+      <a href="../../list/remove_head/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1121,19 +1179,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../list/remove_tail/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1142,7 +1191,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -1155,7 +1203,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../remove/" class="md-nav__link">
+      <a href="../../list/remove/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1176,7 +1224,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../remove_if_eq/" class="md-nav__link">
+      <a href="../../list/remove_if_eq/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1197,7 +1245,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../delete/" class="md-nav__link">
+      <a href="../../list/delete/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1218,7 +1266,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../delete_all/" class="md-nav__link">
+      <a href="../../list/delete_all/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1267,6 +1315,32 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1280,10 +1354,22 @@
                   
 
 
-<h1 id="remove_tail">remove_tail</h1>
-<div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">remove_tail</span><span class="p">(</span><span class="n">name</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<h1 id="get_keys">get_keys</h1>
+<div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_keys</span><span class="p">(</span><span class="n">keys</span><span class="p">:</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">group</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span>
 </span></code></pre></div>
-<p>Removes the tail node.</p>
+<p>Get multiple keys.</p>
+<p>If <code>group</code> is set, only that group is checked.</p>
+<h2 id="returns">Returns</h2>
+<ul>
+<li>A <code>dict</code> of the key-values</li>
+<li>If none of the keys exist, an empty <code>dict</code></li>
+</ul>
+<h2 id="examples">Examples</h2>
+<div class="language-py highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span> <span class="n">kv</span><span class="o">.</span><span class="n">set</span><span class="p">({</span><span class="s1">&#39;username&#39;</span><span class="p">:</span><span class="s1">&#39;user1&#39;</span><span class="p">,</span> <span class="s1">&#39;city&#39;</span><span class="p">:</span><span class="s1">&#39;London&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">:</span><span class="mi">25</span><span class="p">},</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;a@xyz.com&#39;</span><span class="p">)</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">kv</span><span class="o">.</span><span class="n">get_keys</span><span class="p">([</span><span class="s1">&#39;city&#39;</span><span class="p">,</span><span class="s1">&#39;age&#39;</span><span class="p">],</span> <span class="s1">&#39;a@xyz.com&#39;</span><span class="p">))</span>
+</span></code></pre></div>
+<div class="language-sh highlight"><span class="filename">Output</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="o">{</span><span class="s1">&#39;city&#39;</span>:<span class="s1">&#39;London&#39;</span>,<span class="w"> </span><span class="s1">&#39;age&#39;</span>:25<span class="o">}</span>
+</span></code></pre></div>
 
 
 
