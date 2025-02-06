@@ -23,13 +23,16 @@ from fc.fbs.fc.response import (KVGet as KVGetRsp,
 class KV:
   "Key Value API. If a response returns a fail, a ResponseError is raised."
 
-
   def __init__(self, client: Client):
     self.client = client
 
 
   async def set(self, kv: dict, group: str = None) -> None:
     await self._do_set_add(kv, RequestBody.RequestBody.KVSet, group)
+
+
+  async def set_key(self, key:str, value:Any, group:str = None) -> None:
+    await self._do_set_add({key:value}, RequestBody.RequestBody.KVSet, group)
 
 
   async def add(self, kv: dict, group: str = None) -> None:

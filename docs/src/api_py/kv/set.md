@@ -17,8 +17,13 @@ The `group` is created if it does not exist.
 
 ## Examples
 
-```py title='Basics'
-await kv.set({'user':'user1', 'age':25, 'active':True})
+```py title='Various'
+await kv.set({
+                'user':'user1',
+                'age':25,
+                'active':True,
+                'themes':['light','dark']
+             })
 ```
 
 ```py title='Blob'
@@ -30,7 +35,7 @@ kv = KV(client)
 
 await kv.set({'img_cat':file_data})
 
-if data := await kv.get(key='img_cat'):
+if data := await kv.get_key('img_cat'):
   with open('cat_rsp.jpg', mode='wb') as file:
     file.write(data)
     print('Image written')
@@ -41,11 +46,11 @@ if data := await kv.get(key='img_cat'):
 await kv.set({'username':'user1', 'city':'London'}, group='a@xyz.com')
 await kv.set({'username':'user2', 'city':'Paris'}, group='b@xyz.com')
 
-print(await kv.get(key='username', group='a@xyz.com'))
-print(await kv.get(key='username', group='b@xyz.com'))
+print(await kv.get_key('username', group='a@xyz.com'))
+print(await kv.get_key('username', group='b@xyz.com'))
 
-print(await kv.get(keys=['username', 'city'], group='a@xyz.com'))
-print(await kv.get(keys=['username', 'city'], group='b@xyz.com'))
+print(await kv.get_keys(['username', 'city'], group='a@xyz.com'))
+print(await kv.get_keys(['username', 'city'], group='b@xyz.com'))
 ```
 
 ```sh title='Output'

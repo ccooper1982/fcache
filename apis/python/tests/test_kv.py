@@ -5,24 +5,33 @@ from fc.common import ResponseError
 
 class KV(KvTest):
   async def test_set_get_key(self):
-    input = {'k1':123, 'k2':True, 'k3':123.5, 'k4':'stringaling'}
-    await self.kv.set(input)
+    await self.kv.set({'k1':123, 'k2':True, 'k3':123.5, 'k4':'stringaling'})
+    await self.kv.set_key('k5', 'another_string')
+    await self.kv.set_key('k6', ['a','b','c'])
 
     out = await self.kv.get_key('k1')
     self.assertIsInstance(out, int)
-    self.assertEqual(out, input['k1'])
+    self.assertEqual(out, 123)
 
     out = await self.kv.get_key('k2')
     self.assertIsInstance(out, bool)
-    self.assertEqual(out, input['k2'])
+    self.assertEqual(out, True)
 
     out = await self.kv.get_key('k3')
     self.assertIsInstance(out, float)
-    self.assertEqual(out, input['k3'])
+    self.assertEqual(out, 123.5)
 
     out = await self.kv.get_key('k4')
     self.assertIsInstance(out, str)
-    self.assertEqual(out, input['k4'])
+    self.assertEqual(out, 'stringaling')
+
+    out = await self.kv.get_key('k5')
+    self.assertIsInstance(out, str)
+    self.assertEqual(out, 'another_string')
+
+    out = await self.kv.get_key('k6')
+    self.assertIsInstance(out, list)
+    self.assertEqual(out, ['a','b','c'])
 
     # not exist
     self.assertIsNone(await self.kv.get_key('__xyz__'))

@@ -12,20 +12,23 @@ class KVGroups(KvTest):
     await self.kv.set({'name':'Bob', 'age':25}, group='g1')
     await self.kv.set({'name':'Fred', 'age':50}, group='g2')
 
-    g1 = await self.kv.get(keys=['name','age'], group='g1')
-    g2 = await self.kv.get(keys=['name','age'], group='g2')
+    g1 = await self.kv.get_keys(['name','age'], group='g1')
+    g2 = await self.kv.get_keys(['name','age'], group='g2')
 
     self.assertDictEqual(g1, {'name':'Bob', 'age':25})
     self.assertDictEqual(g2, {'name':'Fred', 'age':50})
 
+    await self.kv.set_key('city', 'London', group='g1')
+    self.assertDictEqual(await self.kv.get_all('g1'), {'name':'Bob', 'age':25, 'city':'London'})
+
   
   async def test_add(self):
     await self.kv.add({'name':'Bob', 'age':25}, group='g1')
-    kv = await self.kv.get(keys=['name','age'], group='g1')
+    kv = await self.kv.get_keys(['name','age'], group='g1')
     self.assertDictEqual(kv, {'name':'Bob', 'age':25})
     
     await self.kv.add({'name':'Bobby', 'age':250}, group='g1')
-    kv = await self.kv.get(keys=['name','age'], group='g1')
+    kv = await self.kv.get_keys(['name','age'], group='g1')
     self.assertDictEqual(kv, {'name':'Bob', 'age':25}) # no change
 
 

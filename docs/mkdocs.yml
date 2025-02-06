@@ -42,6 +42,7 @@ nav:
     - 'api_py/intro.md'
     - KV:
       - set: 'api_py/kv/set.md'
+      - set_key: 'api_py/kv/set_key.md'
       - add: 'api_py/kv/add.md'
       - get_key: 'api_py/kv/get_key.md'
       - get_keys: 'api_py/kv/get_keys.md'

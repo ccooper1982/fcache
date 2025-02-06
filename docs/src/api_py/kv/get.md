@@ -8,6 +8,13 @@ async def get(*,  key:str = None,
 
 Gets a single key or multiple keys.
 
+There are alternative convenience functions:
+
+- [get_key](./get_key.md) - get a single key
+- [get_keys](./get_keys.md) - get multiple keys
+- [get_all](./get_all.md) - get all keys in a group
+
+
 ## Returns
 Called with:
 
