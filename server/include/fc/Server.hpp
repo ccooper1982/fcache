@@ -5,12 +5,6 @@
 #include <thread>
 #include <fstream>
 #include <filesystem>
-
-// #pragma GCC diagnostic push 
-// #pragma GCC diagnostic ignored "-Wnrvo"
-//   #include <uWebSockets/App.h>
-// #pragma GCC diagnostic push
-
 #include <fc/Common.hpp>
 #include <fc/FlatBuffers.hpp>
 #include <fc/KvHandler.hpp>
@@ -39,11 +33,11 @@ namespace fc
   
   private:
     void onMessage(WebSocket * ws, std::string_view message, const uWS::OpCode opCode);
-    void sendFailure (WebSocket * ws, FlatBuilder& fbb, const fc::response::Status status);
-    void send (WebSocket * ws, const FlatBuilder& builder);
+    inline void sendFailure (WebSocket * ws, FlatBuilder& fbb, const fc::response::Status status);
+    inline void send (WebSocket * ws, const FlatBuilder& builder);
 
-    void handleKv(WebSocket * ws, FlatBuilder& fbb, const fc::request::Request& request);
-    void handleList(WebSocket * ws, FlatBuilder& fbb, const fc::request::Request& request);
+    inline void handleKv(WebSocket * ws, FlatBuilder& fbb, const fc::request::Request& request);
+    inline void handleList(WebSocket * ws, FlatBuilder& fbb, const fc::request::Request& request);
 
     template<typename BodyT>
     void callKvHandler(FlatBuilder& fbb, const fc::request::Request& request)
