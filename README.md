@@ -49,15 +49,17 @@ async def example():
                 'perks':['Armour','Kilt']})
 
   # get single key, returns the value
-  level = await kv.get(key='level')
+  level = await kv.get_key('level')
   print(f'Age: {level}')
 
   # get multiple keys, returns dict
-  rsp = await kv.get(keys=['player', 'active'])
+  rsp = await kv.get_keys(['player', 'active'])
   print(f"Player: {rsp['player']}, Active: {rsp['active']}")
+  
+  # get list
+  print(await kv.get_key('perks'))
 
-  print(await kv.get(key='perks'))
-
+  
   # Unsorted list API. There's also SortedList
   lst = UnsortedList(client)
 
