@@ -28,7 +28,7 @@ Storing `animals` and `scores` will succeed but `anything` will fail.
 
 
 ## Groups
-Groups is a simple solution to separating related keys. Rather than using delimiters in keys such as `user1:name` and `user1:age`, you create a group for `user1` then store the `name` and `age` in that group.
+Groups is a simple solution to separating related keys. Rather than using delimiters in keys such as `user1:name`, `user1:age`, `user2:name` and `user2:age` you create a group for `user1` and a group for `user2`, then store their `name` and `age` keys in the appropriate group.
 
 The group is a string that unique identifies an entity. For example for a user that could be an email address or user ID, or for hardware it could be a device ID or a MAC address.
 

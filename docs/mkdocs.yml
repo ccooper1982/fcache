@@ -44,6 +44,7 @@ nav:
       - set: 'api_py/kv/set.md'
       - add: 'api_py/kv/add.md'
       - get: 'api_py/kv/get.md'
+      - get_all: 'api_py/kv/get_all.md'
       - remove: 'api_py/kv/remove.md'
       - clear: 'api_py/kv/clear.md'
       - clear_group: 'api_py/kv/clear_group.md'
