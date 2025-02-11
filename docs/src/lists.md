@@ -73,3 +73,22 @@ print(await lst.intersect('i1', 'i2', l1_stop=6))
 [0, 1, 2, 5, 5, 5, 6, 7]
 [0, 1, 2, 5, 5, 5]
 ```
+
+## Stack and Queue
+There are not specific stack and queue containers, but an unsorterd list can wrap the operations.
+
+For example in the Python API:
+
+__Stack__
+
+- push:  `add_head()`
+- pop: `remove_head()`
+- top: `get_head()`
+
+
+__Queue__
+
+- push: `add_tail()`
+- pop: `remove_head()`
+- first: `get_head()`
+- last: `get_tail()`

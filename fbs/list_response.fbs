@@ -33,8 +33,14 @@ table ListGetRange
   type:common.ListType;
 }
 
-
 table ListIntersect
 {
   items:[ubyte] (flexbuffer);
+}
+
+table ListInfo
+{
+  size:uint32;
+  type:common.ListType;
+  sorted:bool;
 }

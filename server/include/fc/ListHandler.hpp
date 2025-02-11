@@ -30,6 +30,7 @@ namespace fc
     void handle(FlatBuilder& fbb, const fc::request::ListIntersect& req) noexcept;
     void handle(FlatBuilder& fbb, const fc::request::ListSet& req) noexcept;
     void handle(FlatBuilder& fbb, const fc::request::ListAppend& req) noexcept;
+    void handle(FlatBuilder& fbb, const fc::request::ListInfo& req) noexcept;
 
 
   private:

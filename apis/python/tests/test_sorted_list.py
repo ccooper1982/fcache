@@ -143,3 +143,35 @@ class SortedList(SortedListTest):
       await self.list.intersect('i', 's', new_list_name='x')
       await self.list.intersect('s', 'f', new_list_name='x')
       await self.list.intersect('f', 'i', new_list_name='x')
+
+
+  async def test_info(self):
+    await self.list.create('i', type='int')
+    await self.list.create('s', type='str')
+    await self.list.create('f', type='float')
+    
+    (size, type, sorted) = await self.list.info('i')
+    self.assertEqual(size, 0)
+    self.assertEqual(type, 'int')
+    self.assertTrue(sorted)
+
+    (size, type, sorted) = await self.list.info('s')
+    self.assertEqual(size, 0)
+    self.assertEqual(type, 'str')
+    self.assertTrue(sorted)
+
+    (size, type, sorted) = await self.list.info('f')
+    self.assertEqual(size, 0)
+    self.assertEqual(type, 'float')
+    self.assertTrue(sorted)
+
+    await self.list.add('i', [0,1,2])
+    await self.list.add('s', ['a','b','c'])
+    await self.list.add('f', [1.1, 1.2, 1.3])
+
+    (size, type, sorted) = await self.list.info('i')
+    self.assertEqual(size, 3)
+    (size, type, sorted) = await self.list.info('s')
+    self.assertEqual(size, 3)
+    (size, type, sorted) = await self.list.info('f')
+    self.assertEqual(size, 3)

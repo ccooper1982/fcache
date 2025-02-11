@@ -473,6 +473,26 @@ namespace fc
   }
 
 
+  // info
+  struct ListInfo
+  {
+    std::uint32_t size;
+  };
+
+  struct Info
+  {
+    Info ()
+    {
+
+    }
+
+    template<typename ListT>
+    ListInfo operator()(const ListT& list)
+    {
+      return ListInfo{.size = static_cast<std::uint32_t>(std::size(list))};
+    }
+  };
+
 
   // helpers
   

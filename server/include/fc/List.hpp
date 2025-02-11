@@ -36,6 +36,12 @@ namespace fc
       static_assert(false, "T not supported by List variant");
       return FlexType::FBT_NULL;
     }
+
+    static constexpr fc::common::ListType listType()
+    {
+      static_assert(false, "T not supported by List variant");
+      return fc::common::ListType_MAX;
+    }
   };
 
   
@@ -52,6 +58,7 @@ namespace fc
   {
     using value_type = fcint;
     static constexpr FlexType flexType() { return FlexType::FBT_VECTOR_INT; }
+    static constexpr fc::common::ListType listType() { return ListType_Int; }
   };
 
   template<>
@@ -59,6 +66,7 @@ namespace fc
   {
     using value_type = fcuint;
     static constexpr FlexType flexType() { return FlexType::FBT_VECTOR_UINT; }
+    static constexpr fc::common::ListType listType() { return ListType_UInt; }
   };
 
   template<>
@@ -66,6 +74,7 @@ namespace fc
   {
     using value_type = fcfloat;
     static constexpr FlexType flexType() { return FlexType::FBT_VECTOR_FLOAT; }
+    static constexpr fc::common::ListType listType() { return ListType_Float; }
   };
 
   template<>
@@ -73,6 +82,7 @@ namespace fc
   {
     using value_type = fcstring;
     static constexpr FlexType flexType() { return FlexType::FBT_VECTOR_KEY; }
+    static constexpr fc::common::ListType listType() { return ListType_String; }
   };
 
   template<typename T>
@@ -91,37 +101,28 @@ namespace fc
     FcList(ListT&& list, const bool sorted) noexcept :
       m_list(std::move(list)),
       m_flexType(ListTraits<ListT>::flexType()),
+      m_listType(ListTraits<ListT>::listType()),
       m_sorted(sorted)
     {
 
     }
     
-    FlexType type() const noexcept { return m_flexType; }
+    FlexType flexType() const noexcept { return m_flexType; }
+    fc::common::ListType listType() const noexcept { return m_listType; }
     List& list() noexcept { return m_list; }
     const List& list() const noexcept { return m_list; }
     bool isSorted () const noexcept { return m_sorted; }
 
 
-    bool operator==(const FcList& a)
-    {
-      return a.type() == type() && a.isSorted() == isSorted();
-    }
-    
-
-    bool operator!=(const FcList& a)
-    {
-      return !(*this == a);
-    }
-
-
     bool canIntersectWith (const FcList& other)
     {
-     return isSorted() && other.isSorted() && type() == other.type();
+     return isSorted() && other.isSorted() && flexType() == other.flexType();
     }
 
   private:
     List m_list;
-    const FlexType m_flexType;    
+    const FlexType m_flexType;
+    const fc::common::ListType m_listType;
     const bool m_sorted;
   };
 }

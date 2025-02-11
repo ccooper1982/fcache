@@ -63,7 +63,7 @@ namespace fc
           status = Status_NotPermitted;
         else
         {
-          switch (fcList->type())
+          switch (fcList->flexType())
           {
             case FlexType::FBT_VECTOR_INT:
             case FlexType::FBT_VECTOR_UINT:
@@ -75,7 +75,7 @@ namespace fc
             break;
 
             default:  [[unlikely]]
-              PLOGE << "Unknown type for list: " << fcList->type();
+              PLOGE << "Unknown type for list: " << fcList->flexType();
               status = Status_Fail;
             break;
           }
@@ -287,6 +287,36 @@ namespace fc
   }
 
 
+  void ListHandler::handle(FlatBuilder& fbb, const fc::request::ListInfo& req) noexcept
+  {
+    fc::response::Status status = Status_Ok;
+
+    try
+    {
+      if (const auto optList = getList(req.name()->str()) ; optList)
+      {
+        const auto& fcList = (*optList)->second;
+        
+        const auto info = std::visit(Info{}, fcList->list());
+
+        const auto body = fc::response::CreateListInfo(fbb, info.size, fcList->listType(), fcList->isSorted());
+        auto rsp = fc::response::CreateResponse(fbb, Status_Ok, ResponseBody_ListInfo, body.Union());
+        fbb.Finish(rsp);
+      }
+      else
+        status = Status_Fail;
+    }
+    catch(const std::exception& e)
+    {
+      PLOGE << e.what();
+      status = Status_Fail;
+    }
+
+    if (status == Status_Fail)  [[unlikely]]
+      createEmptyBodyResponse(fbb, Status_Fail, ResponseBody_ListInfo);
+  }
+
+
   fc::response::Status ListHandler::createList(const std::string& name, const fc::common::ListType type, const bool sorted)
   {
     auto create = [this, sorted, &name](auto&& list) -> fc::response::Status
@@ -329,7 +359,7 @@ namespace fc
         const auto& fcList = (*listOpt)->second;
         std::size_t size = 0;
 
-        switch (fcList->type())
+        switch (fcList->flexType())
         {
           case FlexType::FBT_VECTOR_INT:
           case FlexType::FBT_VECTOR_UINT:
@@ -344,7 +374,7 @@ namespace fc
           break;
 
           default:  [[unlikely]]
-            PLOGE << "Unknown type for list: " << fcList->type();
+            PLOGE << "Unknown type for list: " << fcList->flexType();
             status = Status_Fail;
           break;
         }      
@@ -377,7 +407,7 @@ namespace fc
     const auto& range2 = *(req.list2_range());
     const bool createNewList = req.new_list_name() && !req.new_list_name()->str().empty();
     
-    if (fc::common::ListType listType; createNewList && flexTypeToListType(fcList1.type(), listType))
+    if (fc::common::ListType listType; createNewList && flexTypeToListType(fcList1.flexType(), listType))
     {
       const auto& newListName = req.new_list_name()->str(); 
       if (createList(newListName, listType, true) == Status_Ok)
@@ -398,8 +428,9 @@ namespace fc
         }
       }
       
-      // always return a valid/non-empty flexbuffer
-      flxb.TypedVector([]{}); 
+      // creating new list from intersect, which doesn't return the list,
+      // but return an empty list for client
+      flxb.TypedVector([]{});  
       flxb.Finish();
     }
     else

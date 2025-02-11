@@ -276,6 +276,10 @@ namespace fc
         callListHandler<fc::request::ListAppend>(fbb, request);
       break;
 
+      case RequestBody_ListInfo:
+        callListHandler<fc::request::ListInfo>(fbb, request);
+      break;
+
       default:
       {
         PLOGE << "List command unknown";

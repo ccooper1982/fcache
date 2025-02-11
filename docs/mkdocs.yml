@@ -70,6 +70,8 @@ nav:
       - get_n_reverse: 'api_py/list/get_n_reverse.md'
       - get_range: 'api_py/list/get_range.md'
       - get_range_reverse: 'api_py/list/get_range_reverse.md'
+      - size: 'api_py/list/size.md'
+      - info: 'api_py/list/info.md'
       - remove_head: 'api_py/list/remove_head.md'
       - remove_tail: 'api_py/list/remove_tail.md'
       - remove: 'api_py/list/remove.md'

@@ -25,7 +25,8 @@ union RequestBody
   ListRemoveIf,
   ListIntersect,
   ListSet,
-  ListAppend
+  ListAppend,
+  ListInfo
 }
 
 table Request

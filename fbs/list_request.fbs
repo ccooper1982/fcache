@@ -121,3 +121,8 @@ table ListSet
   base:Base;
   items:[ubyte] (flexbuffer);
 }
+
+table ListInfo
+{
+  name:string;
+}

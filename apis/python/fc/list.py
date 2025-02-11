@@ -6,15 +6,17 @@ from fc.client import Client
 from fc.common import raise_if, raise_if_not
 from fc.logging import logger
 from fc.fbs.fc.common import Ident, ListType
-from fc.fbs.fc.request import (Request, RequestBody,
-                               ListCreate, ListAdd, ListDelete, ListGetRange, ListRemove, ListRemoveIf, ListIntersect, ListSet, ListAppend, Range, Base)
+from fc.fbs.fc.request import (Request, RequestBody, Range, Base,
+                               ListCreate, ListAdd, ListDelete, ListGetRange, ListRemove,
+                               ListRemoveIf, ListIntersect, ListSet, ListAppend, ListInfo)
 from fc.fbs.fc.request import (IntValue, StringValue, FloatValue, Value)
 from fc.fbs.fc.response import (ResponseBody,
                                 ListGetRange as ListGetRangeRsp,
                                 ListIntersect as ListIntersectRsp,
                                 ListAdd as ListAddRsp,
                                 ListAppend as ListAppendRsp,
-                                ListRemoveIf as ListRemoveIfRsp)
+                                ListRemoveIf as ListRemoveIfRsp,
+                                ListInfo as ListInfoRsp)
 
 
 class List(ABC):
@@ -188,6 +190,40 @@ class List(ABC):
     union_body = ListRemoveIfRsp.ListRemoveIf()
     union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
     return union_body.Size()
+
+
+  async def size (self, name:str) -> int:
+    (size, _, __) = await self.info(name)
+    return size
+  
+
+  async def info (self, name:str) -> typing.Tuple[int,str, bool]:
+    raise_if(len(name) == 0, 'name is empty')
+    
+    fb = flatbuffers.Builder(256)
+
+    nameOffset = fb.CreateString(name)
+
+    ListInfo.Start(fb)
+    ListInfo.AddName(fb, nameOffset)
+
+    self._complete_request(fb, ListInfo.End(fb), RequestBody.RequestBody.ListInfo)
+    rsp = await self.client.sendCmd(fb.Output(), ResponseBody.ResponseBody.ListInfo)
+
+    union_body = ListInfoRsp.ListInfo()
+    union_body.Init(rsp.Body().Bytes, rsp.Body().Pos)
+
+    list_type = ''
+    match union_body.Type():
+      case ListType.ListType.Float:
+        list_type = 'float'
+      case ListType.ListType.String:
+        list_type = 'str'
+      case ListType.ListType.Int | ListType.ListType.UInt:  # UInt not possible, but here for completeness
+        list_type = 'int'
+
+    return (union_body.Size(), list_type, union_body.Sorted())
+
 
 
   ### helpers
